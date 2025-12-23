@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ChangeEvent, FocusEvent } from 'react';
+import React from 'react';
 
 /**
  * Label Component

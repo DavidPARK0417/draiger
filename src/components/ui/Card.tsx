@@ -80,7 +80,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ref
   ) => {
     // variant 타입 확인
-    const variant = (props as any).variant || 'basic';
+    const variant = 'variant' in props ? props.variant : 'basic';
     const isStatusCard = variant === 'status';
     const is3DCard = variant === '3d';
 
