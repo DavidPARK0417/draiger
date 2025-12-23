@@ -104,6 +104,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     if (isStatusCard) {
       const statusProps = props as StatusCardProps;
       // variant, status, icon, label을 제외한 HTML 속성 추출
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { variant: _, status: __, icon: ___, label: ____, ...htmlProps } = statusProps;
       const statusConfig = {
         pending: {
@@ -187,6 +188,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       const card3DProps = props as Card3DProps;
       const intensity = card3DProps.intensity || 'normal';
       // variant, intensity를 제외한 HTML 속성 추출
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { variant: _, intensity: __, ...htmlProps } = card3DProps;
       const shadowValue =
         intensity === 'strong'
@@ -242,6 +244,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
 
     // 기본 카드 처리
     // variant를 제외한 HTML 속성 추출
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { variant: _, ...htmlProps } = props as BasicCardProps;
     return (
       <div
