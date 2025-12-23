@@ -437,29 +437,29 @@ export default function AdPerformancePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 text-foreground">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           광고 성과 계산 도구
         </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
           여러 상품의 광고 성과를 비교하고 최적의 상품을 찾아보세요
         </p>
 
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-4 sm:p-6 overflow-x-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8 overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-gray-300 dark:border-gray-700">
-                <th className="text-left p-3 font-semibold text-sm">상품명</th>
-                <th className="text-left p-3 font-semibold text-sm">판매가</th>
-                <th className="text-left p-3 font-semibold text-sm">개당 순이익</th>
-                <th className="text-left p-3 font-semibold text-sm">광고비</th>
-                <th className="text-left p-3 font-semibold text-sm">전환수</th>
-                <th className="text-left p-3 font-semibold text-sm">매출</th>
-                <th className="text-left p-3 font-semibold text-sm">ROAS</th>
-                <th className="text-left p-3 font-semibold text-sm">ROI (%)</th>
-                <th className="text-left p-3 font-semibold text-sm">순이익</th>
-                <th className="text-left p-3 font-semibold text-sm">삭제</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">상품명</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">판매가</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">개당 순이익</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">광고비</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">전환수</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">매출</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">ROAS</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">ROI (%)</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">순이익</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">삭제</th>
               </tr>
             </thead>
             <tbody>
@@ -483,12 +483,12 @@ export default function AdPerformancePage() {
                           value={product.name}
                           onChange={(e) => handleNameChange(product.id, e.target.value)}
                           placeholder="상품명 입력"
-                          className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
+                          className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
                         />
                         <button
                           onClick={() => handleAIEstimate(product.id)}
                           disabled={loadingProductId === product.id || !product.name.trim()}
-                          className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs whitespace-nowrap transition-colors"
+                          className="px-3 py-1 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg"
                           title="AI로 상품 정보 자동 입력"
                         >
                           {loadingProductId === product.id ? 'AI 분석 중...' : '🤖 AI 추정'}
@@ -503,7 +503,7 @@ export default function AdPerformancePage() {
                           handleInputChange(product.id, 'price', e.target.value)
                         }
                         placeholder="0"
-                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
+                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
                       />
                     </td>
                     <td className="p-3">
@@ -518,7 +518,7 @@ export default function AdPerformancePage() {
                           )
                         }
                         placeholder="0"
-                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
+                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
                       />
                     </td>
                     <td className="p-3">
@@ -529,7 +529,7 @@ export default function AdPerformancePage() {
                           handleInputChange(product.id, 'adCost', e.target.value)
                         }
                         placeholder="0"
-                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
+                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
                       />
                     </td>
                     <td className="p-3">
@@ -544,23 +544,23 @@ export default function AdPerformancePage() {
                           )
                         }
                         placeholder="0"
-                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
+                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
                       />
                     </td>
-                    <td className="p-3 text-sm">
+                    <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
                       {result
                         ? result.revenue.toLocaleString('ko-KR')
                         : '-'}
                     </td>
-                    <td className="p-3 text-sm">
+                    <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
                       {result ? `${(result.roas * 100).toFixed(2)}%` : '-'}
                     </td>
-                    <td className="p-3 text-sm">
+                    <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
                       {result
                         ? `${result.roi.toFixed(2)}%`
                         : '-'}
                     </td>
-                    <td className="p-3 text-sm font-semibold">
+                    <td className="p-3 text-sm font-semibold text-gray-900 dark:text-gray-100">
                       {result
                         ? result.netProfit.toLocaleString('ko-KR')
                         : '-'}
@@ -569,7 +569,7 @@ export default function AdPerformancePage() {
                       <button
                         onClick={() => handleDeleteRow(product.id)}
                         disabled={products.length === 1}
-                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                        className="px-3 py-1 bg-red-500 dark:bg-red-600 text-white rounded-xl hover:bg-red-600 dark:hover:bg-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm transition-all duration-300 shadow-md hover:shadow-lg"
                       >
                         삭제
                       </button>
@@ -583,13 +583,13 @@ export default function AdPerformancePage() {
           <div className="mt-6 flex gap-3 flex-wrap">
             <button
               onClick={handleAddRow}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+              className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
             >
               행 추가
             </button>
             <button
               onClick={handleCalculate}
-              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+              className="px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
               계산하기
             </button>
@@ -597,7 +597,7 @@ export default function AdPerformancePage() {
               <button
                 onClick={handleAIAnalysis}
                 disabled={isAnalyzing}
-                className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
+                className="px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 {isAnalyzing ? (
                   <>
@@ -614,14 +614,14 @@ export default function AdPerformancePage() {
           </div>
 
           {isCalculated && bestProductId && (
-            <div className="mt-6 p-4 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg">
-              <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
+            <div className="mt-6 p-4 sm:p-6 bg-amber-100 dark:bg-amber-900/30 border-l-4 border-amber-400 dark:border-amber-600 rounded-xl shadow-md">
+              <p className="text-sm sm:text-base font-semibold text-amber-800 dark:text-amber-200">
                 🏆 최고 순이익 상품:{' '}
-                <span className="text-base">
+                <span className="text-base sm:text-lg">
                   {products.find((p) => p.id === bestProductId)?.name}
                 </span>
               </p>
-              <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+              <p className="text-xs sm:text-sm text-amber-700 dark:text-amber-300 mt-1">
                 순이익:{' '}
                 {calculatedResults
                   .get(bestProductId)
@@ -633,24 +633,24 @@ export default function AdPerformancePage() {
         </div>
 
         {isCalculated && bestProductId && (
-          <div className="mt-6 bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
-            <h2 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-100">
+          <div className="mt-6 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl p-6 sm:p-8 border border-emerald-200 dark:border-emerald-800 shadow-md dark:shadow-gray-900/50">
+            <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-emerald-900 dark:text-emerald-100">
               📊 결과 해석
             </h2>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
-              <p className="text-base leading-relaxed text-gray-800 dark:text-gray-200">
-                <strong className="text-blue-600 dark:text-blue-400">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-700">
+              <p className="text-base sm:text-lg leading-relaxed text-gray-800 dark:text-gray-200">
+                <strong className="text-emerald-600 dark:text-emerald-400">
                   {products.find((p) => p.id === bestProductId)?.name}
                 </strong>
                 이(가){' '}
-                <strong className="text-blue-600 dark:text-blue-400">
+                <strong className="text-emerald-600 dark:text-emerald-400">
                   {calculatedResults
                     .get(bestProductId)
                     ?.netProfit.toLocaleString('ko-KR')}
                   원
                 </strong>
                 의 순이익(ROI:{' '}
-                <strong className="text-blue-600 dark:text-blue-400">
+                <strong className="text-emerald-600 dark:text-emerald-400">
                   {calculatedResults
                     .get(bestProductId)
                     ?.roi.toFixed(2)}%
@@ -683,14 +683,14 @@ export default function AdPerformancePage() {
         )}
 
         {aiAnalysis && (
-          <div className="mt-6 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-lg p-6 border border-purple-200 dark:border-purple-800">
-            <h2 className="text-2xl font-bold mb-4 text-purple-900 dark:text-purple-100 flex items-center gap-2">
+          <div className="mt-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-2xl p-6 sm:p-8 border border-emerald-200 dark:border-emerald-800 shadow-md dark:shadow-gray-900/50">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
               🤖 AI 종합 분석 결과
             </h2>
             
             {/* 비교 분석 시각화 섹션 */}
-            <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg p-6 border border-purple-200 dark:border-purple-700">
-              <h3 className="text-xl font-semibold mb-4 text-foreground">
+            <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-700">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
                 📊 상품별 성과 비교
               </h3>
               
@@ -699,11 +699,11 @@ export default function AdPerformancePage() {
                 <table className="w-full border-collapse text-sm">
                   <thead>
                     <tr className="border-b border-gray-300 dark:border-gray-700">
-                      <th className="text-left p-3 font-semibold">상품명</th>
-                      <th className="text-right p-3 font-semibold">순이익</th>
-                      <th className="text-right p-3 font-semibold">ROI</th>
-                      <th className="text-right p-3 font-semibold">ROAS</th>
-                      <th className="text-right p-3 font-semibold">매출</th>
+                      <th className="text-left p-3 font-semibold text-gray-900 dark:text-gray-100">상품명</th>
+                      <th className="text-right p-3 font-semibold text-gray-900 dark:text-gray-100">순이익</th>
+                      <th className="text-right p-3 font-semibold text-gray-900 dark:text-gray-100">ROI</th>
+                      <th className="text-right p-3 font-semibold text-gray-900 dark:text-gray-100">ROAS</th>
+                      <th className="text-right p-3 font-semibold text-gray-900 dark:text-gray-100">매출</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -719,20 +719,20 @@ export default function AdPerformancePage() {
                             isBest ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''
                           }`}
                         >
-                          <td className="p-3 font-medium">
+                          <td className="p-3 font-medium text-gray-900 dark:text-gray-100">
                             {product.name}
-                            {isBest && <span className="ml-2 text-yellow-600">🏆</span>}
+                            {isBest && <span className="ml-2 text-yellow-600 dark:text-yellow-400">🏆</span>}
                           </td>
-                          <td className="p-3 text-right">
+                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">
                             {result.netProfit.toLocaleString('ko-KR')}원
                           </td>
-                          <td className="p-3 text-right">
+                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">
                             {result.roi.toFixed(2)}%
                           </td>
-                          <td className="p-3 text-right">
+                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">
                             {result.roas.toFixed(2)}배
                           </td>
-                          <td className="p-3 text-right">
+                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">
                             {result.revenue.toLocaleString('ko-KR')}원
                           </td>
                         </tr>
@@ -744,7 +744,7 @@ export default function AdPerformancePage() {
 
               {/* CSS 기반 막대 차트 - 순이익 비교 */}
               <div className="mb-6">
-                <h4 className="text-lg font-semibold mb-3 text-foreground">
+                <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                   순이익 비교
                 </h4>
                 <div className="space-y-3">
@@ -761,11 +761,11 @@ export default function AdPerformancePage() {
                     return (
                       <div key={product.id} className="space-y-1">
                         <div className="flex justify-between text-sm">
-                          <span className="font-medium">
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
                             {product.name}
                             {isBest && <span className="ml-1">🏆</span>}
                           </span>
-                          <span className="text-gray-600 dark:text-gray-400">
+                          <span className="text-gray-600 dark:text-gray-300">
                             {result.netProfit.toLocaleString('ko-KR')}원
                           </span>
                         </div>
@@ -787,7 +787,7 @@ export default function AdPerformancePage() {
 
               {/* CSS 기반 막대 차트 - ROI 비교 */}
               <div className="mb-6">
-                <h4 className="text-lg font-semibold mb-3 text-foreground">
+                <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                   ROI 비교
                 </h4>
                 <div className="space-y-3">
@@ -804,11 +804,11 @@ export default function AdPerformancePage() {
                     return (
                       <div key={product.id} className="space-y-1">
                         <div className="flex justify-between text-sm">
-                          <span className="font-medium">
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
                             {product.name}
                             {isBest && <span className="ml-1">🏆</span>}
                           </span>
-                          <span className="text-gray-600 dark:text-gray-400">
+                          <span className="text-gray-600 dark:text-gray-300">
                             {result.roi.toFixed(2)}%
                           </span>
                         </div>
@@ -830,7 +830,7 @@ export default function AdPerformancePage() {
 
               {/* Recharts를 사용한 고급 차트 */}
               <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="text-xl font-semibold mb-4 text-foreground">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
                   📈 상세 차트 분석
                 </h3>
                 
@@ -857,7 +857,7 @@ export default function AdPerformancePage() {
                     <div className="space-y-6">
                       {/* 막대 차트 - 순이익 및 ROI */}
                       <div>
-                        <h4 className="text-lg font-semibold mb-3 text-foreground">
+                        <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                           순이익 및 ROI 비교
                         </h4>
                         <ResponsiveContainer width="100%" height={300}>
@@ -923,7 +923,7 @@ export default function AdPerformancePage() {
 
                       {/* 선 그래프 - 매출 및 광고비 */}
                       <div>
-                        <h4 className="text-lg font-semibold mb-3 text-foreground">
+                        <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                           매출 및 광고비 추이
                         </h4>
                         <ResponsiveContainer width="100%" height={300}>
@@ -974,7 +974,7 @@ export default function AdPerformancePage() {
 
                       {/* 원형 차트 - 순이익 비율 */}
                       <div>
-                        <h4 className="text-lg font-semibold mb-3 text-foreground">
+                        <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                           순이익 비율 분포
                         </h4>
                         <ResponsiveContainer width="100%" height={300}>
@@ -1024,8 +1024,8 @@ export default function AdPerformancePage() {
           </div>
         )}
 
-        <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 sm:p-6">
-          <h2 className="text-xl font-semibold mb-3 text-foreground">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-gray-100">
             계산 공식 안내
           </h2>
           <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">

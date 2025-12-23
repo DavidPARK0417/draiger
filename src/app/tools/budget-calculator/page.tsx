@@ -345,7 +345,7 @@ export default function BudgetCalculatorPage() {
   ].filter(item => item.value > 0);
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-2 text-foreground">
           광고 예산 계산기
@@ -354,7 +354,7 @@ export default function BudgetCalculatorPage() {
           목표 전환수와 CPC를 기반으로 필요한 광고 예산을 계산하세요
         </p>
 
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 sm:p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium mb-2 text-foreground">
@@ -374,7 +374,7 @@ export default function BudgetCalculatorPage() {
                 <button
                   onClick={handleAIEstimate}
                   disabled={isLoading || !productName.trim()}
-                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium whitespace-nowrap"
+                  className="px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium whitespace-nowrap shadow-md hover:shadow-lg"
                   title="AI로 광고 예산 정보 자동 입력"
                 >
                   {isLoading ? 'AI 분석 중...' : '🤖 AI 추정'}
@@ -436,7 +436,7 @@ export default function BudgetCalculatorPage() {
 
             <button
               onClick={handleCalculate}
-              className="w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+              className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
               계산하기
             </button>
@@ -444,7 +444,7 @@ export default function BudgetCalculatorPage() {
 
           {(targetConversions > 0 || cpc > 0 || conversionRate > 0) && (
             <div className="mt-8 space-y-4">
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-md">
                 <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                   계산 결과
                 </h3>
@@ -469,7 +469,7 @@ export default function BudgetCalculatorPage() {
                 <button
                   onClick={handleAIAnalysis}
                   disabled={isAnalyzing}
-                  className="w-full px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+                  className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5"
                 >
                   {isAnalyzing ? (
                     <>
@@ -613,7 +613,7 @@ export default function BudgetCalculatorPage() {
           )}
         </div>
 
-        <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 sm:p-6">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
           <h2 className="text-xl font-semibold mb-3 text-foreground">
             계산 공식 안내
           </h2>

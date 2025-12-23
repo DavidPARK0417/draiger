@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F8F9FA;
+  --foreground: #111827;
+  
+  /* Primary Color: Emerald Green */
+  --primary: #10B981;
+  --primary-hover: #059669;
+  --primary-active: #047857;
+  
+  /* Neutral Colors */
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  --bg-page: #F8F9FA;
+  --bg-card: #FFFFFF;
+  --border-light: #E5E7EB;
+  --border-medium: #D1D5DB;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* 다크모드는 next-themes를 통해 클래스 기반으로 관리 */
+.dark {
+  --background: #111827;
+  --foreground: #F9FAFB;
+  --text-primary: #F9FAFB;
+  --text-secondary: #D1D5DB;
+  --text-tertiary: #9CA3AF;
+  --bg-page: #111827;
+  --bg-card: #1F2937;
+  --border-light: #374151;
+  --border-medium: #4B5563;
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* color 속성 제거 - Tailwind 클래스가 우선 적용되도록 함 */
+  font-family: var(--font-sans);
 }

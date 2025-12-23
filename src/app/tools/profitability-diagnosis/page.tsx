@@ -485,7 +485,7 @@ export default function ProfitabilityDiagnosisPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-2 text-foreground">
           마케팅 수익성 진단 도구
@@ -496,7 +496,7 @@ export default function ProfitabilityDiagnosisPage() {
 
         <div className="space-y-8">
           {/* 공통 상품명 입력 */}
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 sm:p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-foreground">
                 상품명
@@ -515,7 +515,7 @@ export default function ProfitabilityDiagnosisPage() {
           </div>
 
           {/* 1단계: 목표 CPA 계산기 */}
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 sm:p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
             <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-foreground">
                 1단계: 목표 CPA 계산기
@@ -534,7 +534,7 @@ export default function ProfitabilityDiagnosisPage() {
                   <button
                     onClick={handleAIEstimateStep1}
                     disabled={isLoadingStep1 || !productName.trim()}
-                    className="px-3 py-1.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-xs whitespace-nowrap"
+                    className="px-3 py-1.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 text-xs whitespace-nowrap shadow-md hover:shadow-lg"
                     title="AI로 1단계 정보 자동 입력"
                   >
                     {isLoadingStep1 ? 'AI 분석 중...' : '🤖 AI 추정'}
@@ -572,7 +572,7 @@ export default function ProfitabilityDiagnosisPage() {
 
               <button
                 onClick={handleCalculateCPA}
-                className="w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 계산하기
               </button>
@@ -580,7 +580,7 @@ export default function ProfitabilityDiagnosisPage() {
 
             {(sellingPrice > 0 || cost > 0) && (
               <div className="mt-8 space-y-4">
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-md">
                   <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                     계산 결과
                   </h3>
@@ -598,7 +598,7 @@ export default function ProfitabilityDiagnosisPage() {
               </div>
             )}
 
-            <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 sm:p-6">
+            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
               <h3 className="text-lg font-semibold mb-3 text-foreground">
                 계산 공식 안내
               </h3>
@@ -616,7 +616,7 @@ export default function ProfitabilityDiagnosisPage() {
           </div>
 
           {/* 2단계: LTV 계산기 */}
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 sm:p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
             <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-foreground">
                 2단계: LTV 계산기
@@ -635,7 +635,7 @@ export default function ProfitabilityDiagnosisPage() {
                   <button
                     onClick={handleAIEstimateStep2}
                     disabled={isLoadingStep2 || !productName.trim()}
-                    className="px-3 py-1.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-xs whitespace-nowrap"
+                    className="px-3 py-1.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 text-xs whitespace-nowrap shadow-md hover:shadow-lg"
                     title="AI로 2단계 정보 자동 입력"
                   >
                     {isLoadingStep2 ? 'AI 분석 중...' : '🤖 AI 추정'}
@@ -679,7 +679,7 @@ export default function ProfitabilityDiagnosisPage() {
 
               <button
                 onClick={handleCalculateLTV}
-                className="w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 계산하기
               </button>
@@ -687,7 +687,7 @@ export default function ProfitabilityDiagnosisPage() {
 
             {(orderAmount > 0 || purchaseFrequency > 0) && (
               <div className="mt-8 space-y-4">
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-md">
                   <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                     계산 결과
                   </h3>
@@ -705,7 +705,7 @@ export default function ProfitabilityDiagnosisPage() {
               </div>
             )}
 
-            <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 sm:p-6">
+            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
               <h3 className="text-lg font-semibold mb-3 text-foreground">
                 계산 공식 안내
               </h3>
@@ -723,7 +723,7 @@ export default function ProfitabilityDiagnosisPage() {
           </div>
 
           {/* 3단계: LTV:CAC 비율 계산기 */}
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 sm:p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
             <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-foreground">
                 3단계: LTV:CAC 비율 계산기
@@ -750,7 +750,7 @@ export default function ProfitabilityDiagnosisPage() {
                   <button
                     onClick={handleAIEstimateStep3}
                     disabled={isLoadingStep3 || !productName.trim()}
-                    className="px-3 py-1.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-xs whitespace-nowrap"
+                    className="px-3 py-1.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 text-xs whitespace-nowrap shadow-md hover:shadow-lg"
                     title="AI로 3단계 정보 자동 입력"
                   >
                     {isLoadingStep3 ? 'AI 분석 중...' : '🤖 AI 추정'}
@@ -794,7 +794,7 @@ export default function ProfitabilityDiagnosisPage() {
 
               <button
                 onClick={handleCalculateRatio}
-                className="w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 계산하기
               </button>
@@ -828,7 +828,7 @@ export default function ProfitabilityDiagnosisPage() {
               </div>
             )}
 
-            <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 sm:p-6">
+            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
               <h3 className="text-lg font-semibold mb-3 text-foreground">
                 계산 공식 안내
               </h3>

@@ -75,3 +75,865 @@ fix(orders): 주문 상세 페이지 로딩 오류 수정
 **REMEMBER: Always use KOREAN for commit message descriptions!**
 **기억하세요: 커밋 메시지 설명은 항상 한글로 작성해야 합니다!**
 
+
+---
+
+**REMEMBER: Always use KOREAN for commit message descriptions!**
+**기억하세요: 커밋 메시지 설명은 항상 한글로 작성해야 합니다!**
+
+---
+
+---
+
+# 반응형 디자인 & 다크모드 필수 규칙 (Responsive Design & Dark Mode Requirements)
+
+## 🚨 CRITICAL: 반응형 디자인 필수 구현
+
+**모든 페이지와 컴포넌트는 반드시 다음 4가지 화면 크기에 대해 반응형으로 구현되어야 합니다:**
+
+1. **모바일 (Mobile)**: 320px ~ 639px
+2. **태블릿 (Tablet)**: 640px ~ 1023px  
+3. **노트북 (Laptop)**: 1024px ~ 1279px
+4. **데스크탑 (Desktop)**: 1280px 이상
+
+### 반응형 구현 규칙
+
+**모든 컴포넌트와 페이지는 Mobile First 방식으로 작성해야 하며, 각 브레이크포인트에서 최적화된 레이아웃을 제공해야 합니다.**
+
+✅ CORRECT:
+// 그리드 레이아웃 예시
+<div className="
+  grid grid-cols-1          // 모바일: 1열
+  sm:grid-cols-2            // 태블릿 (640px+): 2열
+  lg:grid-cols-3            // 노트북 (1024px+): 3열
+  xl:grid-cols-4            // 데스크탑 (1280px+): 4열
+  gap-4 sm:gap-6 lg:gap-8   // 반응형 간격
+">
+  {/* 컨텐츠 */}
+</div>
+
+// 타이포그래피 예시
+<h1 className="
+  text-xl              // 모바일: 20px
+  sm:text-2xl          // 태블릿: 24px
+  lg:text-3xl          // 노트북: 30px
+  xl:text-4xl          // 데스크탑: 36px
+  font-bold
+">
+  제목
+</h1>
+
+// 패딩/마진 예시
+<div className="
+  p-4                  // 모바일: 16px
+  sm:p-6               // 태블릿: 24px
+  lg:p-8               // 노트북: 32px
+  xl:p-12              // 데스크탑: 48px
+">
+  컨텐츠
+</div>
+
+// 네비게이션 예시
+<nav className="
+  flex-col              // 모바일: 세로 배치
+  sm:flex-row           // 태블릿: 가로 배치
+  gap-2 sm:gap-4
+">
+  {/* 메뉴 아이템 */}
+</nav>### 브레이크포인트 정의
+
+**Tailwind CSS 브레이크포인트를 사용하며, 다음 기준을 따릅니다:**
+
+- `sm:` (640px+): 태블릿 세로 모드
+- `md:` (768px+): 태블릿 가로 모드
+- `lg:` (1024px+): 노트북
+- `xl:` (1280px+): 데스크탑
+- `2xl:` (1536px+): 대형 데스크탑
+
+### 반응형 체크리스트
+
+**새로운 페이지나 컴포넌트를 만들 때 다음을 확인하세요:**
+
+- [ ] 모바일 (320px)에서 레이아웃이 깨지지 않는가?
+- [ ] 태블릿 (768px)에서 최적화된 레이아웃을 제공하는가?
+- [ ] 노트북 (1024px)에서 적절한 컬럼 수를 사용하는가?
+- [ ] 데스크탑 (1280px+)에서 여백과 간격이 적절한가?
+- [ ] 모든 화면 크기에서 텍스트가 읽기 쉬운가?
+- [ ] 터치 영역이 모바일에서 최소 44x44px인가?
+- [ ] 이미지와 미디어가 반응형인가?
+- [ ] 테이블이 작은 화면에서 스크롤 가능한가?
+
+---
+
+## 🌓 CRITICAL: 다크모드 필수 구현
+
+**모든 페이지와 컴포넌트는 반드시 라이트모드와 다크모드를 모두 지원해야 합니다.**
+
+### 다크모드 구현 규칙
+
+**Tailwind CSS의 `dark:` 접두사를 사용하여 다크모드를 구현합니다.**
+
+✅ CORRECT:
+// 배경색 예시
+<div className="
+  bg-white dark:bg-gray-900
+  text-gray-900 dark:text-gray-100
+">
+  컨텐츠
+</div>
+
+// 카드 예시
+<div className="
+  bg-white dark:bg-gray-800
+  text-gray-900 dark:text-gray-100
+  border border-gray-200 dark:border-gray-700
+  shadow-md dark:shadow-gray-900/50
+  rounded-2xl
+  p-6
+">
+  카드 내용
+</div>
+
+// 버튼 예시
+<button className="
+  bg-emerald-500 hover:bg-emerald-600
+  dark:bg-emerald-600 dark:hover:bg-emerald-700
+  text-white
+  px-4 py-2.5 rounded-xl
+  transition-all duration-300
+">
+  확인
+</button>
+
+// 입력 필드 예시
+<input
+  type="text"
+  className="
+    w-full px-4 py-2.5
+    bg-white dark:bg-gray-800
+    text-gray-900 dark:text-gray-100
+    border border-gray-300 dark:border-gray-600
+    rounded-lg
+    focus:ring-2 focus:ring-emerald-500
+    dark:focus:ring-emerald-400
+    placeholder:text-gray-400 dark:placeholder:text-gray-500
+  "
+/>
+
+// 텍스트 계층 예시
+<h1 className="text-gray-900 dark:text-gray-100">제목</h1>
+<p className="text-gray-600 dark:text-gray-400">본문</p>
+<span className="text-gray-400 dark:text-gray-500">보조 텍스트</span>### 다크모드 색상 매핑
+
+**라이트모드와 다크모드 색상 매핑 규칙:**
+
+| 요소 | 라이트모드 | 다크모드 |
+|------|-----------|---------|
+| 페이지 배경 | `bg-gray-50` | `dark:bg-gray-900` |
+| 카드 배경 | `bg-white` | `dark:bg-gray-800` |
+| 주요 텍스트 | `text-gray-900` | `dark:text-gray-100` |
+| 본문 텍스트 | `text-gray-600` | `dark:text-gray-400` |
+| 보조 텍스트 | `text-gray-400` | `dark:text-gray-500` |
+| 테두리 | `border-gray-200` | `dark:border-gray-700` |
+| 입력 필드 배경 | `bg-white` | `dark:bg-gray-800` |
+| 입력 필드 테두리 | `border-gray-300` | `dark:border-gray-600` |
+| 그림자 | `shadow-md` | `dark:shadow-gray-900/50` |
+
+### Primary 색상 다크모드 적용
+
+**Emerald Green Primary 색상은 다크모드에서도 동일하게 사용하되, 약간 더 밝은 톤을 사용합니다:**
+
+✅ CORRECT:
+// Primary 버튼
+<button className="
+  bg-emerald-500 hover:bg-emerald-600
+  dark:bg-emerald-600 dark:hover:bg-emerald-500
+  text-white
+">
+  확인
+</button>
+
+// Primary 링크
+<a className="
+  text-emerald-500 hover:text-emerald-600
+  dark:text-emerald-400 dark:hover:text-emerald-300
+">
+  링크
+</a>
+
+// Primary 강조
+<span className="
+  text-emerald-500
+  dark:text-emerald-400
+">
+  강조 텍스트
+</span>### 다크모드 토글 구현
+
+**다크모드 토글은 `next-themes` 라이브러리를 사용하여 구현합니다.**
+
+✅ CORRECT:x
+// app/layout.tsx 또는 _app.tsx
+import { ThemeProvider } from 'next-themes';
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="ko" suppressHydrationWarning>
+      <body>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
+
+// 다크모드 토글 버튼 컴포넌트
+'use client';
+import { useTheme } from 'next-themes';
+import { Moon, Sun } from 'lucide-react';
+
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <button
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      className="
+        p-2 rounded-xl
+        bg-gray-100 dark:bg-gray-800
+        text-gray-900 dark:text-gray-100
+        hover:bg-gray-200 dark:hover:bg-gray-700
+        transition-colors duration-300
+      "
+    >
+      {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+    </button>
+  );
+}### 다크모드 체크리스트
+
+**새로운 페이지나 컴포넌트를 만들 때 다음을 확인하세요:**
+
+- [ ] 모든 배경색에 다크모드 변형이 있는가? (`dark:bg-*`)
+- [ ] 모든 텍스트 색상에 다크모드 변형이 있는가? (`dark:text-*`)
+- [ ] 모든 테두리에 다크모드 변형이 있는가? (`dark:border-*`)
+- [ ] 모든 그림자에 다크모드 변형이 있는가? (`dark:shadow-*`)
+- [ ] 입력 필드가 다크모드에서도 잘 보이는가?
+- [ ] 버튼이 다크모드에서도 적절한 대비를 가지는가?
+- [ ] 이미지와 아이콘이 다크모드에서도 잘 보이는가?
+- [ ] 다크모드에서 색상 대비가 WCAG 기준을 만족하는가?
+
+---
+
+## 🔄 반응형 + 다크모드 통합 예시
+
+**실제 컴포넌트에서는 반응형과 다크모드를 함께 구현합니다:**
+
+✅ CORRECT:
+export function ProductCard({ product }) {
+  return (
+    <div className="
+      // 반응형 그리드
+      grid grid-cols-1
+      sm:grid-cols-2
+      lg:grid-cols-3
+      xl:grid-cols-4
+      gap-4 sm:gap-6
+      
+      // 다크모드 배경
+      bg-white dark:bg-gray-800
+      
+      // 다크모드 텍스트
+      text-gray-900 dark:text-gray-100
+      
+      // 다크모드 테두리
+      border border-gray-200 dark:border-gray-700
+      
+      // 다크모드 그림자
+      shadow-md dark:shadow-gray-900/50
+      
+      // 반응형 패딩
+      p-4 sm:p-6 lg:p-8
+      
+      // 반응형 모서리
+      rounded-xl sm:rounded-2xl
+      
+      // 호버 효과 (다크모드 포함)
+      hover:shadow-xl dark:hover:shadow-gray-900/70
+      transition-all duration-300
+    ">
+      <h3 className="
+        text-lg sm:text-xl lg:text-2xl
+        font-bold
+        text-gray-900 dark:text-gray-100
+      ">
+        {product.name}
+      </h3>
+      <p className="
+        text-sm sm:text-base
+        text-gray-600 dark:text-gray-400
+      ">
+        {product.description}
+      </p>
+      <button className="
+        w-full
+        mt-4
+        bg-emerald-500 hover:bg-emerald-600
+        dark:bg-emerald-600 dark:hover:bg-emerald-500
+        text-white
+        px-4 py-2.5
+        sm:px-6 sm:py-3
+        rounded-xl
+        transition-all duration-300
+      ">
+        구매하기
+      </button>
+    </div>
+  );
+}---
+
+## 🚫 금지 사항
+
+**다음은 절대 사용하지 마세요:**
+
+❌ 금지:
+- 다크모드 없이 라이트모드만 구현
+- 고정된 너비 사용 (`w-[800px]` 등, 반응형이 아닌 경우)
+- 모바일에서만 작동하는 레이아웃 (태블릿/데스크탑 미지원)
+- `dark:` 접두사 없이 색상만 사용
+- 하드코딩된 색상 값 (`bg-[#ffffff]` 등, 다크모드 변형 없음)
+- 미디어 쿼리 직접 사용 (Tailwind 브레이크포인트 사용 권장)
+
+---
+
+## 📋 최종 체크리스트
+
+**새로운 페이지나 기능을 구현할 때 반드시 확인하세요:**
+
+### 반응형 체크리스트
+- [ ] 모바일 (320px+) 레이아웃 구현
+- [ ] 태블릿 (640px+) 레이아웃 구현
+- [ ] 노트북 (1024px+) 레이아웃 구현
+- [ ] 데스크탑 (1280px+) 레이아웃 구현
+- [ ] 모든 화면 크기에서 테스트 완료
+
+### 다크모드 체크리스트
+- [ ] 라이트모드 스타일 구현
+- [ ] 다크모드 스타일 구현 (`dark:` 접두사 사용)
+- [ ] 다크모드 토글 기능 구현
+- [ ] 다크모드에서 색상 대비 확인
+- [ ] 다크모드에서 모든 요소 가시성 확인
+
+---
+
+**REMEMBER: 모든 페이지와 컴포넌트는 반드시 반응형 디자인과 다크모드를 함께 구현해야 합니다!**
+**기억하세요: 모바일/태블릿/노트북/데스크탑 모든 화면 크기와 라이트/다크 모드를 지원해야 합니다!**
+
+---
+
+
+
+# 디자인 시스템 규칙 (Design System Rules)
+
+## 🎨 CRITICAL: 디자인 시스템 준수
+
+**모든 새로운 페이지와 컴포넌트는 반드시 `docs/design-handoff_D`에 정의된 디자인 시스템을 따라야 합니다.**
+
+참고 문서:
+- 디자인 시스템 명세서: `docs/design-handoff_D/00-guides/DESIGN_SYSTEM.md`
+- 디자인 적용 계획: `docs/디자인-적용-계획.md`
+- 디자인 토큰: `docs/design-handoff_D/01-design-tokens/`
+
+---
+
+## 1. 색상 시스템 (Color System)
+
+### Primary 색상: Emerald Green (#10B981)
+
+**모든 주요 버튼, 강조 요소, 활성 상태에는 Emerald Green을 사용해야 합니다.**
+
+✅ CORRECT:
+// Primary 버튼
+<button className="bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white">
+  확인
+</button>
+
+// 활성 링크
+<Link className="bg-emerald-500 text-white">홈</Link>
+
+// 강조 텍스트
+<span className="text-emerald-500 font-semibold">성공</span>❌ INCORRECT:
+// Blue 색상 사용 금지 (레거시)
+<button className="bg-blue-500">확인</button>
+<Link className="bg-blue-500">홈</Link>
+### Secondary 색상: Amber Yellow (#FBBF24)
+
+**대기/경고 상태, 보조 강조에만 사용합니다.**
+
+✅ CORRECT:
+// 경고 상태
+<div className="bg-amber-100 border-l-4 border-amber-400">
+  대기중입니다
+</div>
+
+// 보조 버튼
+<button className="bg-amber-400 hover:bg-amber-500">
+  더 알아보기
+</button>### Danger 색상: Red (#EF4444)
+
+**오류, 삭제, 위험한 액션에만 사용합니다.**
+
+✅ CORRECT:x
+// 삭제 버튼
+<button className="bg-red-500 hover:bg-red-600 text-white">
+  삭제
+</button>
+
+// 에러 메시지
+<div className="bg-red-50 border-l-4 border-red-500">
+  <p className="text-red-800">오류가 발생했습니다</p>
+</div>### Neutral 색상: Gray Scale
+
+**텍스트, 배경, 테두리에 사용합니다.**
+
+✅ CORRECT:x
+// 텍스트 계층
+<h1 className="text-gray-900">제목</h1>
+<p className="text-gray-600">본문</p>
+<span className="text-gray-400">보조 텍스트</span>
+
+// 배경
+<div className="bg-gray-50">페이지 배경</div>
+<div className="bg-white">카드 배경</div>
+
+// 테두리
+<input className="border border-gray-300" />---
+
+## 2. 타이포그래피 (Typography)
+
+### 폰트: Pretendard Variable
+
+**모든 텍스트는 Pretendard Variable 폰트를 사용해야 합니다.**
+
+✅ CORRECT:
+// 기본적으로 font-sans는 Pretendard로 설정됨
+<h1 className="font-sans text-2xl font-bold">제목</h1>
+<p className="font-sans text-base">본문</p>### 폰트 크기 계층
+
+**폰트 크기는 다음 계층을 따라야 합니다:**
+
+- `text-xs` (12px): 작은 라벨, 보조 텍스트
+- `text-sm` (14px): 테이블 데이터, 폼 라벨
+- `text-base` (16px): 본문 텍스트 (기본)
+- `text-lg` (18px): 강조 텍스트, 부제목
+- `text-xl` (20px): 섹션 제목
+- `text-2xl` (24px): 페이지 제목
+- `text-3xl` (30px): 메인 헤딩
+
+✅ CORRECT:
+<h1 className="text-2xl font-bold leading-tight">페이지 제목</h1>
+<h2 className="text-xl font-bold leading-tight">섹션 제목</h2>
+<h3 className="text-lg font-semibold">서브섹션 제목</h3>
+<p className="text-base">본문 텍스트</p>
+<label className="text-sm font-medium">라벨</label>
+<span className="text-xs text-gray-500">보조 텍스트</span>---
+
+## 3. 컴포넌트 스타일 (Component Styles)
+
+### 버튼 (Button)
+
+**모든 버튼은 다음 스타일을 따라야 합니다:**
+
+✅ CORRECT:
+// Primary 버튼
+<button className="
+  bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700
+  text-white font-medium
+  px-4 py-2.5 rounded-xl
+  shadow-md hover:shadow-lg active:shadow
+  transition-all duration-300
+  hover:-translate-y-0.5 active:scale-98
+">
+  확인
+</button>
+
+// Secondary 버튼
+<button className="
+  bg-gray-100 hover:bg-gray-200
+  text-gray-700 font-medium
+  px-4 py-2.5 rounded-xl
+  border border-gray-300
+  transition-colors duration-300
+">
+  취소
+</button>
+
+// Ghost 버튼
+<button className="
+  bg-transparent hover:bg-emerald-50
+  text-emerald-500 font-medium
+  px-4 py-2.5 rounded-xl
+  border border-gray-300
+  transition-colors duration-300
+">
+  더보기
+</button>
+
+// Danger 버튼
+<button className="
+  bg-red-500 hover:bg-red-600
+  text-white font-medium
+  px-4 py-2.5 rounded-xl
+  shadow-md hover:shadow-lg
+  transition-all duration-300
+">
+  삭제
+</button>**버튼 규칙:**
+- 모서리: `rounded-xl` (12px) 사용
+- 트랜지션: `transition-all duration-300` 필수
+- 호버 효과: `hover:-translate-y-0.5` 또는 `hover:shadow-lg`
+- 액티브 효과: `active:scale-98`
+
+### 카드 (Card)
+
+**모든 카드는 다음 스타일을 따라야 합니다:**
+
+✅ CORRECT:
+// 기본 카드
+<div className="
+  bg-white rounded-2xl
+  shadow-md hover:shadow-xl
+  p-6
+  transition-all duration-300 hover:-translate-y-1
+">
+  <h3 className="text-lg font-semibold mb-2">카드 제목</h3>
+  <p className="text-gray-600">카드 내용</p>
+</div>
+
+// 3D 효과 카드 (특별한 경우)
+<div className="
+  bg-white rounded-3xl
+  shadow-[0_20px_50px_rgba(16,185,129,0.15)]
+  hover:shadow-[0_20px_50px_rgba(16,185,129,0.2)]
+  p-6
+  transition-all duration-300 hover:-translate-y-2
+">
+  프리미엄 카드
+</div>**카드 규칙:**
+- 모서리: `rounded-2xl` (16px) 또는 `rounded-3xl` (24px)
+- 패딩: `p-6` (24px) 기본
+- 그림자: `shadow-md` 기본, 호버 시 `shadow-xl`
+- 호버 효과: `hover:-translate-y-1` 필수
+
+### 입력 필드 (Input)
+
+**모든 입력 필드는 다음 스타일을 따라야 합니다:**
+
+✅ CORRECT:
+// 기본 입력 필드
+<input
+  type="text"
+  className="
+    w-full px-4 py-2.5
+    border border-gray-300 rounded-lg
+    text-gray-900 text-base
+    focus:outline-none
+    focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2
+    placeholder:text-gray-400
+    transition-colors duration-150
+    disabled:bg-gray-100 disabled:cursor-not-allowed
+  "
+/>
+
+// 에러 상태
+<input
+  type="text"
+  className="
+    w-full px-4 py-2.5
+    border-2 border-red-500 rounded-lg
+    focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+  "
+/>**입력 필드 규칙:**
+- 모서리: `rounded-lg` (8px)
+- 패딩: `px-4 py-2.5`
+- 포커스 링: `focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2`
+- 에러 상태: `border-red-500`
+
+### 폼 (Form)
+
+✅ CORRECT:
+<div className="space-y-4">
+  <div className="space-y-2">
+    <label className="text-sm font-medium text-gray-900">
+      라벨
+    </label>
+    <input className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" />
+    <p className="text-xs text-gray-500">도움말 텍스트</p>
+  </div>
+</div>**폼 규칙:**
+- 라벨: `text-sm font-medium`
+- 필드 간격: `gap-4` (16px)
+- 섹션 간격: `gap-8` (32px)
+
+---
+
+## 4. 간격 시스템 (Spacing System)
+
+**모든 간격은 4px 단위를 사용합니다 (Tailwind 기본 시스템).**
+
+✅ CORRECT:x
+// 패딩
+<div className="p-4">16px</div>
+<div className="px-4 py-2">좌우 16px, 위아래 8px</div>
+
+// 마진
+<div className="mt-4 mb-6">위 16px, 아래 24px</div>
+
+// Gap
+<div className="flex gap-4">자식 요소 간 16px</div>
+<div className="grid gap-6">그리드 아이템 간 24px</div>**표준 간격:**
+- 버튼 패딩: `px-4 py-2.5` (기본)
+- 카드 패딩: `p-6` (24px)
+- 폼 필드 간격: `gap-4` (16px)
+- 섹션 간격: `gap-8` (32px)
+
+---
+
+## 5. 그림자 & 효과 (Shadows & Effects)
+
+**그림자와 효과는 다음 규칙을 따라야 합니다:**
+
+✅ CORRECT:
+// 기본 카드 그림자
+<div className="shadow-md">기본 카드</div>
+
+// 호버 카드 그림자
+<div className="shadow-md hover:shadow-xl">호버 효과</div>
+
+// 3D 효과 (특별한 경우)
+<div className="shadow-[0_20px_50px_rgba(16,185,129,0.15)]">
+  3D 카드
+</div>
+
+// 트랜지션
+<div className="transition-all duration-300">부드러운 전환</div>**트랜지션 규칙:**
+- 기본: `transition-all duration-300`
+- 색상만: `transition-colors duration-300`
+- 빠른 전환: `duration-150` (클릭 등)
+
+---
+
+## 6. 인터랙션 & 애니메이션 (Interactions & Animations)
+
+**모든 인터랙티브 요소는 다음 효과를 포함해야 합니다:**
+
+✅ CORRECT:
+// 버튼 호버
+<button className="
+  hover:bg-emerald-600
+  hover:shadow-lg
+  hover:-translate-y-0.5
+  transition-all duration-300
+">
+  버튼
+</button>
+
+// 카드 호버
+<div className="
+  hover:shadow-xl
+  hover:-translate-y-1
+  transition-all duration-300
+">
+  카드
+</div>
+
+// 포커스 링
+<input className="
+  focus:ring-2
+  focus:ring-emerald-500
+  focus:ring-offset-2
+  transition-colors duration-150
+" />**인터랙션 규칙:**
+- 호버: 색상 변경 + 그림자 강화 + 약간의 이동
+- 포커스: 링 효과 (`ring-2 ring-emerald-500`)
+- 액티브: `active:scale-98` (버튼 클릭 시)
+
+---
+
+## 7. 반응형 디자인 (Responsive Design)
+
+**모든 레이아웃은 Mobile First 접근 방식을 사용해야 합니다.**
+
+✅ CORRECT:
+// Mobile First 방식
+<div className="
+  grid grid-cols-1          // 모바일: 1열
+  md:grid-cols-2            // 태블릿: 2열
+  lg:grid-cols-3            // 데스크톱: 3열
+  gap-4                     // 기본 간격
+">
+  <div>카드 1</div>
+  <div>카드 2</div>
+  <div>카드 3</div>
+</div>
+
+// 반응형 타이포그래피
+<h1 className="
+  text-xl              // 모바일: 20px
+  sm:text-2xl          // 태블릿: 24px
+  lg:text-3xl          // 데스크톱: 30px
+  font-bold
+">
+  제목
+</h1>
+
+// 반응형 패딩
+<div className="
+  p-4                  // 모바일: 16px
+  lg:p-8               // 데스크톱: 32px
+">
+  컨텐츠
+</div>
+**반응형 규칙:**
+- Mobile First: 작은 화면부터 큰 화면 순서로 작성
+- 브레이크포인트: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1280px)
+- 터치 영역: 최소 44x44px (모바일)
+- 텍스트 크기: 최소 14px (모바일)
+
+---
+
+## 8. 레이아웃 (Layout)
+
+**페이지 레이아웃은 다음 규칙을 따라야 합니다:**
+
+✅ CORRECT:
+// 페이지 컨테이너
+<div className="
+  min-h-screen
+  bg-gray-50              // 페이지 배경
+  p-4 lg:p-8              // 반응형 패딩
+">
+  <div className="
+    max-w-4xl              // 최대 너비
+    mx-auto                // 중앙 정렬
+  ">
+    {/* 컨텐츠 */}
+  </div>
+</div>
+
+// 카드 그리드
+<div className="
+  grid grid-cols-1
+  md:grid-cols-2
+  lg:grid-cols-3
+  gap-6
+">
+  {/* 카드들 */}
+</div>**레이아웃 규칙:**
+- 페이지 배경: `bg-gray-50` 또는 `bg-[#F8F9FA]`
+- 카드 배경: `bg-white`
+- 컨테이너 최대 너비: `max-w-4xl` 또는 `max-w-6xl`
+- 중앙 정렬: `mx-auto`
+
+---
+
+## 9. 아이콘 (Icons)
+
+**아이콘은 Lucide React를 사용해야 합니다.**
+
+✅ CORRECT:
+import { Home, Search, User, Settings } from 'lucide-react';
+
+// 버튼 내 아이콘 (20px)
+<button className="flex items-center gap-2">
+  <Home size={20} />
+  홈
+</button>
+
+// 네비게이션 아이콘 (24px)
+<Link className="flex items-center gap-2">
+  <Settings size={24} />
+  설정
+</Link>**아이콘 규칙:**
+- 라이브러리: `lucide-react` 사용
+- 크기: `size={20}` (버튼), `size={24}` (네비게이션)
+- 색상: `text-emerald-500` (Primary), `text-gray-600` (기본)
+
+---
+
+## 10. 상태 표시 (Status Indicators)
+
+**상태 표시는 다음 색상을 사용해야 합니다:**
+
+✅ CORRECT:
+// 성공/완료 상태
+<span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-semibold">
+  완료
+</span>
+
+// 대기/경고 상태
+<span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-semibold">
+  대기중
+</span>
+
+// 오류 상태
+<span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-semibold">
+  오류
+</span>
+
+// 정보 상태
+<span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
+  정보
+</span>---
+
+## 11. 금지 사항 (Prohibited)
+
+**다음은 절대 사용하지 마세요:**
+
+❌ 금지:
+- Blue 색상을 Primary로 사용 (`bg-blue-500`, `text-blue-500` 등)
+- Geist 폰트 사용 (Pretendard로 변경 완료)
+- `rounded-lg` 대신 `rounded-xl` 또는 `rounded-2xl` 사용
+- 트랜지션 없이 호버 효과 사용
+- 모바일 First가 아닌 Desktop First 접근
+- 일관성 없는 간격 사용 (4px 단위 준수)
+
+---
+
+## 12. 체크리스트 (Checklist)
+
+**새로운 컴포넌트나 페이지를 만들 때 다음을 확인하세요:**
+
+- [ ] Primary 색상으로 Emerald Green (#10B981) 사용했는가?
+- [ ] Pretendard Variable 폰트를 사용했는가?
+- [ ] 버튼에 `rounded-xl`과 트랜지션 효과를 적용했는가?
+- [ ] 카드에 `rounded-2xl`과 호버 효과를 적용했는가?
+- [ ] 입력 필드에 포커스 링 (`focus:ring-emerald-500`)을 적용했는가?
+- [ ] Mobile First 방식으로 반응형을 구현했는가?
+- [ ] 모든 인터랙티브 요소에 트랜지션을 추가했는가?
+- [ ] 간격을 4px 단위로 일관되게 사용했는가?
+- [ ] 그림자 효과를 적절히 사용했는가?
+- [ ] 접근성을 고려했는가? (색상 대비, 키보드 네비게이션 등)
+
+---
+
+## 13. 참고 자료
+
+**디자인 시스템 관련 문서:**
+- 디자인 시스템 명세서: `docs/design-handoff_D/00-guides/DESIGN_SYSTEM.md`
+- 개발자 가이드: `docs/design-handoff_D/00-guides/DEVELOPER_GUIDE.md`
+- 디자인 적용 계획: `docs/디자인-적용-계획.md`
+- 색상 토큰: `docs/design-handoff_D/01-design-tokens/colors.json`
+- 타이포그래피: `docs/design-handoff_D/01-design-tokens/typography.json`
+- 간격 시스템: `docs/design-handoff_D/01-design-tokens/spacing.json`
+- 그림자 & 효과: `docs/design-handoff_D/01-design-tokens/shadows.json`
+
+**컴포넌트 예시:**
+- 버튼: `docs/design-handoff_D/02-components/buttons/code.tsx`
+- 카드: `docs/design-handoff_D/02-components/cards/code.tsx`
+- 폼: `docs/design-handoff_D/02-components/forms/code.tsx`
+
+---
+
+**REMEMBER: Always follow the design system rules when creating new components or pages!**
+**기억하세요: 새로운 컴포넌트나 페이지를 만들 때 항상 디자인 시스템 규칙을 따라야 합니다!**
+

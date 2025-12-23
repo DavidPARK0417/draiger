@@ -375,16 +375,16 @@ export default function KeywordAnalysisPage() {
 
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 text-foreground">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           키워드 분석 도구
         </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
           키워드의 검색량, 경쟁도, CPC를 분석하여 최적의 키워드를 찾아보세요
         </p>
 
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-4 sm:p-6 overflow-x-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8 overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-gray-300 dark:border-gray-700">
@@ -422,7 +422,7 @@ export default function KeywordAnalysisPage() {
                         <button
                           onClick={() => handleAIEstimate(keyword.id)}
                           disabled={loadingKeywordId === keyword.id || !keyword.keyword.trim()}
-                          className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs whitespace-nowrap transition-colors"
+                          className="px-3 py-1 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg"
                           title="AI로 키워드 정보 자동 입력"
                         >
                           {loadingKeywordId === keyword.id ? 'AI 분석 중...' : '🤖 AI 추정'}
@@ -471,7 +471,7 @@ export default function KeywordAnalysisPage() {
                       <button
                         onClick={() => handleDeleteKeyword(keyword.id)}
                         disabled={keywords.length === 1}
-                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                        className="px-3 py-1 bg-red-500 dark:bg-red-600 text-white rounded-xl hover:bg-red-600 dark:hover:bg-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm transition-all duration-300 shadow-md hover:shadow-lg"
                       >
                         삭제
                       </button>
@@ -485,19 +485,19 @@ export default function KeywordAnalysisPage() {
           <div className="mt-6">
             <button
               onClick={handleAddKeyword}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+              className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
             >
               키워드 추가
             </button>
           </div>
 
           {sortedKeywords[0] && calculateScore(sortedKeywords[0]) > 0 && (
-            <div className="mt-6 p-4 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 rounded-lg">
-              <p className="text-sm font-semibold text-green-800 dark:text-green-200">
+            <div className="mt-6 p-4 sm:p-6 bg-emerald-100 dark:bg-emerald-900/30 border-l-4 border-emerald-400 dark:border-emerald-600 rounded-xl shadow-md">
+              <p className="text-sm sm:text-base font-semibold text-emerald-800 dark:text-emerald-200">
                 🏆 최고 점수 키워드:{' '}
-                <span className="text-base">{sortedKeywords[0].keyword}</span>
+                <span className="text-base sm:text-lg">{sortedKeywords[0].keyword}</span>
               </p>
-              <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+              <p className="text-xs sm:text-sm text-emerald-700 dark:text-emerald-300 mt-1">
                 점수: {calculateScore(sortedKeywords[0]).toFixed(2)}
               </p>
             </div>
@@ -509,7 +509,7 @@ export default function KeywordAnalysisPage() {
               <button
                 onClick={handleAIAnalysis}
                 disabled={isAnalyzing}
-                className="w-full px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+                className="w-full px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 {isAnalyzing ? (
                   <>
@@ -529,8 +529,8 @@ export default function KeywordAnalysisPage() {
           {aiAnalysis && (
             <div className="mt-6 space-y-6">
               {/* 시각화 차트 */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-purple-200 dark:border-purple-700">
-                <h3 className="text-xl font-semibold mb-4 text-foreground">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-700 shadow-md dark:shadow-gray-900/50">
+                <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-gray-900 dark:text-gray-100">
                   📊 데이터 시각화
                 </h3>
                 
@@ -605,7 +605,7 @@ export default function KeywordAnalysisPage() {
               </div>
 
               {/* AI 텍스트 분석 결과 */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-purple-200 dark:border-purple-700">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-700 shadow-md dark:shadow-gray-900/50">
                 <div 
                   className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis) }}
@@ -615,8 +615,8 @@ export default function KeywordAnalysisPage() {
           )}
         </div>
 
-        <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 sm:p-6">
-          <h2 className="text-xl font-semibold mb-3 text-foreground">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-gray-100">
             점수 계산 공식
           </h2>
           <p className="text-sm text-gray-700 dark:text-gray-300">

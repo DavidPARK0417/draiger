@@ -19,11 +19,14 @@ export default function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold text-foreground">
+            <Link 
+              href="/" 
+              className="text-xl font-bold text-gray-900 dark:text-white dark:font-semibold hover:text-emerald-500 dark:hover:text-emerald-300 transition-colors duration-300"
+            >
               마케팅 도구 모음
             </Link>
           </div>
@@ -34,11 +37,15 @@ export default function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-                    isActive
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
+                    className={`
+                    px-3 py-2 rounded-xl text-sm font-medium whitespace-nowrap 
+                    transition-all duration-300
+                    ${
+                      isActive
+                        ? 'bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
+                        : 'text-gray-700 dark:text-white dark:font-semibold hover:bg-emerald-50 dark:hover:bg-gray-700 hover:text-emerald-600 dark:hover:text-emerald-300'
+                    }
+                  `}
                 >
                   {item.name}
                 </Link>
