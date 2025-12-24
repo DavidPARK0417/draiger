@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 const navigation = [
@@ -21,13 +22,30 @@ export default function Header() {
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-24 sm:h-16">
           <div className="flex items-center">
             <Link 
               href="/" 
-              className="text-xl font-bold text-gray-900 dark:text-white dark:font-semibold hover:text-emerald-500 dark:hover:text-emerald-300 transition-colors duration-300"
+              className="flex items-center transition-opacity duration-300 hover:opacity-80"
             >
-              마케팅 도구 모음
+              {/* 모바일 모드 (640px 미만): adtoolkit.jpg만 사용 */}
+              <Image
+                src="/adtoolkit.jpg"
+                alt="adtoolkit"
+                width={427}
+                height={149}
+                className="block sm:hidden h-20 w-auto object-contain"
+                priority
+              />
+              {/* 태블릿/노트북/데스크탑 모드 (640px 이상): adtoolkit_logo.jpg만 사용 */}
+              <Image
+                src="/adtoolkit_logo.jpg"
+                alt="adtoolkit"
+                width={180}
+                height={50}
+                className="hidden sm:block h-10 w-auto object-contain"
+                priority
+              />
             </Link>
           </div>
           <nav className="flex space-x-1 overflow-x-auto">

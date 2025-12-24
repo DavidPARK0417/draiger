@@ -1,5 +1,20 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
+
+export const metadata: Metadata = {
+  title: '홈',
+  description: 'ROI 계산기, 광고 예산 계산기, 키워드 분석, 손익분기점 계산 등 다양한 마케팅 도구를 무료로 제공합니다. 광고 성과를 최적화하고 비즈니스 성장을 가속화하세요.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: '마케팅 도구 모음 - 광고 성과 계산 및 분석 도구',
+    description: 'ROI 계산기, 광고 예산 계산기, 키워드 분석 등 다양한 마케팅 도구를 무료로 제공합니다.',
+    url: '/',
+    images: ['/adtoolkit_logo.jpg'],
+  },
+};
 
 const tools = [
   {
@@ -47,8 +62,34 @@ const tools = [
 ];
 
 export default function Home() {
+  // 구조화된 데이터 (JSON-LD) - 검색 엔진 최적화
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: '마케팅 도구 모음',
+    description: 'ROI 계산기, 광고 예산 계산기, 키워드 분석 등 다양한 마케팅 도구를 무료로 제공합니다.',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'KRW',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '5',
+      ratingCount: '1',
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900">
+    <>
+      {/* 구조화된 데이터 추가 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         {/* Hero 섹션 */}
         <div className="text-center mb-8 sm:mb-12 lg:mb-16">

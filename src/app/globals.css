@@ -44,3 +44,12 @@ body {
   /* color 속성 제거 - Tailwind 클래스가 우선 적용되도록 함 */
   font-family: var(--font-sans);
 }
+
+/* 폰트 로딩 최적화: CLS 최소화를 위한 font-display 설정 */
+@font-face {
+  font-family: 'Pretendard Variable';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap; /* 폰트 로딩 중에도 텍스트 표시 (CLS 최소화) */
+  src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.woff2') format('woff2-variations');
+}
