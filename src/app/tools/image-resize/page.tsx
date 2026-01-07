@@ -260,14 +260,28 @@ export default function ImageResizePage() {
 
   // ZIP 다운로드
   const handleDownloadAll = useCallback(async () => {
-    const processedImages = imageFiles.filter((img) => img.processedUrl);
+    // 처리 완료된 이미지만 필터링
+    const processedImages = imageFiles.filter(
+      (img) => img.processedUrl && !img.isProcessing && !img.error
+    );
 
     if (processedImages.length === 0) {
       alert("처리된 이미지가 없습니다.");
       return;
     }
 
+    // 처리 중인 이미지가 있는지 확인
+    const processingImages = imageFiles.filter((img) => img.isProcessing);
+    if (processingImages.length > 0) {
+      alert(
+        `아직 처리 중인 이미지가 ${processingImages.length}개 있습니다. 모든 이미지 처리가 완료된 후 다시 시도해주세요.`
+      );
+      return;
+    }
+
     try {
+      console.log("📦 [ZIP 다운로드] 시작", { count: processedImages.length });
+
       // jszip 라이브러리 동적 import
       const JSZip = (await import("jszip")).default;
       const zip = new JSZip();
@@ -276,10 +290,24 @@ export default function ImageResizePage() {
       for (const imageFile of processedImages) {
         if (!imageFile.processedUrl) continue;
 
-        const response = await fetch(imageFile.processedUrl);
-        const blob = await response.blob();
-        const fileName = `resized_${imageFile.file.name}`;
-        zip.file(fileName, blob);
+        try {
+          const response = await fetch(imageFile.processedUrl);
+          if (!response.ok) {
+            console.warn(
+              `⚠️ [ZIP 다운로드] 이미지 로드 실패: ${imageFile.file.name}`
+            );
+            continue;
+          }
+          const blob = await response.blob();
+          const fileName = `resized_${imageFile.file.name}`;
+          zip.file(fileName, blob);
+          console.log(`✅ [ZIP 다운로드] 이미지 추가: ${fileName}`);
+        } catch (error) {
+          console.error(
+            `❌ [ZIP 다운로드] 이미지 추가 오류: ${imageFile.file.name}`,
+            error
+          );
+        }
       }
 
       // ZIP 파일 생성 및 다운로드
@@ -558,16 +586,43 @@ export default function ImageResizePage() {
                 </Button>
 
                 {/* ZIP 다운로드 버튼 */}
-                {imageFiles.some((img) => img.processedUrl) && (
-                  <Button
-                    fullWidth
-                    variant="secondary"
-                    onClick={handleDownloadAll}
-                  >
-                    <FileDown className="w-4 h-4 mr-2" />
-                    모든 이미지 ZIP 다운로드
-                  </Button>
-                )}
+                {(() => {
+                  // 처리 완료된 이미지 수
+                  const processedCount = imageFiles.filter(
+                    (img) => img.processedUrl && !img.isProcessing && !img.error
+                  ).length;
+                  // 처리 중인 이미지 수
+                  const processingCount = imageFiles.filter(
+                    (img) => img.isProcessing
+                  ).length;
+                  // 에러가 발생한 이미지 수
+                  const errorCount = imageFiles.filter(
+                    (img) => img.error && !img.processedUrl
+                  ).length;
+                  // 모든 이미지가 처리 완료되었는지 확인
+                  const allProcessed =
+                    processedCount > 0 &&
+                    processingCount === 0 &&
+                    imageFiles.length === processedCount + errorCount;
+
+                  if (processedCount === 0) return null;
+
+                  return (
+                    <Button
+                      fullWidth
+                      variant="secondary"
+                      onClick={handleDownloadAll}
+                      disabled={!allProcessed || isProcessingAll}
+                    >
+                      <FileDown className="w-4 h-4 mr-2" />
+                      {allProcessed
+                        ? `모든 이미지 ZIP 다운로드 (${processedCount}개)`
+                        : `ZIP 다운로드 (${processedCount}/${
+                            imageFiles.length - errorCount
+                          }개 완료)`}
+                    </Button>
+                  );
+                })()}
               </div>
             </Card>
           </div>
