@@ -3,7 +3,6 @@
 import { useState, useCallback, useRef } from "react";
 import {
   Upload,
-  Download,
   X,
   Image as ImageIcon,
   Loader2,
@@ -593,6 +592,7 @@ export default function ImageResizePage() {
                       <div className="flex-shrink-0">
                         <div className="relative w-full sm:w-32 h-32 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
                           {imageFile.preview ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={imageFile.preview}
                               alt={imageFile.file.name}

@@ -156,7 +156,8 @@ export async function POST(request: NextRequest) {
     const format = metadata.format || "jpeg";
     const mimeType = format === "jpeg" ? "image/jpeg" : `image/${format}`;
 
-    return new NextResponse(resizedBuffer, {
+    // Buffer를 Uint8Array로 변환하여 NextResponse에 전달
+    return new NextResponse(new Uint8Array(resizedBuffer), {
       status: 200,
       headers: {
         "Content-Type": mimeType,
