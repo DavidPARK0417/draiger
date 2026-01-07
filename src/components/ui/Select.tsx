@@ -5,7 +5,7 @@ import React from 'react';
 /**
  * Select component props interface
  */
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
   /**
    * Label for the select field
    */
