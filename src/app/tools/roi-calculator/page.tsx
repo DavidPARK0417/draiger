@@ -14,6 +14,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { renderMarkdown as renderMarkdownCommon } from '@/utils/markdown-renderer';
 
 export default function ROICalculatorPage() {
   const [productName, setProductName] = useState<string>('');
@@ -141,172 +142,29 @@ export default function ROICalculatorPage() {
     }
   };
 
-  // 마크다운 렌더링 함수
+  // 마크다운 렌더링 함수 (공통 함수 사용)
   const renderMarkdown = (text: string) => {
-    const html = text;
-    const lines = html.split('\n');
-    const processedLines: string[] = [];
-    let inList = false;
-    let inTable = false;
-    let tableRows: string[][] = [];
+    return renderMarkdownCommon(text);
+  };
+
+  // AI 분석 결과 다운로드 함수
+  const handleDownloadAnalysis = () => {
+    if (!aiAnalysis) return;
+
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const filename = `AI_분석_결과_ROI계산기_${timestamp}.md`;
     
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      // 표 처리 (마크다운 표 형식: | 컬럼1 | 컬럼2 |)
-      if (line.includes('|') && line.split('|').length >= 3) {
-        // 헤더 구분선 체크 (|---|---|)
-        if (/^[\|\s\-:]+$/.test(line)) {
-          continue; // 헤더 구분선은 건너뛰기
-        }
-        
-        if (!inTable) {
-          // 표 시작
-          inTable = true;
-          tableRows = [];
-        }
-        
-        // 표 행 파싱
-        const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell);
-        tableRows.push(cells);
-        continue;
-      } else if (inTable) {
-        // 표 종료
-        if (tableRows.length > 0) {
-          processedLines.push('<div class="overflow-x-auto my-4">');
-          processedLines.push('<table class="w-full border-collapse border border-gray-300 dark:border-gray-600 text-sm">');
-          
-          // 첫 번째 행을 헤더로 사용
-          if (tableRows.length > 0) {
-            processedLines.push('<thead>');
-            processedLines.push('<tr class="bg-gray-100 dark:bg-gray-700">');
-            tableRows[0].forEach(cell => {
-              processedLines.push(`<th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold text-gray-800 dark:text-gray-200">${cell}</th>`);
-            });
-            processedLines.push('</tr>');
-            processedLines.push('</thead>');
-            processedLines.push('<tbody>');
-            
-            // 나머지 행들을 데이터로 사용
-            for (let j = 1; j < tableRows.length; j++) {
-              processedLines.push('<tr class="hover:bg-gray-50 dark:hover:bg-gray-800">');
-              tableRows[j].forEach(cell => {
-                processedLines.push(`<td class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300">${cell}</td>`);
-              });
-              processedLines.push('</tr>');
-            }
-            processedLines.push('</tbody>');
-          }
-          
-          processedLines.push('</table>');
-          processedLines.push('</div>');
-        }
-        inTable = false;
-        tableRows = [];
-      }
-      
-      // 헤더 처리 (숫자로 시작하는 제목 감지)
-      if (/^\d+\.\s+/.test(line)) {
-        if (inList) {
-          processedLines.push('</ul>');
-          inList = false;
-        }
-        const titleText = line.replace(/^\d+\.\s+/, '');
-        processedLines.push(`<h2 class="text-2xl font-bold mt-6 mb-4 text-purple-700 dark:text-purple-300">${titleText}</h2>`);
-        continue;
-      }
-      
-      if (line.startsWith('### ')) {
-        if (inList) {
-          processedLines.push('</ul>');
-          inList = false;
-        }
-        processedLines.push(`<h3 class="text-lg font-semibold mt-4 mb-2 text-foreground">${line.substring(4)}</h3>`);
-        continue;
-      }
-      if (line.startsWith('## ')) {
-        if (inList) {
-          processedLines.push('</ul>');
-          inList = false;
-        }
-        processedLines.push(`<h2 class="text-xl font-semibold mt-5 mb-3 text-foreground">${line.substring(3)}</h2>`);
-        continue;
-      }
-      if (line.startsWith('# ')) {
-        if (inList) {
-          processedLines.push('</ul>');
-          inList = false;
-        }
-        processedLines.push(`<h1 class="text-2xl font-bold mt-6 mb-4 text-foreground">${line.substring(2)}</h1>`);
-        continue;
-      }
-      
-      if (line.startsWith('- ') || line.startsWith('* ') || /^\d+\. /.test(line)) {
-        if (!inList) {
-          processedLines.push('<ul class="list-disc ml-6 mb-3 space-y-1">');
-          inList = true;
-        }
-        const content = line.replace(/^[-*]\s+/, '').replace(/^\d+\.\s+/, '');
-        // ** 제거하고 색상 적용
-        const processedContent = content.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-blue-600 dark:text-blue-400">$1</strong>');
-        processedLines.push(`<li class="text-gray-700 dark:text-gray-300">${processedContent}</li>`);
-        continue;
-      }
-      
-      if (inList && line === '') {
-        processedLines.push('</ul>');
-        inList = false;
-        continue;
-      }
-      
-      if (inList) {
-        processedLines.push('</ul>');
-        inList = false;
-      }
-      
-      if (line) {
-        // ** 제거하고 색상이 있는 strong 태그로 변환
-        const processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-blue-600 dark:text-blue-400">$1</strong>');
-        processedLines.push(`<p class="mb-3 text-gray-700 dark:text-gray-300">${processedLine}</p>`);
-      } else {
-        processedLines.push('<br />');
-      }
-    }
+    const blob = new Blob([aiAnalysis], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     
-    // 표가 끝나지 않은 경우 닫기
-    if (inTable && tableRows.length > 0) {
-      processedLines.push('<div class="overflow-x-auto my-4">');
-      processedLines.push('<table class="w-full border-collapse border border-gray-300 dark:border-gray-600 text-sm">');
-      
-      if (tableRows.length > 0) {
-        processedLines.push('<thead>');
-        processedLines.push('<tr class="bg-gray-100 dark:bg-gray-700">');
-        tableRows[0].forEach(cell => {
-          processedLines.push(`<th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold text-gray-800 dark:text-gray-200">${cell}</th>`);
-        });
-        processedLines.push('</tr>');
-        processedLines.push('</thead>');
-        processedLines.push('<tbody>');
-        
-        for (let j = 1; j < tableRows.length; j++) {
-          processedLines.push('<tr class="hover:bg-gray-50 dark:hover:bg-gray-800">');
-          tableRows[j].forEach(cell => {
-            processedLines.push(`<td class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300">${cell}</td>`);
-          });
-          processedLines.push('</tr>');
-        }
-        processedLines.push('</tbody>');
-      }
-      
-      processedLines.push('</table>');
-      processedLines.push('</div>');
-    }
-    
-    if (inList) {
-      processedLines.push('</ul>');
-    }
-    
-    return processedLines.join('\n');
+    console.log('AI 분석 결과 다운로드 완료:', filename);
   };
 
   // 차트 데이터 준비
@@ -495,6 +353,20 @@ export default function ROICalculatorPage() {
               {/* AI 분석 결과 표시 */}
               {aiAnalysis && (
                 <div className="mt-6 space-y-6">
+                  {/* 다운로드 버튼 */}
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleDownloadAnalysis}
+                      className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base"
+                      title="AI 분석 결과 다운로드"
+                    >
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      다운로드
+                    </button>
+                  </div>
+                  
                   {/* 시각화 차트 */}
                   <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-700 shadow-md dark:shadow-gray-900/50">
                     <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-gray-900 dark:text-gray-100">
