@@ -377,6 +377,7 @@ export function isBusinessHours(
 export function getTimezoneOffset(
   timezone1: string,
   timezone2: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _date: Date = new Date()
 ): number {
   try {

@@ -3,7 +3,7 @@
 
 export function renderMarkdown(text: string): string {
   // 마크다운 기호 제거 및 텍스트 정리
-  let cleanedText = text
+  const cleanedText = text
     // 마크다운 헤더 기호 제거 (#, ##, ###)
     .replace(/^#{1,6}\s+/gm, '')
     // 볼드 마크다운 제거 (**텍스트** -> 텍스트)
