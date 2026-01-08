@@ -10,7 +10,6 @@ import {
   getTimeInTimezone,
   getCurrentTimezoneCode,
   isBusinessHours,
-  getTimezoneOffset,
 } from '../utils/timezone';
 
 type SortField = 'city' | 'time' | 'offset';

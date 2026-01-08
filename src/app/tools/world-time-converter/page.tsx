@@ -15,7 +15,6 @@ import {
   getCurrentTimezoneCode,
   getTimeInTimezone,
   isBusinessHours,
-  type TimeZoneInfo,
 } from './utils/timezone';
 
 interface CityTime {
@@ -51,32 +50,33 @@ export default function WorldTimeConverterPage() {
 
   // 선택된 도시들의 시간 계산
   useEffect(() => {
-    const updatedCities = selectedCities.map((city) => {
-      try {
-        const { time, date } = getTimeInTimezone(city.timeZone, currentTime);
-        const timezoneCode = getCurrentTimezoneCode(city.timeZone, currentTime);
-        const isBusinessHoursNow = isBusinessHours(currentTime, city.timeZone);
+    setSelectedCities((prevCities) => {
+      return prevCities.map((city) => {
+        try {
+          const { time, date } = getTimeInTimezone(city.timeZone, currentTime);
+          const timezoneCode = getCurrentTimezoneCode(city.timeZone, currentTime);
+          const isBusinessHoursNow = isBusinessHours(currentTime, city.timeZone);
 
-        return {
-          ...city,
-          time,
-          date,
-          timezoneCode,
-          isBusinessHours: isBusinessHoursNow,
-        };
-      } catch (error) {
-        console.error('❌ [세계시간 변환] 시간 계산 오류:', error);
-        return { 
-          ...city, 
-          time: '오류', 
-          date: '오류',
-          timezoneCode: 'UTC',
-          isBusinessHours: false,
-        };
-      }
+          return {
+            ...city,
+            time,
+            date,
+            timezoneCode,
+            isBusinessHours: isBusinessHoursNow,
+          };
+        } catch (error) {
+          console.error('❌ [세계시간 변환] 시간 계산 오류:', error);
+          return { 
+            ...city, 
+            time: '오류', 
+            date: '오류',
+            timezoneCode: 'UTC',
+            isBusinessHours: false,
+          };
+        }
+      });
     });
-    setSelectedCities(updatedCities);
-  }, [currentTime, selectedCities.length]);
+  }, [currentTime]);
 
   // 도시 추가
   const handleAddCity = useCallback(() => {
@@ -209,7 +209,7 @@ export default function WorldTimeConverterPage() {
           </Card>
 
           {/* 도시 목록 */}
-          {selectedCities.map((city, index) => {
+          {selectedCities.map((city) => {
             const timeZoneInfo = TIME_ZONES.find((tz) => tz.value === city.timeZone);
             return (
               <Card 

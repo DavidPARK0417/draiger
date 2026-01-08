@@ -225,7 +225,6 @@ export function getCurrentTimezoneCode(
     if (timezoneInfo.code.includes('/')) {
       // 시간대 이름에서 DST 여부 확인
       // 예: 'EDT' (일광절약시간) 또는 'EST' (표준시간)
-      const isDST = timeZoneName.includes('D') || timeZoneName.includes('S');
       const codes = timezoneInfo.code.split('/');
       // 일반적으로 첫 번째가 표준시간, 두 번째가 DST
       // 하지만 실제로는 시간대 이름을 확인해야 함
@@ -338,13 +337,10 @@ export function convertTime(
       hour12: false,
     });
 
-    const fromParts = fromFormatter.formatToParts(dateTime);
-    const fromYear = fromParts.find((p) => p.type === 'year')?.value || '';
-    const fromMonth = fromParts.find((p) => p.type === 'month')?.value || '';
-    const fromDay = fromParts.find((p) => p.type === 'day')?.value || '';
-    const fromHour = fromParts.find((p) => p.type === 'hour')?.value || '';
-    const fromMinute = fromParts.find((p) => p.type === 'minute')?.value || '';
-    const fromSecond = fromParts.find((p) => p.type === 'second')?.value || '00';
+    // 출발 시간대의 시간을 UTC로 변환하기 위해
+    // 해당 시간대의 시간을 UTC 타임스탬프로 변환
+    // 더 간단한 방법: dateTime을 그대로 사용하고 목적지 시간대로 변환
+    // 하지만 출발 시간대의 시간을 정확히 해석해야 함
 
     // 출발 시간대의 시간을 UTC로 변환하기 위해
     // 해당 시간대의 시간을 UTC 타임스탬프로 변환
@@ -402,20 +398,6 @@ export function getTimezoneOffset(
   date: Date = new Date()
 ): number {
   try {
-    const time1 = getTimeInTimezone(timezone1, date);
-    const time2 = getTimeInTimezone(timezone2, date);
-
-    // UTC 기준 오프셋 계산
-    const offset1 = date.toLocaleString('en-US', {
-      timeZone: timezone1,
-      timeZoneName: 'longOffset',
-    });
-
-    const offset2 = date.toLocaleString('en-US', {
-      timeZone: timezone2,
-      timeZoneName: 'longOffset',
-    });
-
     // 간단한 방법: 시간대 정보에서 offset 사용
     const tz1 = TIME_ZONES.find((tz) => tz.value === timezone1);
     const tz2 = TIME_ZONES.find((tz) => tz.value === timezone2);

@@ -46,7 +46,6 @@ export default function MeetingCalculator() {
         const { time, date } = getTimeInTimezone(timezone, meetingDateTime);
         const timezoneCode = getCurrentTimezoneCode(timezone, meetingDateTime);
         const isBusinessHoursNow = isBusinessHours(meetingDateTime, timezone);
-
         const timezoneInfo = TIME_ZONES.find((tz) => tz.value === timezone);
 
         return {
@@ -193,11 +192,7 @@ export default function MeetingCalculator() {
               각 지역의 미팅 시간
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {results.map((result) => {
-                const timezoneInfo = TIME_ZONES.find(
-                  (tz) => tz.value === result.timezone
-                );
-                return (
+              {results.map((result) => (
                   <Card
                     key={result.timezone}
                     padding="md"
@@ -236,8 +231,7 @@ export default function MeetingCalculator() {
                       </div>
                     </div>
                   </Card>
-                );
-              })}
+              ))}
             </div>
           </div>
         )}

@@ -154,7 +154,11 @@ export default function AlarmClockPage() {
 
   // AudioContext 초기화
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    // WebKit 호환성을 위한 타입 확장
+    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (AudioContextClass) {
+      audioContextRef.current = new AudioContextClass();
+    }
     return () => {
       if (audioContextRef.current) {
         audioContextRef.current.close();
@@ -453,25 +457,25 @@ export default function AlarmClockPage() {
 
   // 스톱워치 시작/일시정지
   const handleStartStopwatch = useCallback(() => {
-    if (stopwatch.isRunning) {
-      // 일시정지
-      setStopwatch((prev) => ({
-        ...prev,
-        isRunning: false,
-        elapsedTime: prev.startTime ? Date.now() - prev.startTime + prev.elapsedTime : prev.elapsedTime,
-        startTime: null,
-      }));
-      console.log('⏸️ [스톱워치] 일시정지');
-    } else {
-      // 시작
-      setStopwatch((prev) => ({
-        ...prev,
-        isRunning: true,
-        startTime: Date.now(),
-      }));
-      console.log('▶️ [스톱워치] 시작');
-    }
-  }, [stopwatch.isRunning, stopwatch.startTime, stopwatch.elapsedTime]);
+    setStopwatch((prev) => {
+      if (prev.isRunning) {
+        // 일시정지
+        return {
+          ...prev,
+          isRunning: false,
+          elapsedTime: prev.startTime ? Date.now() - prev.startTime + prev.elapsedTime : prev.elapsedTime,
+          startTime: null,
+        };
+      } else {
+        // 시작
+        return {
+          ...prev,
+          isRunning: true,
+          startTime: Date.now(),
+        };
+      }
+    });
+  }, []);
 
   // 스톱워치 리셋
   const handleResetStopwatch = useCallback(() => {
@@ -559,9 +563,9 @@ export default function AlarmClockPage() {
 
   // 타이머 시작/일시정지
   const handleStartTimer = useCallback(() => {
-    if (timer.isRunning) {
-      // 일시정지
-      setTimer((prev) => {
+    setTimer((prev) => {
+      if (prev.isRunning) {
+        // 일시정지
         if (!prev.startTime) return prev;
         const elapsed = Date.now() - prev.startTime;
         const newRemainingTime = Math.max(0, timerStartRemainingTimeRef.current - elapsed);
@@ -572,23 +576,21 @@ export default function AlarmClockPage() {
           remainingTime: newRemainingTime,
           startTime: null,
         };
-      });
-      console.log('⏸️ [타이머] 일시정지');
-    } else {
-      // 시작
-      if (timer.remainingTime <= 0) {
-        alert('타이머 시간을 설정해주세요.');
-        return;
+      } else {
+        // 시작
+        if (prev.remainingTime <= 0) {
+          alert('타이머 시간을 설정해주세요.');
+          return prev;
+        }
+        timerStartRemainingTimeRef.current = prev.remainingTime;
+        return {
+          ...prev,
+          isRunning: true,
+          startTime: Date.now(),
+        };
       }
-      timerStartRemainingTimeRef.current = timer.remainingTime;
-      setTimer((prev) => ({
-        ...prev,
-        isRunning: true,
-        startTime: Date.now(),
-      }));
-      console.log('▶️ [타이머] 시작');
-    }
-  }, [timer.isRunning, timer.startTime, timer.remainingTime]);
+    });
+  }, []);
 
   // 타이머 리셋
   const handleResetTimer = useCallback(() => {
