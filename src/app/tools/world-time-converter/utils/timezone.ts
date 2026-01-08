@@ -324,24 +324,6 @@ export function convertTime(
   toTimezone: string
 ): { time: string; date: string; datetime: Date } {
   try {
-    // 출발 시간대에서의 시간을 UTC로 변환
-    // dateTime을 출발 시간대의 시간으로 해석하여 UTC 타임스탬프 계산
-    const fromFormatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: fromTimezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    });
-
-    // 출발 시간대의 시간을 UTC로 변환하기 위해
-    // 해당 시간대의 시간을 UTC 타임스탬프로 변환
-    // 더 간단한 방법: dateTime을 그대로 사용하고 목적지 시간대로 변환
-    // 하지만 출발 시간대의 시간을 정확히 해석해야 함
-
     // 출발 시간대의 시간을 UTC로 변환하기 위해
     // 해당 시간대의 시간을 UTC 타임스탬프로 변환
     // 더 간단한 방법: dateTime을 그대로 사용하고 목적지 시간대로 변환
@@ -395,10 +377,11 @@ export function isBusinessHours(
 export function getTimezoneOffset(
   timezone1: string,
   timezone2: string,
-  date: Date = new Date()
+  _date: Date = new Date()
 ): number {
   try {
     // 간단한 방법: 시간대 정보에서 offset 사용
+    // 향후 DST를 고려할 수 있도록 date 파라미터는 유지하되 현재는 사용하지 않음
     const tz1 = TIME_ZONES.find((tz) => tz.value === timezone1);
     const tz2 = TIME_ZONES.find((tz) => tz.value === timezone2);
 

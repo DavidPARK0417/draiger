@@ -28,6 +28,7 @@ export default function MeetingCalculator() {
   const [selectedCities, setSelectedCities] = useState<string[]>(MAJOR_BUSINESS_CITIES);
   const [results, setResults] = useState<Array<{
     timezone: string;
+    city: string;
     time: string;
     date: string;
     timezoneCode: string;
