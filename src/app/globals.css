@@ -103,74 +103,135 @@ html.lenis {
 .prose h6 {
   margin-top: 2em;
   margin-bottom: 1em;
-  color: white;
+  color: #111827;
   font-weight: 600;
+}
+
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4,
+.dark .prose h5,
+.dark .prose h6 {
+  color: white;
 }
 
 .prose p {
   margin-bottom: 1.5em;
   line-height: 1.8;
+  color: #374151;
+}
+
+.dark .prose p {
   color: rgba(255, 255, 255, 0.9);
 }
 
 .prose strong {
-  color: white;
+  color: #111827;
   font-weight: 600;
 }
 
+.dark .prose strong {
+  color: white;
+}
+
 .prose em {
-  color: rgba(255, 255, 255, 0.95);
+  color: #111827;
   font-style: italic;
+}
+
+.dark .prose em {
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .prose ul,
 .prose ol {
   margin-bottom: 1.5em;
   padding-left: 1.5em;
+  color: #374151;
+}
+
+.dark .prose ul,
+.dark .prose ol {
   color: rgba(255, 255, 255, 0.9);
 }
 
 .prose li {
   margin-bottom: 0.5em;
+  color: #374151;
+}
+
+.dark .prose li {
   color: rgba(255, 255, 255, 0.9);
 }
 
 .prose li::marker {
+  color: #6B7280;
+}
+
+.dark .prose li::marker {
   color: rgba(255, 255, 255, 0.7);
 }
 
 .prose blockquote {
-  border-left: 4px solid rgba(255, 255, 255, 0.2);
+  border-left: 4px solid #E5E7EB;
   padding-left: 1.5em;
   font-style: italic;
+  color: #6B7280;
+}
+
+.dark .prose blockquote {
+  border-left-color: rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.7);
 }
 
 .prose a {
-  color: white;
+  color: #111827;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
+.dark .prose a {
+  color: white;
+}
+
 .prose a:hover {
+  color: #059669;
+}
+
+.dark .prose a:hover {
   color: rgba(255, 255, 255, 0.8);
 }
 
 .prose code {
-  color: white;
-  background-color: rgba(255, 255, 255, 0.1);
+  color: #111827;
+  background-color: #F3F4F6;
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-size: 0.875em;
 }
 
+.dark .prose code {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 .prose hr {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: #E5E7EB;
   margin: 2em 0;
 }
 
-/* 블로그 페이지 전용 배경 (어두운 배경) */
+.dark .prose hr {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 블로그 페이지 전용 배경 - 다크모드 토글 지원 */
 .blog-page {
+  background: #F8F9FA;
+  color: #111827;
+}
+
+.dark .blog-page {
   background: #0d0d0d;
   color: #f0f0f0;
 }

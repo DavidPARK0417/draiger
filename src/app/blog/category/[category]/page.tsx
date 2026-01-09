@@ -68,18 +68,18 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   return (
     <SmoothScroll>
-      <div className="blog-page min-h-screen">
+      <div className="blog-page min-h-screen bg-[#F8F9FA] dark:bg-[#0d0d0d]">
         <GrainOverlay />
         <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8">
           <header className="mb-12 sm:mb-16 lg:mb-20">
-            <h1 className="text-[12vw] sm:text-[10vw] lg:text-[8vw] leading-[0.9] tracking-tighter uppercase font-serif text-white">
+            <h1 className="text-[12vw] sm:text-[10vw] lg:text-[8vw] leading-[0.9] tracking-tighter uppercase font-serif text-gray-900 dark:text-white">
               {decodedCategory}
             </h1>
           </header>
 
           {posts.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-white/50 text-lg">
+              <p className="text-gray-600 dark:text-white/50 text-lg">
                 {decodedCategory} 카테고리에 게시글이 없습니다.
               </p>
             </div>

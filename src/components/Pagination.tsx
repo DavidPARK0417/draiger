@@ -87,9 +87,9 @@ export default function Pagination({
             flex items-center justify-center
             w-10 h-10 sm:w-12 sm:h-12
             rounded-xl
-            bg-white/5 hover:bg-white/10
-            border border-white/10 hover:border-white/20
-            text-white/70 hover:text-white
+            bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10
+            border border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20
+            text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white
             transition-all duration-300
             hover:-translate-y-0.5
             active:scale-95
@@ -104,9 +104,9 @@ export default function Pagination({
             flex items-center justify-center
             w-10 h-10 sm:w-12 sm:h-12
             rounded-xl
-            bg-white/5
-            border border-white/10
-            text-white/30
+            bg-gray-100 dark:bg-white/5
+            border border-gray-300 dark:border-white/10
+            text-gray-400 dark:text-white/30
             cursor-not-allowed
           "
           aria-disabled="true"
@@ -125,7 +125,7 @@ export default function Pagination({
                 className="
                   w-10 h-10 sm:w-12 sm:h-12
                   flex items-center justify-center
-                  text-white/30
+                  text-gray-400 dark:text-white/30
                   text-sm sm:text-base
                 "
               >
@@ -157,9 +157,9 @@ export default function Pagination({
                       hover:-translate-y-0.5
                     `
                     : `
-                      bg-white/5 hover:bg-white/10
-                      border border-white/10 hover:border-white/20
-                      text-white/70 hover:text-white
+                      bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10
+                      border border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20
+                      text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white
                       hover:-translate-y-0.5
                       active:scale-95
                     `
@@ -182,9 +182,9 @@ export default function Pagination({
             flex items-center justify-center
             w-10 h-10 sm:w-12 sm:h-12
             rounded-xl
-            bg-white/5 hover:bg-white/10
-            border border-white/10 hover:border-white/20
-            text-white/70 hover:text-white
+            bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10
+            border border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20
+            text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white
             transition-all duration-300
             hover:-translate-y-0.5
             active:scale-95
@@ -199,9 +199,9 @@ export default function Pagination({
             flex items-center justify-center
             w-10 h-10 sm:w-12 sm:h-12
             rounded-xl
-            bg-white/5
-            border border-white/10
-            text-white/30
+            bg-gray-100 dark:bg-white/5
+            border border-gray-300 dark:border-white/10
+            text-gray-400 dark:text-white/30
             cursor-not-allowed
           "
           aria-disabled="true"

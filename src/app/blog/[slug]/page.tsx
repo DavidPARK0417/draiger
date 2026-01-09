@@ -49,50 +49,50 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <SmoothScroll>
-      <div className="blog-page min-h-screen">
+      <div className="blog-page min-h-screen bg-[#F8F9FA] dark:bg-[#0d0d0d]">
         <GrainOverlay />
         <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <article>
             <header className="mb-12 sm:mb-16">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-serif mb-6 sm:mb-8 leading-tight text-white">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-serif mb-6 sm:mb-8 leading-tight text-gray-900 dark:text-white">
                 {post.title}
               </h1>
-              <p className="text-lg sm:text-xl text-white/50 font-sans leading-relaxed">
+              <p className="text-lg sm:text-xl text-gray-600 dark:text-white/50 font-sans leading-relaxed">
                 {post.metaDescription}
               </p>
             </header>
 
             <div
-              className="prose prose-invert prose-lg max-w-none 
-              prose-headings:font-serif prose-headings:font-normal prose-headings:tracking-tight prose-headings:text-white
-              prose-p:text-white/90 prose-p:leading-relaxed
-              prose-strong:text-white prose-strong:font-semibold
-              prose-em:text-white/95
-              prose-a:text-white prose-a:underline-offset-4 hover:prose-a:text-white/80
-              prose-blockquote:border-l-white/20 prose-blockquote:text-white/70
-              prose-code:text-white prose-code:bg-white/10 prose-code:px-1 prose-code:rounded
-              prose-ul:text-white/90 prose-ol:text-white/90
-              prose-li:text-white/90 prose-li:marker:text-white/70
-              prose-hr:border-white/20
+              className="prose prose-lg max-w-none 
+              prose-headings:font-serif prose-headings:font-normal prose-headings:tracking-tight prose-headings:text-gray-900 dark:prose-headings:text-white
+              prose-p:text-gray-700 dark:prose-p:text-white/90 prose-p:leading-relaxed
+              prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-semibold
+              prose-em:text-gray-900 dark:prose-em:text-white/95
+              prose-a:text-gray-900 dark:prose-a:text-white prose-a:underline-offset-4 hover:prose-a:text-emerald-600 dark:hover:prose-a:text-white/80
+              prose-blockquote:border-l-gray-300 dark:prose-blockquote:border-l-white/20 prose-blockquote:text-gray-600 dark:prose-blockquote:text-white/70
+              prose-code:text-gray-900 dark:prose-code:text-white prose-code:bg-gray-100 dark:prose-code:bg-white/10 prose-code:px-1 prose-code:rounded
+              prose-ul:text-gray-700 dark:prose-ul:text-white/90 prose-ol:text-gray-700 dark:prose-ol:text-white/90
+              prose-li:text-gray-700 dark:prose-li:text-white/90 prose-li:marker:text-gray-500 dark:prose-li:marker:text-white/70
+              prose-hr:border-gray-300 dark:prose-hr:border-white/20
             "
             >
               <ReactMarkdown>{content}</ReactMarkdown>
             </div>
           </article>
 
-          <footer className="mt-24 sm:mt-32 pt-12 sm:pt-16 border-t border-white/10">
+          <footer className="mt-24 sm:mt-32 pt-12 sm:pt-16 border-t border-gray-200 dark:border-white/10">
             <Link
               href="/"
-              className="group flex items-center gap-4 text-sm uppercase tracking-widest text-white/50 hover:text-white transition-colors"
+              className="group flex items-center gap-4 text-sm uppercase tracking-widest text-gray-600 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
-              <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:border-white transition-colors duration-500">
+              <div className="w-10 h-10 rounded-full border border-gray-300 dark:border-white/10 flex items-center justify-center group-hover:bg-gray-900 dark:group-hover:bg-white group-hover:border-gray-900 dark:group-hover:border-white transition-colors duration-500">
                 <svg
                   width="12"
                   height="12"
                   viewBox="0 0 12 12"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className="group-hover:stroke-black stroke-white transition-colors duration-500 rotate-180"
+                  className="group-hover:stroke-white dark:group-hover:stroke-black stroke-gray-900 dark:stroke-white transition-colors duration-500 rotate-180"
                 >
                   <path
                     d="M1 11L11 1M11 1H1M11 1V11"
