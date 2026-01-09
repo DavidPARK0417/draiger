@@ -51,7 +51,19 @@ interface NotionPage {
 
 interface NotionQueryResponse {
   results: NotionPage[];
+  next_cursor?: string | null;
+  has_more: boolean;
   [key: string]: unknown;
+}
+
+// 페이지네이션 결과 타입
+export interface PaginatedPosts {
+  posts: Post[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 /**
@@ -140,11 +152,31 @@ async function queryNotionDatabase(params: {
   database_id: string;
   filter?: NotionFilter;
   sorts?: NotionSort[];
+  page_size?: number;
+  start_cursor?: string;
 }): Promise<NotionQueryResponse> {
   const apiKey = process.env.NOTION_API_KEY?.trim().replace(/^["']|["']$/g, "");
 
   if (!apiKey) {
     throw new Error("NOTION_API_KEY is not defined");
+  }
+
+  const body: {
+    filter?: NotionFilter;
+    sorts?: NotionSort[];
+    page_size?: number;
+    start_cursor?: string;
+  } = {
+    filter: params.filter,
+    sorts: params.sorts,
+  };
+
+  if (params.page_size) {
+    body.page_size = params.page_size;
+  }
+
+  if (params.start_cursor) {
+    body.start_cursor = params.start_cursor;
   }
 
   const response = await fetch(
@@ -156,10 +188,7 @@ async function queryNotionDatabase(params: {
         "Notion-Version": "2022-06-28",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        filter: params.filter,
-        sorts: params.sorts,
-      }),
+      body: JSON.stringify(body),
     }
   );
 
@@ -180,6 +209,59 @@ export interface Post {
   published: boolean;
   blogPost: string;
   category?: string; // 카테고리 추가
+}
+
+/**
+ * Published된 게시글의 총 개수를 가져옵니다
+ */
+export async function getTotalPostsCount(): Promise<number> {
+  const databaseId = process.env.NOTION_DATABASE_ID;
+
+  if (!databaseId) {
+    throw new Error(
+      "NOTION_DATABASE_ID is not defined in environment variables. " +
+        "Please add NOTION_DATABASE_ID to your .env.local file."
+    );
+  }
+
+  try {
+    // 전체 개수를 가져오기 위해 큰 page_size로 한 번만 요청
+    const data = await queryNotionDatabase({
+      database_id: databaseId,
+      filter: {
+        property: "Published",
+        checkbox: {
+          equals: true,
+        },
+      },
+      page_size: 100, // Notion API 최대값
+    });
+
+    let totalCount = data.results.length;
+    let cursor = data.next_cursor;
+
+    // 다음 페이지가 있으면 계속 가져오기
+    while (cursor && data.has_more) {
+      const nextData = await queryNotionDatabase({
+        database_id: databaseId,
+        filter: {
+          property: "Published",
+          checkbox: {
+            equals: true,
+          },
+        },
+        page_size: 100,
+        start_cursor: cursor,
+      });
+      totalCount += nextData.results.length;
+      cursor = nextData.next_cursor;
+    }
+
+    return totalCount;
+  } catch (error) {
+    console.error("Error fetching total posts count:", error);
+    throw error;
+  }
 }
 
 /**
@@ -230,6 +312,192 @@ export async function getPublishedPosts(): Promise<Post[]> {
     }));
   } catch (error) {
     console.error("Error fetching posts from Notion:", error);
+    throw error;
+  }
+}
+
+/**
+ * 페이지네이션을 지원하는 Published 게시글 조회
+ * @param page 페이지 번호 (1부터 시작)
+ * @param pageSize 페이지당 게시글 수 (기본값: 12)
+ */
+export async function getPublishedPostsPaginated(
+  page: number = 1,
+  pageSize: number = 12
+): Promise<PaginatedPosts> {
+  const databaseId = process.env.NOTION_DATABASE_ID;
+
+  if (!databaseId) {
+    throw new Error(
+      "NOTION_DATABASE_ID is not defined in environment variables. " +
+        "Please add NOTION_DATABASE_ID to your .env.local file."
+    );
+  }
+
+  try {
+    // 전체 개수 가져오기
+    const totalCount = await getTotalPostsCount();
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    // 유효한 페이지 번호 확인
+    const currentPage = Math.max(1, Math.min(page, totalPages || 1));
+
+    // 필요한 데이터를 가져오기 위해 순차적으로 페이지네이션
+    let allResults: NotionPage[] = [];
+    let cursor: string | null | undefined = undefined;
+    let hasMore = true;
+    const targetStartIndex = (currentPage - 1) * pageSize;
+    const targetEndIndex = targetStartIndex + pageSize;
+
+    // 목표 인덱스까지 데이터 수집
+    while (hasMore && allResults.length < targetEndIndex) {
+      const data = await queryNotionDatabase({
+        database_id: databaseId,
+        filter: {
+          property: "Published",
+          checkbox: {
+            equals: true,
+          },
+        },
+        sorts: [
+          {
+            timestamp: "created_time",
+            direction: "descending",
+          },
+        ],
+        page_size: 100, // 한 번에 많이 가져오기
+        start_cursor: cursor || undefined,
+      });
+
+      allResults = allResults.concat(data.results);
+      cursor = data.next_cursor;
+      hasMore = data.has_more;
+
+      // 목표 인덱스에 도달하면 중단
+      if (allResults.length >= targetEndIndex) {
+        break;
+      }
+    }
+
+    // 현재 페이지에 해당하는 데이터만 추출
+    const pageResults = allResults.slice(targetStartIndex, targetEndIndex);
+
+    const posts: Post[] = pageResults.map((page: NotionPage) => ({
+      id: page.id,
+      title: page.properties.title?.title[0]?.plain_text || "Untitled",
+      slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+      metaDescription:
+        page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
+      published: page.properties.Published?.checkbox || false,
+      blogPost: page.properties.blogPost?.rich_text
+        ? page.properties.blogPost.rich_text
+            .map((rt: NotionRichText) => rt.plain_text)
+            .join("")
+        : "",
+      category: page.properties.category?.select?.name || undefined,
+    }));
+
+    return {
+      posts,
+      totalCount,
+      currentPage,
+      totalPages,
+      hasNextPage: currentPage < totalPages,
+      hasPrevPage: currentPage > 1,
+    };
+  } catch (error) {
+    console.error("Error fetching paginated posts from Notion:", error);
+    throw error;
+  }
+}
+
+/**
+ * 카테고리별 Published 게시글의 총 개수를 가져옵니다
+ */
+export async function getTotalPostsCountByCategory(
+  category: string
+): Promise<number> {
+  const databaseId = process.env.NOTION_DATABASE_ID;
+
+  if (!databaseId) {
+    throw new Error(
+      "NOTION_DATABASE_ID is not defined in environment variables. " +
+        "Please add NOTION_DATABASE_ID to your .env.local file."
+    );
+  }
+
+  try {
+    try {
+      const data = await queryNotionDatabase({
+        database_id: databaseId,
+        filter: {
+          and: [
+            {
+              property: "Published",
+              checkbox: {
+                equals: true,
+              },
+            },
+            {
+              property: "category",
+              select: {
+                equals: category,
+              },
+            },
+          ],
+        },
+        page_size: 100,
+      });
+
+      let totalCount = data.results.length;
+      let cursor = data.next_cursor;
+
+      while (cursor && data.has_more) {
+        const nextData = await queryNotionDatabase({
+          database_id: databaseId,
+          filter: {
+            and: [
+              {
+                property: "Published",
+                checkbox: {
+                  equals: true,
+                },
+              },
+              {
+                property: "category",
+                select: {
+                  equals: category,
+                },
+              },
+            ],
+          },
+          page_size: 100,
+          start_cursor: cursor,
+        });
+        totalCount += nextData.results.length;
+        cursor = nextData.next_cursor;
+      }
+
+      return totalCount;
+    } catch (categoryError: unknown) {
+      const errorMessage =
+        categoryError instanceof Error
+          ? categoryError.message
+          : String(categoryError);
+      if (
+        errorMessage.includes("validation_error") &&
+        errorMessage.includes("category")
+      ) {
+        // category 속성이 없으면 전체에서 필터링
+        const allPosts = await getPublishedPosts();
+        return allPosts.filter(
+          (post) => post.category && post.category === category
+        ).length;
+      }
+      throw categoryError;
+    }
+  } catch (error) {
+    console.error("Error fetching total posts count by category:", error);
     throw error;
   }
 }
@@ -324,6 +592,151 @@ export async function getPublishedPostsByCategory(
     }
   } catch (error) {
     console.error("Error fetching posts by category from Notion:", error);
+    throw error;
+  }
+}
+
+/**
+ * 카테고리별 페이지네이션을 지원하는 Published 게시글 조회
+ * @param category 카테고리 이름
+ * @param page 페이지 번호 (1부터 시작)
+ * @param pageSize 페이지당 게시글 수 (기본값: 12)
+ */
+export async function getPublishedPostsByCategoryPaginated(
+  category: string,
+  page: number = 1,
+  pageSize: number = 12
+): Promise<PaginatedPosts> {
+  const databaseId = process.env.NOTION_DATABASE_ID;
+
+  if (!databaseId) {
+    throw new Error(
+      "NOTION_DATABASE_ID is not defined in environment variables. " +
+        "Please add NOTION_DATABASE_ID to your .env.local file."
+    );
+  }
+
+  try {
+    // 전체 개수 가져오기
+    const totalCount = await getTotalPostsCountByCategory(category);
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    // 유효한 페이지 번호 확인
+    const currentPage = Math.max(1, Math.min(page, totalPages || 1));
+
+    // 필요한 데이터를 가져오기 위해 순차적으로 페이지네이션
+    let allResults: NotionPage[] = [];
+    let cursor: string | null | undefined = undefined;
+    let hasMore = true;
+    const targetStartIndex = (currentPage - 1) * pageSize;
+    const targetEndIndex = targetStartIndex + pageSize;
+
+    try {
+      // 목표 인덱스까지 데이터 수집
+      while (hasMore && allResults.length < targetEndIndex) {
+        const data = await queryNotionDatabase({
+          database_id: databaseId,
+          filter: {
+            and: [
+              {
+                property: "Published",
+                checkbox: {
+                  equals: true,
+                },
+              },
+              {
+                property: "category",
+                select: {
+                  equals: category,
+                },
+              },
+            ],
+          },
+          sorts: [
+            {
+              timestamp: "created_time",
+              direction: "descending",
+            },
+          ],
+          page_size: 100,
+          start_cursor: cursor || undefined,
+        });
+
+        allResults = allResults.concat(data.results);
+        cursor = data.next_cursor;
+        hasMore = data.has_more;
+
+        if (allResults.length >= targetEndIndex) {
+          break;
+        }
+      }
+    } catch (categoryError: unknown) {
+      const errorMessage =
+        categoryError instanceof Error
+          ? categoryError.message
+          : String(categoryError);
+      if (
+        errorMessage.includes("validation_error") &&
+        errorMessage.includes("category")
+      ) {
+        // category 속성이 없으면 전체에서 필터링
+        const allPosts = await getPublishedPosts();
+        const filteredPosts = allPosts.filter(
+          (post) => post.category && post.category === category
+        );
+        const totalCountFiltered = filteredPosts.length;
+        const totalPagesFiltered = Math.ceil(totalCountFiltered / pageSize);
+        const currentPageFiltered = Math.max(
+          1,
+          Math.min(page, totalPagesFiltered || 1)
+        );
+        const startIndex = (currentPageFiltered - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const pagePosts = filteredPosts.slice(startIndex, endIndex);
+
+        return {
+          posts: pagePosts,
+          totalCount: totalCountFiltered,
+          currentPage: currentPageFiltered,
+          totalPages: totalPagesFiltered,
+          hasNextPage: currentPageFiltered < totalPagesFiltered,
+          hasPrevPage: currentPageFiltered > 1,
+        };
+      }
+      throw categoryError;
+    }
+
+    // 현재 페이지에 해당하는 데이터만 추출
+    const pageResults = allResults.slice(targetStartIndex, targetEndIndex);
+
+    const posts: Post[] = pageResults.map((page: NotionPage) => ({
+      id: page.id,
+      title: page.properties.title?.title[0]?.plain_text || "Untitled",
+      slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+      metaDescription:
+        page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
+      published: page.properties.Published?.checkbox || false,
+      blogPost: page.properties.blogPost?.rich_text
+        ? page.properties.blogPost.rich_text
+            .map((rt: NotionRichText) => rt.plain_text)
+            .join("")
+        : "",
+      category: page.properties.category?.select?.name || undefined,
+    }));
+
+    return {
+      posts,
+      totalCount,
+      currentPage,
+      totalPages,
+      hasNextPage: currentPage < totalPages,
+      hasPrevPage: currentPage > 1,
+    };
+  } catch (error) {
+    console.error(
+      "Error fetching paginated posts by category from Notion:",
+      error
+    );
     throw error;
   }
 }

@@ -1,7 +1,8 @@
-import { getPublishedPostsByCategory, type Post } from "@/lib/notion";
+import { getPublishedPostsByCategoryPaginated } from "@/lib/notion";
 import PostCard from "@/components/PostCard";
 import SmoothScroll from "@/components/SmoothScroll";
 import GrainOverlay from "@/components/GrainOverlay";
+import Pagination from "@/components/Pagination";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -21,6 +22,7 @@ const categories = [
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
 export async function generateMetadata({
@@ -35,23 +37,34 @@ export async function generateMetadata({
   };
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { category } = await params;
   const decodedCategory = decodeURIComponent(category);
+  const params_search = await searchParams;
+  const currentPage = parseInt(params_search.page || '1', 10) || 1;
 
   // 유효한 카테고리인지 확인
   if (!categories.includes(decodedCategory)) {
     notFound();
   }
 
-  let posts: Post[] = [];
+  let paginatedData;
   try {
-    posts = await getPublishedPostsByCategory(decodedCategory);
+    paginatedData = await getPublishedPostsByCategoryPaginated(decodedCategory, currentPage, 12);
   } catch (error) {
     console.error("카테고리별 게시글 조회 오류:", error);
-    // 에러 발생 시 빈 배열로 처리하여 페이지가 깨지지 않도록 함
-    posts = [];
+    // 에러 발생 시 빈 데이터로 처리하여 페이지가 깨지지 않도록 함
+    paginatedData = {
+      posts: [],
+      totalCount: 0,
+      currentPage: 1,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPrevPage: false,
+    };
   }
+
+  const { posts, currentPage: page, totalPages, hasNextPage, hasPrevPage } = paginatedData;
 
   return (
     <SmoothScroll>
@@ -71,25 +84,37 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-[300px]">
-              {posts.map((post, index) => {
-                // Bento Grid 효과: 카드 크기 변형
-                const isLarge = index % 4 === 0;
-                const isWide = index % 4 === 2;
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-[300px]">
+                {posts.map((post, index) => {
+                  // Bento Grid 효과: 카드 크기 변형
+                  // 각 페이지 내에서도 동일한 패턴 유지
+                  const isLarge = index % 4 === 0;
+                  const isWide = index % 4 === 2;
 
-                return (
-                  <div
-                    key={post.id}
-                    className={`
-                      ${isLarge ? "md:col-span-2 md:row-span-2" : ""}
-                      ${isWide ? "md:col-span-2" : ""}
-                    `}
-                  >
-                    <PostCard post={post} index={index} />
-                  </div>
-                );
-              })}
-            </div>
+                  return (
+                    <div
+                      key={post.id}
+                      className={`
+                        ${isLarge ? "md:col-span-2 md:row-span-2" : ""}
+                        ${isWide ? "md:col-span-2" : ""}
+                      `}
+                    >
+                      <PostCard post={post} index={index} />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 페이지네이션 */}
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                baseUrl={`/blog/category/${encodeURIComponent(decodedCategory)}`}
+                hasNextPage={hasNextPage}
+                hasPrevPage={hasPrevPage}
+              />
+            </>
           )}
         </main>
       </div>
