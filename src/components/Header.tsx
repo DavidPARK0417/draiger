@@ -114,22 +114,22 @@ export default function Header() {
               href="/"
               className="flex items-center transition-opacity duration-300 hover:opacity-80"
             >
-              {/* 모바일 모드 (640px 미만): adtoolkit.jpg만 사용 */}
+              {/* 모바일 모드 (640px 미만): DRAIGER.jpeg 사용 */}
               <Image
-                src="/adtoolkit.jpg"
-                alt="adtoolkit"
+                src="/DRAIGER.jpeg"
+                alt="DRAIGER"
                 width={427}
                 height={149}
-                className="block sm:hidden h-20 w-auto object-contain"
+                className="block sm:hidden h-10 w-auto object-contain"
                 priority
               />
-              {/* 태블릿/노트북/데스크탑 모드 (640px 이상): adtoolkit_logo.jpg만 사용 */}
+              {/* 태블릿/노트북/데스크탑 모드 (640px 이상): DRAIGER_width.jpeg 사용 */}
               <Image
-                src="/adtoolkit_logo.jpg"
-                alt="adtoolkit"
+                src="/DRAIGER_width.jpeg"
+                alt="DRAIGER"
                 width={180}
                 height={50}
-                className="hidden sm:block h-10 w-auto object-contain"
+                className="hidden sm:block h-10 lg:h-[60px] w-auto object-contain"
                 priority
               />
             </Link>
