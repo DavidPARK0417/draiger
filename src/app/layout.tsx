@@ -63,6 +63,11 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  icons: {
+    icon: "/Favicon.ico",
+    shortcut: "/Favicon.ico",
+    apple: "/Icon-180x180.png",
+  },
   verification: {
     // Google Search Console, Naver Search Advisor 등 검증 코드 추가 가능
     // google: "your-google-verification-code",
