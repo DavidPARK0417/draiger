@@ -1,6 +1,59 @@
 import { Client } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
 
+// Notion API 타입 정의
+interface NotionFilter {
+  property?: string;
+  checkbox?: { equals: boolean };
+  rich_text?: { equals: string };
+  select?: { equals: string };
+  and?: NotionFilter[];
+  [key: string]: unknown;
+}
+
+interface NotionSort {
+  timestamp?: "created_time" | "last_edited_time";
+  direction?: "ascending" | "descending";
+  property?: string;
+  [key: string]: unknown;
+}
+
+interface NotionRichText {
+  plain_text: string;
+  [key: string]: unknown;
+}
+
+interface NotionTitle {
+  title: NotionRichText[];
+}
+
+interface NotionProperty {
+  title?: NotionTitle;
+  rich_text?: NotionRichText[];
+  checkbox?: boolean;
+  select?: { name: string };
+  [key: string]: unknown;
+}
+
+interface NotionPage {
+  id: string;
+  properties: {
+    title?: NotionTitle;
+    slug?: { rich_text: NotionRichText[] };
+    metaDescription?: { rich_text: NotionRichText[] };
+    Published?: { checkbox: boolean };
+    blogPost?: { rich_text: NotionRichText[] };
+    category?: { select: { name: string } };
+    [key: string]: NotionProperty;
+  };
+  [key: string]: unknown;
+}
+
+interface NotionQueryResponse {
+  results: NotionPage[];
+  [key: string]: unknown;
+}
+
 /**
  * Notion 클라이언트를 생성합니다
  * 환경 변수가 없으면 에러를 throw합니다
@@ -85,9 +138,9 @@ function getNotionToMarkdown() {
  */
 async function queryNotionDatabase(params: {
   database_id: string;
-  filter?: any;
-  sorts?: any[];
-}): Promise<any> {
+  filter?: NotionFilter;
+  sorts?: NotionSort[];
+}): Promise<NotionQueryResponse> {
   const apiKey = process.env.NOTION_API_KEY?.trim().replace(/^["']|["']$/g, "");
 
   if (!apiKey) {
@@ -161,16 +214,16 @@ export async function getPublishedPosts(): Promise<Post[]> {
       ],
     });
 
-    return data.results.map((page: any) => ({
+    return data.results.map((page: NotionPage) => ({
       id: page.id,
       title: page.properties.title?.title[0]?.plain_text || "Untitled",
-      slug: page.properties.slug?.rich_text[0]?.plain_text || "",
+      slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
       metaDescription:
-        page.properties.metaDescription?.rich_text[0]?.plain_text || "",
+        page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
       published: page.properties.Published?.checkbox || false,
       blogPost: page.properties.blogPost?.rich_text
         ? page.properties.blogPost.rich_text
-            .map((rt: any) => rt.plain_text)
+            .map((rt: NotionRichText) => rt.plain_text)
             .join("")
         : "",
       category: page.properties.category?.select?.name || undefined,
@@ -228,25 +281,29 @@ export async function getPublishedPostsByCategory(
         ],
       });
 
-      return data.results.map((page: any) => ({
+      return data.results.map((page: NotionPage) => ({
         id: page.id,
         title: page.properties.title?.title[0]?.plain_text || "Untitled",
-        slug: page.properties.slug?.rich_text[0]?.plain_text || "",
+        slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
         metaDescription:
-          page.properties.metaDescription?.rich_text[0]?.plain_text || "",
+          page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
         published: page.properties.Published?.checkbox || false,
         blogPost: page.properties.blogPost?.rich_text
           ? page.properties.blogPost.rich_text
-              .map((rt: any) => rt.plain_text)
+              .map((rt: NotionRichText) => rt.plain_text)
               .join("")
           : "",
         category: page.properties.category?.select?.name || undefined,
       }));
-    } catch (categoryError: any) {
+    } catch (categoryError: unknown) {
       // category 속성이 없는 경우 (validation_error)
+      const errorMessage =
+        categoryError instanceof Error
+          ? categoryError.message
+          : String(categoryError);
       if (
-        categoryError.message?.includes("validation_error") &&
-        categoryError.message?.includes("category")
+        errorMessage.includes("validation_error") &&
+        errorMessage.includes("category")
       ) {
         console.warn(
           "⚠️ Notion 데이터베이스에 'category' 속성이 없습니다. " +
@@ -307,17 +364,17 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 
     if (data.results.length === 0) return null;
 
-    const page: any = data.results[0];
+    const page: NotionPage = data.results[0];
     return {
       id: page.id,
       title: page.properties.title?.title[0]?.plain_text || "Untitled",
-      slug: page.properties.slug?.rich_text[0]?.plain_text || "",
+      slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
       metaDescription:
-        page.properties.metaDescription?.rich_text[0]?.plain_text || "",
+        page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
       published: page.properties.Published?.checkbox || false,
       blogPost: page.properties.blogPost?.rich_text
         ? page.properties.blogPost.rich_text
-            .map((rt: any) => rt.plain_text)
+            .map((rt: NotionRichText) => rt.plain_text)
             .join("")
         : "",
       category: page.properties.category?.select?.name || undefined,
