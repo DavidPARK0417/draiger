@@ -32,7 +32,7 @@ export default function Header() {
   const [isMarketingToolsOpen, setIsMarketingToolsOpen] = useState(false);
   const [isUsefulToolsOpen, setIsUsefulToolsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [headerHeight, setHeaderHeight] = useState(96); // 기본값: min-h-24 (96px)
+  const [headerHeight, setHeaderHeight] = useState(48); // 기본값: min-h-12 (48px)
   const marketingToolsDropdownRef = useRef<HTMLDivElement>(null);
   const usefulToolsDropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuButtonRef = useRef<HTMLDivElement>(null);
@@ -180,8 +180,8 @@ export default function Header() {
       ref={headerRef}
       className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between min-h-24 sm:min-h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between min-h-12 sm:min-h-16">
           <div className="flex items-center flex-shrink-0">
             <Link
               href="/"
@@ -193,7 +193,7 @@ export default function Header() {
                 alt="DRAIGER"
                 width={427}
                 height={149}
-                className="block sm:hidden h-10 w-auto object-contain"
+                className="block sm:hidden h-8 w-auto object-contain"
                 priority
               />
               {/* 태블릿/노트북/데스크탑 모드 (640px 이상): DRAIGER_width.jpeg 사용 */}
