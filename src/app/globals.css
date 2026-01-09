@@ -53,3 +53,124 @@ body {
   font-display: swap; /* 폰트 로딩 중에도 텍스트 표시 (CLS 최소화) */
   src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.woff2') format('woff2-variations');
 }
+
+/* Draiger 블로그 스타일 */
+/* Grain Texture Overlay */
+.grain-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.05;
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  filter: contrast(150%) brightness(100%);
+}
+
+/* Smooth Scroll */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Prose Styles for Blog */
+.prose {
+  color: var(--foreground);
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  margin-top: 2em;
+  margin-bottom: 1em;
+  color: white;
+  font-weight: 600;
+}
+
+.prose p {
+  margin-bottom: 1.5em;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.prose strong {
+  color: white;
+  font-weight: 600;
+}
+
+.prose em {
+  color: rgba(255, 255, 255, 0.95);
+  font-style: italic;
+}
+
+.prose ul,
+.prose ol {
+  margin-bottom: 1.5em;
+  padding-left: 1.5em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.prose li {
+  margin-bottom: 0.5em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.prose li::marker {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.prose blockquote {
+  border-left: 4px solid rgba(255, 255, 255, 0.2);
+  padding-left: 1.5em;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.prose a {
+  color: white;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.prose a:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.prose code {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.prose hr {
+  border-color: rgba(255, 255, 255, 0.2);
+  margin: 2em 0;
+}
+
+/* 블로그 페이지 전용 배경 (어두운 배경) */
+.blog-page {
+  background: #0d0d0d;
+  color: #f0f0f0;
+}

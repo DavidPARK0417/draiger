@@ -25,14 +25,33 @@ const usefulTools = [
   { name: "알람시계", href: "/tools/alarm-clock" },
 ];
 
+const blogCategories = [
+  { name: "정치", href: "/blog/category/" + encodeURIComponent("정치") },
+  { name: "경제", href: "/blog/category/" + encodeURIComponent("경제") },
+  { name: "주식", href: "/blog/category/" + encodeURIComponent("주식") },
+  { name: "사회", href: "/blog/category/" + encodeURIComponent("사회") },
+  {
+    name: "AI 신기술",
+    href: "/blog/category/" + encodeURIComponent("AI 신기술"),
+  },
+  {
+    name: "생활 문화",
+    href: "/blog/category/" + encodeURIComponent("생활 문화"),
+  },
+  { name: "세계", href: "/blog/category/" + encodeURIComponent("세계") },
+  { name: "스포츠", href: "/blog/category/" + encodeURIComponent("스포츠") },
+];
+
 const navigation = [{ name: "문의하기", href: "/contact" }];
 
 export default function Header() {
   const pathname = usePathname();
+  const [isBlogOpen, setIsBlogOpen] = useState(false);
   const [isMarketingToolsOpen, setIsMarketingToolsOpen] = useState(false);
   const [isUsefulToolsOpen, setIsUsefulToolsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(48); // 기본값: min-h-12 (48px)
+  const blogDropdownRef = useRef<HTMLDivElement>(null);
   const marketingToolsDropdownRef = useRef<HTMLDivElement>(null);
   const usefulToolsDropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuButtonRef = useRef<HTMLDivElement>(null);
@@ -46,6 +65,12 @@ export default function Header() {
       // (모바일 메뉴 패널 내부 클릭이 데스크탑 드롭다운 외부 클릭으로 감지되는 것을 방지)
       if (!isMobileMenuOpen) {
         // 데스크탑 드롭다운 외부 클릭 감지
+        if (
+          blogDropdownRef.current &&
+          !blogDropdownRef.current.contains(event.target as Node)
+        ) {
+          setIsBlogOpen(false);
+        }
         if (
           marketingToolsDropdownRef.current &&
           !marketingToolsDropdownRef.current.contains(event.target as Node)
@@ -73,6 +98,7 @@ export default function Header() {
         if (clickedOutsideButton && clickedOutsidePanel) {
           setIsMobileMenuOpen(false);
           // 모바일 메뉴가 닫힐 때 드롭다운 상태도 초기화
+          setIsBlogOpen(false);
           setIsMarketingToolsOpen(false);
           setIsUsefulToolsOpen(false);
         }
@@ -93,6 +119,7 @@ export default function Header() {
     } else {
       document.body.style.overflow = "";
       // 모바일 메뉴가 닫힐 때 드롭다운 상태 초기화
+      setIsBlogOpen(false);
       setIsMarketingToolsOpen(false);
       setIsUsefulToolsOpen(false);
     }
@@ -113,6 +140,12 @@ export default function Header() {
     window.addEventListener("resize", updateHeaderHeight);
     return () => window.removeEventListener("resize", updateHeaderHeight);
   }, []);
+
+  // 현재 경로가 블로그 관련인지 확인
+  const isBlogActive =
+    pathname === "/" ||
+    pathname.startsWith("/blog") ||
+    blogCategories.some((cat) => pathname === cat.href);
 
   // 현재 경로가 마케팅 도구 중 하나인지 확인
   const isMarketingToolActive = marketingTools.some(
@@ -209,21 +242,108 @@ export default function Header() {
           </div>
           {/* 데스크탑 네비게이션 (640px 이상) */}
           <nav className="hidden sm:flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-            {/* 홈 메뉴 */}
-            <Link
-              href="/"
-              className={`
-                px-3 py-2 rounded-xl text-sm font-medium whitespace-nowrap 
-                transition-all duration-300
-                ${
-                  pathname === "/"
-                    ? "bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
-                    : "text-gray-700 dark:text-white dark:font-semibold hover:bg-emerald-50 dark:hover:bg-gray-700 hover:text-emerald-600 dark:hover:text-emerald-300"
-                }
-              `}
-            >
-              홈
-            </Link>
+            {/* 블로그 드롭다운 메뉴 */}
+            <div className="relative" ref={blogDropdownRef}>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsBlogOpen(!isBlogOpen);
+                }}
+                className={`
+                  px-3 py-2 rounded-xl text-sm font-medium whitespace-nowrap 
+                  transition-all duration-300
+                  flex items-center gap-1
+                  ${
+                    isBlogActive
+                      ? "bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+                      : "text-gray-700 dark:text-white dark:font-semibold hover:bg-emerald-50 dark:hover:bg-gray-700 hover:text-emerald-600 dark:hover:text-emerald-300"
+                  }
+                `}
+              >
+                블로그
+                <svg
+                  className={`w-4 h-4 transition-transform duration-300 ${
+                    isBlogOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {/* 드롭다운 메뉴 */}
+              {isBlogOpen && (
+                <div
+                  data-dropdown-menu
+                  className="
+                    absolute top-full left-0 mt-2
+                    w-56 sm:w-64
+                    bg-white dark:bg-gray-800
+                    border border-gray-200 dark:border-gray-700
+                    rounded-2xl shadow-xl dark:shadow-gray-900/50
+                    py-2
+                    z-[9999]
+                    transition-all duration-200 ease-out
+                    whitespace-nowrap
+                  "
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    marginTop: "0.5rem",
+                    zIndex: 9999,
+                    display: "block",
+                    visibility: "visible",
+                    opacity: 1,
+                  }}
+                >
+                  <Link
+                    href="/"
+                    onClick={() => setIsBlogOpen(false)}
+                    className={`
+                      block px-4 py-2.5 text-sm
+                      transition-all duration-200
+                      ${
+                        pathname === "/"
+                          ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-700 hover:text-emerald-600 dark:hover:text-emerald-400"
+                      }
+                    `}
+                  >
+                    전체
+                  </Link>
+                  {blogCategories.map((category) => {
+                    const isActive = pathname === category.href;
+                    return (
+                      <Link
+                        key={category.name}
+                        href={category.href}
+                        onClick={() => setIsBlogOpen(false)}
+                        className={`
+                          block px-4 py-2.5 text-sm
+                          transition-all duration-200
+                          ${
+                            isActive
+                              ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-700 hover:text-emerald-600 dark:hover:text-emerald-400"
+                          }
+                        `}
+                      >
+                        {category.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* 마케팅도구 드롭다운 메뉴 */}
             <div className="relative" ref={marketingToolsDropdownRef}>
@@ -478,25 +598,90 @@ export default function Header() {
           }}
         >
           <div className="px-4 py-6 space-y-4">
-            {/* 홈 메뉴 */}
-            <Link
-              href="/"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsMobileMenuOpen(false);
-              }}
-              className={`
-                block px-4 py-3 rounded-xl text-base font-medium
-                transition-all duration-300
-                ${
-                  pathname === "/"
-                    ? "bg-emerald-500 text-white shadow-md"
-                    : "text-gray-700 dark:text-white hover:bg-emerald-50 dark:hover:bg-gray-800"
-                }
-              `}
-            >
-              홈
-            </Link>
+            {/* 블로그 섹션 */}
+            <div className="space-y-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsBlogOpen(!isBlogOpen);
+                }}
+                className={`
+                  w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium
+                  transition-all duration-300
+                  ${
+                    isBlogActive
+                      ? "bg-emerald-500 text-white shadow-md"
+                      : "text-gray-700 dark:text-white hover:bg-emerald-50 dark:hover:bg-gray-800"
+                  }
+                `}
+              >
+                <span>블로그</span>
+                <svg
+                  className={`w-5 h-5 transition-transform duration-300 ${
+                    isBlogOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {isBlogOpen && (
+                <div className="pl-4 space-y-1">
+                  <Link
+                    href="/"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsBlogOpen(false);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`
+                      block px-4 py-2.5 rounded-lg text-sm
+                      transition-all duration-200
+                      ${
+                        pathname === "/"
+                          ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold"
+                          : "text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800"
+                      }
+                    `}
+                  >
+                    전체
+                  </Link>
+                  {blogCategories.map((category) => {
+                    const isActive = pathname === category.href;
+                    return (
+                      <Link
+                        key={category.name}
+                        href={category.href}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsBlogOpen(false);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`
+                          block px-4 py-2.5 rounded-lg text-sm
+                          transition-all duration-200
+                          ${
+                            isActive
+                              ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold"
+                              : "text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800"
+                          }
+                        `}
+                      >
+                        {category.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* 마케팅도구 섹션 */}
             <div className="space-y-2">

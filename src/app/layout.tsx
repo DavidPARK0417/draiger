@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Header from "@/components/Header";
+import ConditionalHeader from "@/components/ConditionalHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
@@ -97,7 +97,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased text-gray-900 dark:text-white bg-[#F8F9FA] dark:bg-gray-900">
         <ThemeProvider>
-          <Header />
+          <ConditionalHeader />
           {children}
         </ThemeProvider>
       </body>
