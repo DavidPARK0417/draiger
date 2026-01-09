@@ -54,18 +54,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <article>
             <header className="mb-12 sm:mb-16">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-serif mb-6 sm:mb-8 leading-tight text-gray-900 dark:text-white">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-serif font-bold mb-6 sm:mb-8 leading-tight text-gray-900 dark:text-white">
                 {post.title}
               </h1>
-              <p className="text-lg sm:text-xl text-gray-600 dark:text-white/50 font-sans leading-relaxed">
+              <p className="text-lg sm:text-xl text-gray-600 dark:text-white/50 font-sans italic leading-relaxed">
                 {post.metaDescription}
               </p>
             </header>
 
             <div
-              className="prose prose-lg max-w-none 
+              className="prose prose-xl max-w-none 
               prose-headings:font-serif prose-headings:font-normal prose-headings:tracking-tight prose-headings:text-gray-900 dark:prose-headings:text-white
-              prose-p:text-gray-700 dark:prose-p:text-white/90 prose-p:leading-relaxed
+              prose-p:!text-2xl prose-p:text-gray-700 dark:prose-p:text-white/90 prose-p:leading-relaxed
+              prose-li:!text-2xl prose-ul:!text-2xl prose-ol:!text-2xl
               prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-semibold
               prose-em:text-gray-900 dark:prose-em:text-white/95
               prose-a:text-gray-900 dark:prose-a:text-white prose-a:underline-offset-4 hover:prose-a:text-emerald-600 dark:hover:prose-a:text-white/80
@@ -110,4 +111,3 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     </SmoothScroll>
   );
 }
-
