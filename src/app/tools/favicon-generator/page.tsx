@@ -5,7 +5,6 @@ import {
   Upload,
   X,
   Image as ImageIcon,
-  Loader2,
   FileDown,
   Download as DownloadIcon,
 } from "lucide-react";
@@ -621,7 +620,7 @@ export default function FaviconGeneratorPage() {
           </h2>
           <ol className="list-decimal list-inside space-y-2 text-sm text-gray-600 dark:text-gray-300">
             <li>이미지 파일을 업로드하세요 (정사각형 이미지 권장)</li>
-            <li>"파비콘 생성하기" 버튼을 클릭하세요</li>
+            <li>&quot;파비콘 생성하기&quot; 버튼을 클릭하세요</li>
             <li>생성된 파비콘을 ZIP 파일로 다운로드하세요</li>
             <li>
               다운로드한 파일을 웹사이트 루트 디렉토리에 업로드하세요

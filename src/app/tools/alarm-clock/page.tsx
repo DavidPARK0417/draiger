@@ -634,8 +634,8 @@ export default function AlarmClockPage() {
   }, [timerMode]);
 
   // Canvas 애니메이션 루프 (실시간 업데이트)
-  // useCallback을 사용하지 않고 직접 함수로 정의하여 항상 최신 상태를 참조
-  const animateCanvas = () => {
+  // ref를 통해 최신 상태를 참조하므로 useCallback으로 안정화
+  const animateCanvas = useCallback(() => {
     // ref를 통해 최신 PIP 활성화 상태 확인
     if (!pipIsActiveRef.current) {
       // PIP가 비활성화되면 애니메이션 중지
@@ -652,7 +652,7 @@ export default function AlarmClockPage() {
     
     // 다음 프레임 요청
     pipAnimationRef.current = requestAnimationFrame(animateCanvas);
-  };
+  }, [getCurrentDisplayTime, drawTimeOnCanvas]);
 
   // PIP 모드 시작
   const handleStartPip = useCallback(async () => {
@@ -775,7 +775,7 @@ export default function AlarmClockPage() {
       cancelAnimationFrame(pipAnimationRef.current);
       pipAnimationRef.current = null;
     }
-  }, [isPipActive]);
+  }, [isPipActive, animateCanvas]);
 
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {
