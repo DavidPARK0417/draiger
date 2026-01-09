@@ -17,8 +17,9 @@ const marketingTools = [
 
 const usefulTools = [
   { name: "이미지크기 조정", href: "/tools/image-resize" },
-  { name: "글자수 세기", href: "/tools/character-counter" },
+  { name: "파비콘 생성기", href: "/tools/favicon-generator" },
   { name: "QR코드 생성기", href: "/tools/qr-code-generator" },
+  { name: "글자수 세기", href: "/tools/character-counter" },
   { name: "세계시간 변환기", href: "/tools/world-time-converter" },
   { name: "알람시계", href: "/tools/alarm-clock" },
 ];

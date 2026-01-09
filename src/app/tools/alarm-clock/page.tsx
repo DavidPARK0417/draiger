@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Clock, Plus, X, Bell, BellOff, Volume2, Trash2, Edit2, Play, Pause, RotateCcw, Flag } from 'lucide-react';
+import { Clock, Plus, X, Bell, BellOff, Volume2, Trash2, Edit2, Play, Pause, RotateCcw, Flag, PictureInPicture } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -104,6 +104,20 @@ export default function AlarmClockPage() {
   const [timerSeconds, setTimerSeconds] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const repeatAlarmIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // PIP (Picture-in-Picture) 관련 상태 및 ref
+  const [isPipActive, setIsPipActive] = useState(false); // PIP 모드 활성화 여부
+  const canvasRef = useRef<HTMLCanvasElement | null>(null); // 시간을 그릴 canvas 요소
+  const videoRef = useRef<HTMLVideoElement | null>(null); // PIP로 표시할 video 요소
+  const streamRef = useRef<MediaStream | null>(null); // captureStream으로 생성한 스트림
+  const pipAnimationRef = useRef<number | null>(null); // canvas 애니메이션 프레임 ID
+  
+  // PIP에서 최신 상태를 참조하기 위한 ref (클로저 문제 해결)
+  const pipDisplayTimeRef = useRef<string>('00:00.00'); // 최신 displayTime 저장
+  const pipTimerStateRef = useRef<TimerState>(timer); // 최신 timer 상태 저장
+  const pipTimerModeRef = useRef<'stopwatch' | 'timer'>('stopwatch'); // 최신 모드 저장
+  const pipStopwatchStateRef = useRef(stopwatch); // 최신 stopwatch 상태 저장
+  const pipIsActiveRef = useRef<boolean>(false); // PIP 활성화 상태 ref
 
   // 현재 시간 업데이트 (1초마다) - 클라이언트에서만 실행
   useEffect(() => {
@@ -523,6 +537,252 @@ export default function AlarmClockPage() {
 
   // 스톱워치 디스플레이 시간 (실시간 업데이트)
   const [displayTime, setDisplayTime] = useState('00:00.00');
+  
+  // displayTime이 변경될 때마다 PIP ref 업데이트
+  useEffect(() => {
+    pipDisplayTimeRef.current = displayTime;
+  }, [displayTime]);
+  
+  // timer 상태가 변경될 때마다 PIP ref 업데이트
+  useEffect(() => {
+    pipTimerStateRef.current = timer;
+  }, [timer]);
+  
+  // timerMode가 변경될 때마다 PIP ref 업데이트
+  useEffect(() => {
+    pipTimerModeRef.current = timerMode;
+  }, [timerMode]);
+  
+  // stopwatch 상태가 변경될 때마다 PIP ref 업데이트
+  useEffect(() => {
+    pipStopwatchStateRef.current = stopwatch;
+  }, [stopwatch]);
+
+  // 현재 표시할 시간을 가져오는 함수 (스톱워치/타이머 모드에 따라)
+  // PIP에서 사용하기 위해 ref를 통해 최신 값을 참조
+  const getCurrentDisplayTime = useCallback(() => {
+    const currentMode = pipTimerModeRef.current;
+    if (currentMode === 'stopwatch') {
+      // 스톱워치 모드: displayTime 또는 실시간 계산
+      if (pipStopwatchStateRef.current.isRunning && pipStopwatchStateRef.current.startTime !== null) {
+        // 실행 중이면 실시간으로 계산
+        const now = Date.now();
+        const elapsed = now - pipStopwatchStateRef.current.startTime + pipStopwatchStateRef.current.elapsedTime;
+        return formatStopwatchTime(elapsed);
+      } else {
+        // 일시정지 상태면 저장된 displayTime 사용
+        return pipDisplayTimeRef.current;
+      }
+    } else {
+      // 타이머 모드: remainingTime 또는 실시간 계산
+      const timerState = pipTimerStateRef.current;
+      if (timerState.isRunning && timerState.startTime !== null) {
+        // 실행 중이면 실시간으로 계산
+        const elapsed = Date.now() - timerState.startTime;
+        const newRemainingTime = Math.max(0, timerStartRemainingTimeRef.current - elapsed);
+        return formatTimerTime(newRemainingTime);
+      } else {
+        // 일시정지 상태면 저장된 remainingTime 사용
+        return formatTimerTime(timerState.remainingTime);
+      }
+    }
+  }, [formatStopwatchTime, formatTimerTime]);
+
+  // Canvas에 시간을 그리는 함수
+  const drawTimeOnCanvas = useCallback((timeString: string) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Canvas 크기 설정 (고해상도 지원)
+    // PIP 창을 작게 만들기 위해 Canvas 크기를 줄임
+    const dpr = window.devicePixelRatio || 1;
+    const width = 280; // 400에서 280으로 축소 (30% 감소)
+    const height = 140; // 200에서 140으로 축소 (30% 감소)
+    
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    
+    ctx.scale(dpr, dpr);
+
+    // 배경 지우기
+    ctx.clearRect(0, 0, width, height);
+
+    // 배경색 설정 (다크모드 지원)
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    ctx.fillStyle = isDark ? '#1F2937' : '#FFFFFF';
+    ctx.fillRect(0, 0, width, height);
+
+    // 텍스트 스타일 설정 (폰트 크기도 Canvas 크기에 맞게 축소)
+    ctx.fillStyle = isDark ? '#10B981' : '#10B981'; // Emerald Green
+    ctx.font = 'bold 32px "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, sans-serif'; // 48px에서 32px로 축소
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // 시간 텍스트 그리기
+    ctx.fillText(timeString, width / 2, height / 2 - 8); // 약간 위로 이동
+
+    // 모드 표시 (작은 텍스트)
+    ctx.font = '11px "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, sans-serif'; // 14px에서 11px로 축소
+    ctx.fillStyle = isDark ? '#9CA3AF' : '#6B7280';
+    const modeText = timerMode === 'stopwatch' ? '스톱워치' : '타이머';
+    ctx.fillText(modeText, width / 2, height / 2 + 24); // 간격 조정
+  }, [timerMode]);
+
+  // Canvas 애니메이션 루프 (실시간 업데이트)
+  // useCallback을 사용하지 않고 직접 함수로 정의하여 항상 최신 상태를 참조
+  const animateCanvas = () => {
+    // ref를 통해 최신 PIP 활성화 상태 확인
+    if (!pipIsActiveRef.current) {
+      // PIP가 비활성화되면 애니메이션 중지
+      if (pipAnimationRef.current) {
+        cancelAnimationFrame(pipAnimationRef.current);
+        pipAnimationRef.current = null;
+      }
+      return;
+    }
+    
+    // 최신 상태를 ref에서 가져와서 시간 계산
+    const timeString = getCurrentDisplayTime();
+    drawTimeOnCanvas(timeString);
+    
+    // 다음 프레임 요청
+    pipAnimationRef.current = requestAnimationFrame(animateCanvas);
+  };
+
+  // PIP 모드 시작
+  const handleStartPip = useCallback(async () => {
+    try {
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      
+      if (!canvas || !video) {
+        console.error('❌ [PIP] Canvas 또는 Video 요소를 찾을 수 없습니다.');
+        return;
+      }
+
+      // Canvas에 초기 시간 그리기
+      const timeString = getCurrentDisplayTime();
+      drawTimeOnCanvas(timeString);
+
+      // Canvas를 MediaStream으로 변환 (captureStream 사용)
+      const stream = canvas.captureStream(30); // 30fps로 캡처
+      streamRef.current = stream;
+
+      // Video 요소에 스트림 연결
+      video.srcObject = stream;
+      video.play();
+
+      // Video가 재생될 때까지 대기
+      await new Promise<void>((resolve) => {
+        video.onloadedmetadata = () => {
+          video.play().then(() => {
+            resolve();
+          });
+        };
+      });
+
+      // PIP 모드 시작
+      if (document.pictureInPictureElement) {
+        // 이미 PIP 모드가 활성화되어 있으면 종료
+        await document.exitPictureInPicture();
+      }
+
+      await video.requestPictureInPicture();
+      setIsPipActive(true);
+      pipIsActiveRef.current = true; // ref도 업데이트
+
+      // Canvas 애니메이션 시작 (실시간 업데이트)
+      // animateCanvas를 직접 호출하여 시작
+      animateCanvas();
+
+      console.log('✅ [PIP] PIP 모드 시작 성공');
+    } catch (error) {
+      console.error('❌ [PIP] PIP 모드 시작 실패:', error);
+      alert('PIP 모드를 시작할 수 없습니다. 브라우저가 PIP를 지원하는지 확인해주세요.');
+    }
+  }, [getCurrentDisplayTime, drawTimeOnCanvas, animateCanvas]);
+
+  // PIP 모드 종료
+  const handleStopPip = useCallback(async () => {
+    try {
+      // Canvas 애니메이션 중지
+      if (pipAnimationRef.current) {
+        cancelAnimationFrame(pipAnimationRef.current);
+        pipAnimationRef.current = null;
+      }
+
+      // PIP 모드 종료
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      }
+
+      // Video 스트림 정리
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = null;
+      }
+
+      // MediaStream 정리
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+
+      setIsPipActive(false);
+      pipIsActiveRef.current = false; // ref도 업데이트
+      console.log('🛑 [PIP] PIP 모드 종료');
+    } catch (error) {
+      console.error('❌ [PIP] PIP 모드 종료 실패:', error);
+    }
+  }, []);
+
+  // PIP 창이 닫혔을 때 자동으로 정리
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handlePipLeave = () => {
+      setIsPipActive(false);
+      pipIsActiveRef.current = false; // ref도 업데이트
+      if (pipAnimationRef.current) {
+        cancelAnimationFrame(pipAnimationRef.current);
+        pipAnimationRef.current = null;
+      }
+      console.log('🛑 [PIP] PIP 창이 닫혔습니다.');
+    };
+
+    video.addEventListener('leavepictureinpicture', handlePipLeave);
+
+    return () => {
+      video.removeEventListener('leavepictureinpicture', handlePipLeave);
+    };
+  }, []);
+
+  // PIP가 활성화되어 있을 때 애니메이션 유지
+  useEffect(() => {
+    pipIsActiveRef.current = isPipActive; // ref 업데이트
+    
+    if (isPipActive && !pipAnimationRef.current) {
+      // PIP가 활성화되었지만 애니메이션이 시작되지 않았으면 시작
+      animateCanvas();
+    } else if (!isPipActive && pipAnimationRef.current) {
+      // PIP가 비활성화되었으면 애니메이션 중지
+      cancelAnimationFrame(pipAnimationRef.current);
+      pipAnimationRef.current = null;
+    }
+  }, [isPipActive]);
+
+  // 컴포넌트 언마운트 시 정리
+  useEffect(() => {
+    return () => {
+      handleStopPip();
+    };
+  }, [handleStopPip]);
 
   // 스톱워치 초기 디스플레이 시간 설정
   useEffect(() => {
@@ -1091,6 +1351,14 @@ export default function AlarmClockPage() {
                     <Flag className="w-4 h-4 mr-2" />
                     랩
                   </Button>
+                  <Button
+                    variant={isPipActive ? 'primary' : 'secondary'}
+                    onClick={isPipActive ? handleStopPip : handleStartPip}
+                    className="min-w-[120px]"
+                  >
+                    <PictureInPicture className="w-4 h-4 mr-2" />
+                    {isPipActive ? 'PIP 종료' : 'PIP 시작'}
+                  </Button>
                 </div>
 
                 {/* 랩 타임 목록 */}
@@ -1385,6 +1653,14 @@ export default function AlarmClockPage() {
                     <RotateCcw className="w-4 h-4 mr-2" />
                     리셋
                   </Button>
+                  <Button
+                    variant={isPipActive ? 'primary' : 'secondary'}
+                    onClick={isPipActive ? handleStopPip : handleStartPip}
+                    className="min-w-[120px]"
+                  >
+                    <PictureInPicture className="w-4 h-4 mr-2" />
+                    {isPipActive ? 'PIP 종료' : 'PIP 시작'}
+                  </Button>
                 </div>
               </>
             )}
@@ -1393,6 +1669,37 @@ export default function AlarmClockPage() {
           </div>
         </div>
       </div>
+
+      {/* PIP를 위한 숨겨진 Canvas와 Video 요소 */}
+      {/* Canvas와 Video 크기를 작게 설정하여 PIP 창도 작게 만듦 */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'fixed',
+          top: '-9999px',
+          left: '-9999px',
+          width: '280px', // 400px에서 280px로 축소
+          height: '140px', // 200px에서 140px로 축소
+          pointerEvents: 'none',
+          opacity: 0,
+        }}
+        aria-hidden="true"
+      />
+      <video
+        ref={videoRef}
+        style={{
+          position: 'fixed',
+          top: '-9999px',
+          left: '-9999px',
+          width: '280px', // 400px에서 280px로 축소
+          height: '140px', // 200px에서 140px로 축소
+          pointerEvents: 'none',
+          opacity: 0,
+        }}
+        playsInline
+        muted
+        aria-hidden="true"
+      />
     </div>
   );
 }
