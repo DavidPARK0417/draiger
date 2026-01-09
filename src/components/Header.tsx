@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { Menu, X } from "lucide-react";
 
 const marketingTools = [
   { name: "광고 성과 계산", href: "/tools/ad-performance" },
@@ -30,23 +31,51 @@ export default function Header() {
   const pathname = usePathname();
   const [isMarketingToolsOpen, setIsMarketingToolsOpen] = useState(false);
   const [isUsefulToolsOpen, setIsUsefulToolsOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(96); // 기본값: min-h-24 (96px)
   const marketingToolsDropdownRef = useRef<HTMLDivElement>(null);
   const usefulToolsDropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuButtonRef = useRef<HTMLDivElement>(null);
+  const mobileMenuPanelRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        marketingToolsDropdownRef.current &&
-        !marketingToolsDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsMarketingToolsOpen(false);
+      // 모바일 메뉴가 열려있을 때는 데스크탑 드롭다운 외부 클릭 감지 비활성화
+      // (모바일 메뉴 패널 내부 클릭이 데스크탑 드롭다운 외부 클릭으로 감지되는 것을 방지)
+      if (!isMobileMenuOpen) {
+        // 데스크탑 드롭다운 외부 클릭 감지
+        if (
+          marketingToolsDropdownRef.current &&
+          !marketingToolsDropdownRef.current.contains(event.target as Node)
+        ) {
+          setIsMarketingToolsOpen(false);
+        }
+        if (
+          usefulToolsDropdownRef.current &&
+          !usefulToolsDropdownRef.current.contains(event.target as Node)
+        ) {
+          setIsUsefulToolsOpen(false);
+        }
       }
-      if (
-        usefulToolsDropdownRef.current &&
-        !usefulToolsDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsUsefulToolsOpen(false);
+
+      // 모바일 메뉴 외부 클릭 감지 (버튼과 패널 모두 확인)
+      if (isMobileMenuOpen) {
+        const clickedOutsideButton =
+          mobileMenuButtonRef.current &&
+          !mobileMenuButtonRef.current.contains(event.target as Node);
+        const clickedOutsidePanel =
+          mobileMenuPanelRef.current &&
+          !mobileMenuPanelRef.current.contains(event.target as Node);
+
+        // 버튼과 패널 모두 외부를 클릭한 경우에만 메뉴 닫기
+        if (clickedOutsideButton && clickedOutsidePanel) {
+          setIsMobileMenuOpen(false);
+          // 모바일 메뉴가 닫힐 때 드롭다운 상태도 초기화
+          setIsMarketingToolsOpen(false);
+          setIsUsefulToolsOpen(false);
+        }
       }
     };
 
@@ -54,6 +83,35 @@ export default function Header() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
+  }, [isMobileMenuOpen]);
+
+  // 모바일 메뉴가 열릴 때 body 스크롤 방지 및 상태 관리
+  useEffect(() => {
+    console.log("모바일 메뉴 상태 변경:", isMobileMenuOpen);
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      // 모바일 메뉴가 닫힐 때 드롭다운 상태 초기화
+      setIsMarketingToolsOpen(false);
+      setIsUsefulToolsOpen(false);
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
+
+  // 헤더 높이 계산
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (headerRef.current) {
+        setHeaderHeight(headerRef.current.offsetHeight);
+      }
+    };
+
+    updateHeaderHeight();
+    window.addEventListener("resize", updateHeaderHeight);
+    return () => window.removeEventListener("resize", updateHeaderHeight);
   }, []);
 
   // 현재 경로가 마케팅 도구 중 하나인지 확인
@@ -105,8 +163,23 @@ export default function Header() {
     }
   }, [isUsefulToolsOpen]);
 
+  // 모바일 메뉴 패널 렌더링 확인
+  useEffect(() => {
+    if (isMobileMenuOpen && mobileMenuPanelRef.current) {
+      console.log("모바일 메뉴 패널 렌더링됨:", mobileMenuPanelRef.current);
+      console.log(
+        "모바일 메뉴 패널 위치:",
+        mobileMenuPanelRef.current.getBoundingClientRect()
+      );
+      console.log("헤더 높이:", headerHeight);
+    }
+  }, [isMobileMenuOpen, headerHeight]);
+
   return (
-    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
+    <header
+      ref={headerRef}
+      className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between min-h-24 sm:min-h-16">
           <div className="flex items-center flex-shrink-0">
@@ -134,7 +207,8 @@ export default function Header() {
               />
             </Link>
           </div>
-          <nav className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+          {/* 데스크탑 네비게이션 (640px 이상) */}
+          <nav className="hidden sm:flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
             {/* 홈 메뉴 */}
             <Link
               href="/"
@@ -357,8 +431,258 @@ export default function Header() {
               );
             })}
           </nav>
+
+          {/* 모바일 햄버거 메뉴 버튼 (640px 미만) */}
+          <div className="sm:hidden flex-shrink-0" ref={mobileMenuButtonRef}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("햄버거 메뉴 클릭, 현재 상태:", isMobileMenuOpen);
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              }}
+              className="
+                p-2 rounded-xl
+                text-gray-700 dark:text-white
+                hover:bg-emerald-50 dark:hover:bg-gray-700
+                transition-all duration-300
+              "
+              aria-label={isMobileMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
+            >
+              {isMobileMenuOpen ? (
+                <X
+                  size={24}
+                  className="text-emerald-500 dark:text-emerald-400"
+                />
+              ) : (
+                <Menu size={24} />
+              )}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* 모바일 메뉴 패널 (640px 미만) */}
+      {isMobileMenuOpen && (
+        <div
+          ref={mobileMenuPanelRef}
+          onClick={(e) => {
+            // 메뉴 패널 내부 클릭 시 이벤트 전파 방지
+            e.stopPropagation();
+          }}
+          className="sm:hidden fixed bg-white dark:bg-gray-900 z-40 overflow-y-auto"
+          style={{
+            top: `${headerHeight}px`,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+        >
+          <div className="px-4 py-6 space-y-4">
+            {/* 홈 메뉴 */}
+            <Link
+              href="/"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMobileMenuOpen(false);
+              }}
+              className={`
+                block px-4 py-3 rounded-xl text-base font-medium
+                transition-all duration-300
+                ${
+                  pathname === "/"
+                    ? "bg-emerald-500 text-white shadow-md"
+                    : "text-gray-700 dark:text-white hover:bg-emerald-50 dark:hover:bg-gray-800"
+                }
+              `}
+            >
+              홈
+            </Link>
+
+            {/* 마케팅도구 섹션 */}
+            <div className="space-y-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log(
+                    "모바일 마케팅도구 버튼 클릭, 현재 상태:",
+                    isMarketingToolsOpen
+                  );
+                  setIsMarketingToolsOpen(!isMarketingToolsOpen);
+                  console.log(
+                    "모바일 마케팅도구 버튼 클릭 후 상태:",
+                    !isMarketingToolsOpen
+                  );
+                }}
+                className={`
+                  w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium
+                  transition-all duration-300
+                  ${
+                    isMarketingToolActive
+                      ? "bg-emerald-500 text-white shadow-md"
+                      : "text-gray-700 dark:text-white hover:bg-emerald-50 dark:hover:bg-gray-800"
+                  }
+                `}
+              >
+                <span>마케팅도구</span>
+                <svg
+                  className={`w-5 h-5 transition-transform duration-300 ${
+                    isMarketingToolsOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {isMarketingToolsOpen && (
+                <div className="pl-4 space-y-1">
+                  {marketingTools.map((tool) => {
+                    const isActive = pathname === tool.href;
+                    return (
+                      <Link
+                        key={tool.name}
+                        href={tool.href}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsMarketingToolsOpen(false);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`
+                          block px-4 py-2.5 rounded-lg text-sm
+                          transition-all duration-200
+                          ${
+                            isActive
+                              ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold"
+                              : "text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800"
+                          }
+                        `}
+                      >
+                        {tool.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* 유용한도구 섹션 */}
+            <div className="space-y-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log(
+                    "모바일 유용한도구 버튼 클릭, 현재 상태:",
+                    isUsefulToolsOpen
+                  );
+                  setIsUsefulToolsOpen(!isUsefulToolsOpen);
+                  console.log(
+                    "모바일 유용한도구 버튼 클릭 후 상태:",
+                    !isUsefulToolsOpen
+                  );
+                }}
+                className={`
+                  w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium
+                  transition-all duration-300
+                  ${
+                    isUsefulToolActive
+                      ? "bg-emerald-500 text-white shadow-md"
+                      : "text-gray-700 dark:text-white hover:bg-emerald-50 dark:hover:bg-gray-800"
+                  }
+                `}
+              >
+                <span>유용한도구</span>
+                <svg
+                  className={`w-5 h-5 transition-transform duration-300 ${
+                    isUsefulToolsOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {isUsefulToolsOpen && (
+                <div className="pl-4 space-y-1">
+                  {usefulTools.map((tool) => {
+                    const isActive = pathname === tool.href;
+                    return (
+                      <Link
+                        key={tool.name}
+                        href={tool.href}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsUsefulToolsOpen(false);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`
+                          block px-4 py-2.5 rounded-lg text-sm
+                          transition-all duration-200
+                          ${
+                            isActive
+                              ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold"
+                              : "text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800"
+                          }
+                        `}
+                      >
+                        {tool.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* 일반 네비게이션 메뉴 */}
+            {navigation.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`
+                    block px-4 py-3 rounded-xl text-base font-medium
+                    transition-all duration-300
+                    ${
+                      isActive
+                        ? "bg-emerald-500 text-white shadow-md"
+                        : "text-gray-700 dark:text-white hover:bg-emerald-50 dark:hover:bg-gray-800"
+                    }
+                  `}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 모바일 메뉴 오버레이 배경 */}
+      {isMobileMenuOpen && (
+        <div
+          className="sm:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
     </header>
   );
 }
