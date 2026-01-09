@@ -44,7 +44,7 @@ interface NotionPage {
     Published?: { checkbox: boolean };
     blogPost?: { rich_text: NotionRichText[] };
     category?: { select: { name: string } };
-    [key: string]: NotionProperty;
+    [key: string]: unknown;
   };
   [key: string]: unknown;
 }
