@@ -1,4 +1,4 @@
-import { getPublishedPostsByCategory } from "@/lib/notion";
+import { getPublishedPostsByCategory, type Post } from "@/lib/notion";
 import PostCard from "@/components/PostCard";
 import SmoothScroll from "@/components/SmoothScroll";
 import GrainOverlay from "@/components/GrainOverlay";
@@ -44,7 +44,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     notFound();
   }
 
-  let posts;
+  let posts: Post[] = [];
   try {
     posts = await getPublishedPostsByCategory(decodedCategory);
   } catch (error) {
