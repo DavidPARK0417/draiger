@@ -23,6 +23,7 @@ const usefulTools = [
   { name: "글자수 세기", href: "/tools/character-counter" },
   { name: "세계시간 변환기", href: "/tools/world-time-converter" },
   { name: "알람시계", href: "/tools/alarm-clock" },
+  { name: "파일 미리보기", href: "/tools/file-preview" },
 ];
 
 const blogCategories = [
