@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ConditionalHeader from "@/components/ConditionalHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://adtoolkit.kr'),
@@ -99,6 +100,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ConditionalHeader />
           {children}
+          <ScrollToTop />
         </ThemeProvider>
       </body>
     </html>
