@@ -54,11 +54,11 @@ export default function WordViewer({ file }: WordViewerProps) {
 
           if (typeof requestIdleCallback !== 'undefined') {
             requestIdleCallback(() => {
-              convert().then(resolve).catch(reject);
+              void convert();
             }, { timeout: 1000 });
           } else {
             // 폴백: 즉시 실행
-            convert().then(resolve).catch(reject);
+            void convert();
           }
         });
 
