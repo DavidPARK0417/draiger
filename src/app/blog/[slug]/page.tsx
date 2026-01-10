@@ -3,6 +3,7 @@ import { getPostBySlug, getPostContent } from "@/lib/notion";
 import ReactMarkdown from "react-markdown";
 import SmoothScroll from "@/components/SmoothScroll";
 import GrainOverlay from "@/components/GrainOverlay";
+import TextToSpeech from "@/components/TextToSpeech";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -74,6 +75,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 {post.metaDescription}
               </p>
             </header>
+
+            {/* 음성 읽기 컴포넌트 */}
+            <TextToSpeech 
+              content={content} 
+              title={post.title} 
+              metaDescription={post.metaDescription}
+            />
 
             <div
               className="prose prose-xl max-w-none 
