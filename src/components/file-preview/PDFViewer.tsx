@@ -158,15 +158,28 @@ export default function PDFViewer({ url }: PDFViewerProps) {
   const renderPage = useCallback(async (pdf: PDFDocumentProxy, pageNum: number) => {
     if (!canvasRef.current) return;
 
-    // 이미 렌더링 중이면 이전 작업 취소
+    // 이미 렌더링 중이면 이전 작업 취소하고 완료될 때까지 기다리기
     if (isRenderingRef.current && renderTaskRef.current) {
       try {
         console.log("🔄 [PDF 뷰어] 이전 렌더링 작업 취소 중...");
         renderTaskRef.current.cancel();
+        
+        // 취소된 작업이 완료될 때까지 기다리기 (최대 1초)
+        try {
+          await Promise.race([
+            renderTaskRef.current.promise.catch(() => {}), // 취소된 작업의 promise 대기
+            new Promise(resolve => setTimeout(resolve, 1000)) // 타임아웃 1초
+          ]);
+        } catch {
+          // 취소 중 오류는 무시
+        }
+        
+        console.log("✅ [PDF 뷰어] 이전 렌더링 작업 취소 완료");
       } catch {
         // 취소 중 오류는 무시 (이미 완료된 경우)
       }
       renderTaskRef.current = null;
+      isRenderingRef.current = false;
     }
 
     // 렌더링 시작
@@ -177,6 +190,13 @@ export default function PDFViewer({ url }: PDFViewerProps) {
       const page = (await pdf.getPage(pageNum)) as PDFPageProxy;
       const viewport = page.getViewport({ scale });
       const canvas = canvasRef.current;
+      
+      // 렌더링 중에 canvas가 변경되었는지 확인
+      if (!canvas || !canvasRef.current) {
+        console.log("⚠️ [PDF 뷰어] Canvas가 렌더링 중에 제거되었습니다.");
+        return;
+      }
+      
       const context = canvas.getContext("2d");
 
       if (!context) {
@@ -227,7 +247,7 @@ export default function PDFViewer({ url }: PDFViewerProps) {
     if (pdfRef.current && !isLoading && totalPages > 0) {
       renderPage(pdfRef.current, currentPage);
     }
-  }, [currentPage, isLoading, renderPage, totalPages]);
+  }, [currentPage, isLoading, renderPage, totalPages, scale]);
 
   // 컴포넌트 언마운트 시 렌더링 작업 취소
   useEffect(() => {

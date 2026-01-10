@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { Upload, X, File, Loader2, AlertCircle } from "lucide-react";
+import { Upload, X, File, Loader2, AlertCircle, Info } from "lucide-react";
 import Card from "@/components/ui/Card";
 import PDFViewer from "@/components/file-preview/PDFViewer";
 import ImageViewer from "@/components/file-preview/ImageViewer";
@@ -353,6 +353,54 @@ export default function FilePreviewPage() {
             )}
           </Card>
         )}
+
+        {/* 안내 카드 섹션 */}
+        <div className="mt-8 sm:mt-12 lg:mt-16">
+          <Card padding="md">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 mt-1">
+                <Info className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500 dark:text-emerald-400" />
+              </div>
+              <div className="flex-1 space-y-3 sm:space-y-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                  파일 업로드 안내
+                </h3>
+                <div className="space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-500 dark:text-emerald-400 font-semibold flex-shrink-0">•</span>
+                    <p>
+                      사용자가 업로드한 파일의 저작권은 사용자에게 있습니다.
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-500 dark:text-emerald-400 font-semibold flex-shrink-0">•</span>
+                    <p>
+                      본 서비스는 콘텐츠를 저장·배포·공유하지 않습니다.
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-500 dark:text-emerald-400 font-semibold flex-shrink-0">•</span>
+                    <p>
+                      파일은 미리보기 목적의 임시 처리만 수행합니다.
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-500 dark:text-emerald-400 font-semibold flex-shrink-0">•</span>
+                    <p>
+                      자세한 확인을 원할 경우 뷰어를 사용하시거나, 파일을 다운로드하여 확인해주세요.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                    사용자가 업로드한 파일의 모든 권리는 사용자에게 있으며,
+                    본 서비스는 파일을 저장하거나 제3자에게 제공하지 않습니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );
