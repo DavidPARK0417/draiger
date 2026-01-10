@@ -7,25 +7,19 @@ interface PDFViewerProps {
   url: string;
 }
 
-// pdfjs-dist 타입 정의
-type PDFDocument = {
+// pdfjs-dist 타입 - 동적 import이므로 unknown 사용 후 타입 단언
+// 실제 타입은 pdfjs-dist의 PDFDocumentProxy, PDFPageProxy, RenderTask
+type PDFDocumentProxy = {
   numPages: number;
-  getPage: (pageNumber: number) => Promise<PDFPage>;
+  getPage: (pageNumber: number) => Promise<unknown>;
 };
 
-type PDFPage = {
-  getViewport: (options: { scale: number }) => PDFViewport;
-  render: (context: PDFRenderContext) => PDFRenderTask;
-};
-
-type PDFViewport = {
-  width: number;
-  height: number;
-};
-
-type PDFRenderContext = {
-  canvasContext: CanvasRenderingContext2D;
-  viewport: PDFViewport;
+type PDFPageProxy = {
+  getViewport: (options: { scale: number }) => { width: number; height: number };
+  render: (context: { canvasContext: CanvasRenderingContext2D; viewport: { width: number; height: number } }) => {
+    promise: Promise<void>;
+    cancel: () => void;
+  };
 };
 
 type PDFRenderTask = {
@@ -42,7 +36,7 @@ export default function PDFViewer({ url }: PDFViewerProps) {
   const [scale, setScale] = useState(1.5);
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState("PDF 로드 중...");
-  const pdfRef = useRef<PDFDocument | null>(null);
+  const pdfRef = useRef<PDFDocumentProxy | null>(null);
   const renderTaskRef = useRef<PDFRenderTask | null>(null); // 현재 렌더링 작업 추적
   const isRenderingRef = useRef<boolean>(false); // 렌더링 중인지 추적
 
@@ -86,7 +80,7 @@ export default function PDFViewer({ url }: PDFViewerProps) {
         };
 
         const pdf = await loadingTask.promise;
-        pdfRef.current = pdf;
+        pdfRef.current = pdf as PDFDocumentProxy;
         setTotalPages(pdf.numPages);
 
         console.log("✅ [PDF 뷰어] PDF 로드 완료", {
@@ -112,7 +106,7 @@ export default function PDFViewer({ url }: PDFViewerProps) {
     loadPDF();
   }, [url]);
 
-  const renderPage = useCallback(async (pdf: PDFDocument, pageNum: number) => {
+  const renderPage = useCallback(async (pdf: PDFDocumentProxy, pageNum: number) => {
     if (!canvasRef.current) return;
 
     // 이미 렌더링 중이면 이전 작업 취소
@@ -131,7 +125,7 @@ export default function PDFViewer({ url }: PDFViewerProps) {
 
     try {
       // pdfjs-dist가 이미 로드되어 있다고 가정 (loadPDF에서 로드됨)
-      const page = await pdf.getPage(pageNum);
+      const page = (await pdf.getPage(pageNum)) as PDFPageProxy;
       const viewport = page.getViewport({ scale });
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
@@ -153,7 +147,7 @@ export default function PDFViewer({ url }: PDFViewerProps) {
       };
 
       // 렌더링 작업 시작 및 추적
-      const renderTask = page.render(renderContext);
+      const renderTask = page.render(renderContext) as PDFRenderTask;
       renderTaskRef.current = renderTask;
 
       console.log("📄 [PDF 뷰어] 페이지 렌더링 시작", {
