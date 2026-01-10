@@ -10,6 +10,7 @@ import ExcelViewer from "@/components/file-preview/ExcelViewer";
 import PowerPointViewer from "@/components/file-preview/PowerPointViewer";
 import TextViewer from "@/components/file-preview/TextViewer";
 import CodeViewer from "@/components/file-preview/CodeViewer";
+import HWPViewer from "@/components/file-preview/HWPViewer";
 
 type FileType = 
   | "pdf" 
@@ -125,49 +126,17 @@ export default function FilePreviewPage() {
       isProcessing: false,
     };
 
-    // HWP 파일 처리
+    // HWP 파일 처리 - 클라이언트 사이드에서 직접 처리
     if (fileType === "hwp") {
-      previewFile.isProcessing = true;
-      setPreviewFile(previewFile);
-
-      try {
-        console.log("🔄 [HWP 변환] 시작", { fileName: file.name });
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch("/api/convert-hwp", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || "HWP 변환 중 오류가 발생했습니다.");
-        }
-
-        const blob = await response.blob();
-        const pdfUrl = URL.createObjectURL(blob);
-
-        setPreviewFile({
-          ...previewFile,
-          convertedPdfUrl: pdfUrl,
-          type: "pdf", // PDF로 변환되었으므로 타입 변경
-          isProcessing: false,
-        });
-
-        console.log("✅ [HWP 변환] 완료");
-      } catch (error) {
-        console.error("❌ [HWP 변환] 오류:", error);
-        setPreviewFile({
-          ...previewFile,
-          isProcessing: false,
-          error:
-            error instanceof Error
-              ? error.message
-              : "HWP 변환 중 오류가 발생했습니다.",
-        });
-      }
+      console.log("📄 [HWP 파일] 클라이언트 사이드 처리 시작", {
+        fileName: file.name,
+      });
+      // HWP 파일은 클라이언트 사이드에서 직접 처리
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewFile({
+        ...previewFile,
+        previewUrl,
+      });
     } else {
       // 다른 파일 타입은 즉시 미리보기
       const previewUrl = URL.createObjectURL(file);
@@ -328,7 +297,7 @@ export default function FilePreviewPage() {
                 <div className="text-center">
                   <Loader2 className="w-12 h-12 animate-spin text-emerald-500 mx-auto mb-4" />
                   <p className="text-gray-600 dark:text-gray-400">
-                    {previewFile.type === "hwp" ? "HWP 파일을 PDF로 변환 중..." : "파일 처리 중..."}
+                    파일 처리 중...
                   </p>
                 </div>
               </div>
@@ -369,6 +338,9 @@ export default function FilePreviewPage() {
                 )}
                 {previewFile.type === "code" && previewFile.file && (
                   <CodeViewer file={previewFile.file} />
+                )}
+                {previewFile.type === "hwp" && previewFile.file && (
+                  <HWPViewer file={previewFile.file} />
                 )}
                 {previewFile.type === "unknown" && (
                   <div className="text-center py-12">

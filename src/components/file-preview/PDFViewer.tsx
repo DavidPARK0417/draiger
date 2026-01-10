@@ -69,7 +69,56 @@ export default function PDFViewer({ url }: PDFViewerProps) {
         setProgressMessage("PDF 파일 로드 중...");
         setProgress(30);
 
-        const loadingTask = pdfjsLib.getDocument(url);
+        // PDF 소스 결정: blob URL이나 data URL을 ArrayBuffer로 변환
+        let pdfSource: string | { data: Uint8Array };
+        
+        if (url.startsWith('blob:')) {
+          // blob URL인 경우 fetch로 가져와서 ArrayBuffer로 변환
+          // PDF.js worker가 blob URL을 직접 읽지 못하는 경우가 있음
+          try {
+            console.log("📄 [PDF 뷰어] Blob URL에서 데이터 가져오는 중...");
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            // ArrayBuffer를 복사해서 detached 문제 방지
+            const copiedBuffer = arrayBuffer.slice(0);
+            pdfSource = { data: new Uint8Array(copiedBuffer) };
+            console.log("📄 [PDF 뷰어] Blob URL을 ArrayBuffer로 변환 완료", {
+              size: copiedBuffer.byteLength,
+            });
+          } catch (err) {
+            console.error("Blob URL 변환 실패:", err);
+            // 실패 시 원본 URL 사용 시도
+            pdfSource = url;
+          }
+        } else if (url.startsWith('data:application/pdf;base64,')) {
+          // data URL인 경우 ArrayBuffer로 변환
+          try {
+            const base64 = url.split(',')[1];
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            pdfSource = { data: bytes };
+            console.log("📄 [PDF 뷰어] Base64 데이터 URL을 ArrayBuffer로 변환", {
+              size: bytes.length,
+            });
+          } catch (err) {
+            console.error("Base64 변환 실패:", err);
+            pdfSource = url; // 실패 시 원본 URL 사용
+          }
+        } else {
+          // 일반 HTTP/HTTPS URL
+          pdfSource = url;
+          console.log("📄 [PDF 뷰어] 일반 URL 사용", {
+            url: url.substring(0, 50) + "...",
+          });
+        }
+
+        const loadingTask = pdfjsLib.getDocument(pdfSource);
         
         // 로딩 진행률 추적
         loadingTask.onProgress = (progressData: { loaded: number; total: number }) => {
