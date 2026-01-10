@@ -10,6 +10,20 @@ interface ExcelViewerProps {
 
 type CellValue = string | number | boolean | Date | null;
 
+// 셀 값을 React에서 렌더링 가능한 문자열로 변환
+function formatCellValue(value: CellValue): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  if (value instanceof Date) {
+    return value.toLocaleString("ko-KR");
+  }
+  if (typeof value === "boolean") {
+    return value ? "TRUE" : "FALSE";
+  }
+  return String(value);
+}
+
 export default function ExcelViewer({ file }: ExcelViewerProps) {
   const [sheets, setSheets] = useState<{ name: string; data: CellValue[][] }[]>([]);
   const [activeSheet, setActiveSheet] = useState(0);
@@ -245,7 +259,7 @@ export default function ExcelViewer({ file }: ExcelViewerProps) {
                       text-gray-900 dark:text-gray-100
                     `}
                   >
-                    {cell || ""}
+                    {formatCellValue(cell)}
                   </td>
                 ))}
               </tr>
