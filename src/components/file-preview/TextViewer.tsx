@@ -53,13 +53,13 @@ export default function TextViewer({ file }: TextViewerProps) {
 
         setContent(text);
         setIsLoading(false);
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'AbortError') {
           console.log("📄 [텍스트 뷰어] 읽기 취소됨");
           return;
         }
         console.error("❌ [텍스트 뷰어] 오류:", err);
-        setError(err.message || "파일을 읽는 중 오류가 발생했습니다.");
+        setError(err instanceof Error ? err.message : "파일을 읽는 중 오류가 발생했습니다.");
         setIsLoading(false);
       }
     };

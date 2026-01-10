@@ -58,7 +58,7 @@ export default function PowerPointViewer({ file }: PowerPointViewerProps) {
 
         // 슬라이드 목록 찾기
         const slideFiles: string[] = [];
-        zip.forEach((relativePath, zipEntry) => {
+        zip.forEach((relativePath) => {
           if (relativePath.startsWith("ppt/slides/slide") && relativePath.endsWith(".xml")) {
             slideFiles.push(relativePath);
           }
@@ -125,8 +125,8 @@ export default function PowerPointViewer({ file }: PowerPointViewerProps) {
         setIsLoading(false);
 
         console.log("✅ [PowerPoint 뷰어] 파싱 완료", { slideCount: parsedSlides.length });
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'AbortError') {
           console.log("📊 [PowerPoint 뷰어] 파싱 취소됨");
           return;
         }

@@ -74,13 +74,13 @@ export default function WordViewer({ file }: WordViewerProps) {
         setIsLoading(false);
 
         console.log("✅ [Word 뷰어] 변환 완료");
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'AbortError') {
           console.log("📄 [Word 뷰어] 변환 취소됨");
           return;
         }
         console.error("❌ [Word 뷰어] 오류:", err);
-        setError(err.message || "Word 문서를 변환하는 중 오류가 발생했습니다.");
+        setError(err instanceof Error ? err.message : "Word 문서를 변환하는 중 오류가 발생했습니다.");
         setIsLoading(false);
       }
     };

@@ -27,14 +27,6 @@ interface NotionTitle {
   title: NotionRichText[];
 }
 
-interface NotionProperty {
-  title?: NotionTitle;
-  rich_text?: NotionRichText[];
-  checkbox?: boolean;
-  select?: { name: string };
-  [key: string]: unknown;
-}
-
 interface NotionPage {
   id: string;
   properties: {

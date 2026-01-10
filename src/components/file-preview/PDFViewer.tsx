@@ -1,10 +1,37 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Loader2 } from "lucide-react";
 
 interface PDFViewerProps {
   url: string;
 }
+
+// pdfjs-dist 타입 정의
+type PDFDocument = {
+  numPages: number;
+  getPage: (pageNumber: number) => Promise<PDFPage>;
+};
+
+type PDFPage = {
+  getViewport: (options: { scale: number }) => PDFViewport;
+  render: (context: PDFRenderContext) => PDFRenderTask;
+};
+
+type PDFViewport = {
+  width: number;
+  height: number;
+};
+
+type PDFRenderContext = {
+  canvasContext: CanvasRenderingContext2D;
+  viewport: PDFViewport;
+};
+
+type PDFRenderTask = {
+  promise: Promise<void>;
+  cancel: () => void;
+};
 
 export default function PDFViewer({ url }: PDFViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,8 +42,8 @@ export default function PDFViewer({ url }: PDFViewerProps) {
   const [scale, setScale] = useState(1.5);
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState("PDF 로드 중...");
-  const pdfRef = useRef<any>(null);
-  const renderTaskRef = useRef<any>(null); // 현재 렌더링 작업 추적
+  const pdfRef = useRef<PDFDocument | null>(null);
+  const renderTaskRef = useRef<PDFRenderTask | null>(null); // 현재 렌더링 작업 추적
   const isRenderingRef = useRef<boolean>(false); // 렌더링 중인지 추적
 
   useEffect(() => {
@@ -69,7 +96,8 @@ export default function PDFViewer({ url }: PDFViewerProps) {
         setProgressMessage("페이지 렌더링 중...");
         setProgress(90);
 
-        await renderPage(pdf, currentPage);
+        // 초기 페이지 렌더링은 useEffect에서 처리
+        // 여기서는 PDF만 로드하고 상태만 업데이트
         
         setProgressMessage("완료!");
         setProgress(100);
@@ -84,29 +112,7 @@ export default function PDFViewer({ url }: PDFViewerProps) {
     loadPDF();
   }, [url]);
 
-  useEffect(() => {
-    if (pdfRef.current && !isLoading) {
-      renderPage(pdfRef.current, currentPage);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, scale, isLoading]);
-
-  // 컴포넌트 언마운트 시 렌더링 작업 취소
-  useEffect(() => {
-    return () => {
-      if (renderTaskRef.current) {
-        try {
-          renderTaskRef.current.cancel();
-        } catch (err) {
-          // 취소 중 오류는 무시
-        }
-        renderTaskRef.current = null;
-      }
-      isRenderingRef.current = false;
-    };
-  }, []);
-
-  const renderPage = async (pdf: any, pageNum: number) => {
+  const renderPage = useCallback(async (pdf: PDFDocument, pageNum: number) => {
     if (!canvasRef.current) return;
 
     // 이미 렌더링 중이면 이전 작업 취소
@@ -114,7 +120,7 @@ export default function PDFViewer({ url }: PDFViewerProps) {
       try {
         console.log("🔄 [PDF 뷰어] 이전 렌더링 작업 취소 중...");
         renderTaskRef.current.cancel();
-      } catch (err) {
+      } catch {
         // 취소 중 오류는 무시 (이미 완료된 경우)
       }
       renderTaskRef.current = null;
@@ -160,9 +166,9 @@ export default function PDFViewer({ url }: PDFViewerProps) {
       console.log("✅ [PDF 뷰어] 페이지 렌더링 완료", {
         page: pageNum,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       // 취소된 작업은 오류로 처리하지 않음
-      if (err?.name === "RenderingCancelledException") {
+      if (err && typeof err === 'object' && 'name' in err && err.name === "RenderingCancelledException") {
         console.log("ℹ️ [PDF 뷰어] 렌더링 작업이 취소되었습니다.");
         return;
       }
@@ -172,7 +178,28 @@ export default function PDFViewer({ url }: PDFViewerProps) {
       isRenderingRef.current = false;
       renderTaskRef.current = null;
     }
-  };
+  }, [scale]);
+
+  useEffect(() => {
+    if (pdfRef.current && !isLoading && totalPages > 0) {
+      renderPage(pdfRef.current, currentPage);
+    }
+  }, [currentPage, isLoading, renderPage, totalPages]);
+
+  // 컴포넌트 언마운트 시 렌더링 작업 취소
+  useEffect(() => {
+    return () => {
+      if (renderTaskRef.current) {
+        try {
+          renderTaskRef.current.cancel();
+        } catch {
+          // 취소 중 오류는 무시
+        }
+        renderTaskRef.current = null;
+      }
+      isRenderingRef.current = false;
+    };
+  }, []);
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {

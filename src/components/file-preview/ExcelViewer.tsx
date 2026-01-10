@@ -8,8 +8,10 @@ interface ExcelViewerProps {
   file: File;
 }
 
+type CellValue = string | number | boolean | Date | null;
+
 export default function ExcelViewer({ file }: ExcelViewerProps) {
-  const [sheets, setSheets] = useState<{ name: string; data: any[][] }[]>([]);
+  const [sheets, setSheets] = useState<{ name: string; data: CellValue[][] }[]>([]);
   const [activeSheet, setActiveSheet] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +75,7 @@ export default function ExcelViewer({ file }: ExcelViewerProps) {
         setProgressMessage(`시트 파싱 중... (${workbook.SheetNames.length}개 시트)`);
         setProgress(30);
 
-        const parsedSheets: { name: string; data: any[][] }[] = [];
+        const parsedSheets: { name: string; data: CellValue[][] }[] = [];
         const totalSheets = workbook.SheetNames.length;
 
         // 각 시트를 순차적으로 처리 (청크 단위)
@@ -96,7 +98,7 @@ export default function ExcelViewer({ file }: ExcelViewerProps) {
             header: 1,
             defval: "",
             raw: false,
-          }) as any[][];
+          }) as CellValue[][];
 
           parsedSheets.push({ name, data });
 
@@ -118,13 +120,13 @@ export default function ExcelViewer({ file }: ExcelViewerProps) {
           sheetCount: parsedSheets.length,
           totalRows: parsedSheets.reduce((sum, sheet) => sum + sheet.data.length, 0),
         });
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'AbortError') {
           console.log("📊 [Excel 뷰어] 파싱 취소됨");
           return;
         }
         console.error("❌ [Excel 뷰어] 오류:", err);
-        setError(err.message || "Excel 파일을 파싱하는 중 오류가 발생했습니다.");
+        setError(err instanceof Error ? err.message : "Excel 파일을 파싱하는 중 오류가 발생했습니다.");
         setIsLoading(false);
       }
     };
