@@ -67,7 +67,7 @@ export default async function Home({ searchParams }: HomeProps) {
                         ${isWide ? "md:col-span-2" : ""}
                       `}
                     >
-                      <PostCard post={post} index={index} />
+                      <PostCard post={post} index={index} isLarge={isLarge} />
                     </div>
                   );
                 })}

@@ -57,6 +57,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-serif font-bold mb-6 sm:mb-8 leading-tight text-gray-900 dark:text-white">
                 {post.title}
               </h1>
+              {post.date && (
+                <div className="mb-4 sm:mb-6">
+                  <time className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-sans">
+                    {new Date(post.date).toLocaleString("ko-KR", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </time>
+                </div>
+              )}
               <p className="text-lg sm:text-xl text-gray-600 dark:text-white/50 font-sans italic leading-relaxed">
                 {post.metaDescription}
               </p>
@@ -79,6 +92,31 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             >
               <ReactMarkdown>{content}</ReactMarkdown>
             </div>
+
+            {post.tags && post.tags.length > 0 && (
+              <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-200 dark:border-white/10">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
+                  {post.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="
+                        inline-flex items-center
+                        px-3 py-1.5 sm:px-4 sm:py-2
+                        rounded-full
+                        text-xs sm:text-sm
+                        font-medium
+                        bg-emerald-50 dark:bg-emerald-900/30
+                        text-emerald-700 dark:text-emerald-300
+                        border border-emerald-200 dark:border-emerald-700/50
+                        transition-colors duration-300
+                      "
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </article>
 
           <footer className="mt-24 sm:mt-32 pt-12 sm:pt-16 border-t border-gray-200 dark:border-white/10">

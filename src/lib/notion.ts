@@ -36,6 +36,8 @@ interface NotionPage {
     Published?: { checkbox: boolean };
     blogPost?: { rich_text: NotionRichText[] };
     category?: { select: { name: string } };
+    date?: { date: { start: string } | null };
+    tags?: { multi_select: { name: string; color?: string }[] };
     [key: string]: unknown;
   };
   [key: string]: unknown;
@@ -201,6 +203,41 @@ export interface Post {
   published: boolean;
   blogPost: string;
   category?: string; // 카테고리 추가
+  date?: string; // 날짜 추가
+  tags?: string[]; // 태그 추가
+  featuredImage?: string; // 대표 이미지 추가
+}
+
+/**
+ * 마크다운 텍스트에서 첫 번째 이미지 URL을 추출합니다
+ * @param markdown 마크다운 텍스트
+ * @returns 첫 번째 이미지 URL 또는 undefined
+ */
+function extractFirstImageUrl(markdown: string): string | undefined {
+  if (!markdown) return undefined;
+
+  // 마크다운 이미지 문법: ![alt](url)
+  const markdownImageRegex = /!\[.*?\]\((https?:\/\/[^\s\)]+)\)/i;
+  const markdownMatch = markdown.match(markdownImageRegex);
+  if (markdownMatch && markdownMatch[1]) {
+    return markdownMatch[1];
+  }
+
+  // HTML img 태그: <img src="url">
+  const htmlImageRegex = /<img[^>]+src=["'](https?:\/\/[^"']+)["']/i;
+  const htmlMatch = markdown.match(htmlImageRegex);
+  if (htmlMatch && htmlMatch[1]) {
+    return htmlMatch[1];
+  }
+
+  // 일반 URL 패턴 (이미지 확장자 포함)
+  const urlImageRegex = /(https?:\/\/[^\s\)]+\.(jpg|jpeg|png|gif|webp|svg))/i;
+  const urlMatch = markdown.match(urlImageRegex);
+  if (urlMatch && urlMatch[1]) {
+    return urlMatch[1];
+  }
+
+  return undefined;
 }
 
 /**
@@ -374,20 +411,41 @@ export async function getPublishedPostsPaginated(
     // 현재 페이지에 해당하는 데이터만 추출
     const pageResults = allResults.slice(targetStartIndex, targetEndIndex);
 
-    const posts: Post[] = pageResults.map((page: NotionPage) => ({
-      id: page.id,
-      title: page.properties.title?.title[0]?.plain_text || "Untitled",
-      slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-      metaDescription:
-        page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
-      published: page.properties.Published?.checkbox || false,
-      blogPost: page.properties.blogPost?.rich_text
-        ? page.properties.blogPost.rich_text
-            .map((rt: NotionRichText) => rt.plain_text)
-            .join("")
-        : "",
-      category: page.properties.category?.select?.name || undefined,
-    }));
+    const posts: Post[] = await Promise.all(
+      pageResults.map(async (page: NotionPage) => {
+        const blogPostContent = page.properties.blogPost?.rich_text
+          ? page.properties.blogPost.rich_text
+              .map((rt: NotionRichText) => rt.plain_text)
+              .join("")
+          : "";
+
+        // blogPost 필드에서 이미지 추출 시도
+        let featuredImage = extractFirstImageUrl(blogPostContent);
+
+        // blogPost에 이미지가 없으면 본문 콘텐츠에서 추출
+        if (!featuredImage) {
+          try {
+            const fullContent = await getPostContent(page.id);
+            featuredImage = extractFirstImageUrl(fullContent);
+          } catch (error) {
+            // 이미지 추출 실패는 무시 (로그만 남김)
+            console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
+          }
+        }
+
+        return {
+          id: page.id,
+          title: page.properties.title?.title[0]?.plain_text || "Untitled",
+          slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+          metaDescription:
+            page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
+          published: page.properties.Published?.checkbox || false,
+          blogPost: blogPostContent,
+          category: page.properties.category?.select?.name || undefined,
+          featuredImage,
+        };
+      })
+    );
 
     return {
       posts,
@@ -701,20 +759,41 @@ export async function getPublishedPostsByCategoryPaginated(
     // 현재 페이지에 해당하는 데이터만 추출
     const pageResults = allResults.slice(targetStartIndex, targetEndIndex);
 
-    const posts: Post[] = pageResults.map((page: NotionPage) => ({
-      id: page.id,
-      title: page.properties.title?.title[0]?.plain_text || "Untitled",
-      slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-      metaDescription:
-        page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
-      published: page.properties.Published?.checkbox || false,
-      blogPost: page.properties.blogPost?.rich_text
-        ? page.properties.blogPost.rich_text
-            .map((rt: NotionRichText) => rt.plain_text)
-            .join("")
-        : "",
-      category: page.properties.category?.select?.name || undefined,
-    }));
+    const posts: Post[] = await Promise.all(
+      pageResults.map(async (page: NotionPage) => {
+        const blogPostContent = page.properties.blogPost?.rich_text
+          ? page.properties.blogPost.rich_text
+              .map((rt: NotionRichText) => rt.plain_text)
+              .join("")
+          : "";
+
+        // blogPost 필드에서 이미지 추출 시도
+        let featuredImage = extractFirstImageUrl(blogPostContent);
+
+        // blogPost에 이미지가 없으면 본문 콘텐츠에서 추출
+        if (!featuredImage) {
+          try {
+            const fullContent = await getPostContent(page.id);
+            featuredImage = extractFirstImageUrl(fullContent);
+          } catch (error) {
+            // 이미지 추출 실패는 무시 (로그만 남김)
+            console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
+          }
+        }
+
+        return {
+          id: page.id,
+          title: page.properties.title?.title[0]?.plain_text || "Untitled",
+          slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+          metaDescription:
+            page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
+          published: page.properties.Published?.checkbox || false,
+          blogPost: blogPostContent,
+          category: page.properties.category?.select?.name || undefined,
+          featuredImage,
+        };
+      })
+    );
 
     return {
       posts,
@@ -783,6 +862,8 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
             .join("")
         : "",
       category: page.properties.category?.select?.name || undefined,
+      date: page.properties.date?.date?.start || undefined,
+      tags: page.properties.tags?.multi_select?.map((tag) => tag.name) || undefined,
     };
   } catch (error) {
     console.error("Error fetching post by slug:", error);

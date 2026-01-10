@@ -100,7 +100,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                         ${isWide ? "md:col-span-2" : ""}
                       `}
                     >
-                      <PostCard post={post} index={index} />
+                      <PostCard post={post} index={index} isLarge={isLarge} />
                     </div>
                   );
                 })}

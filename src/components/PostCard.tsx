@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Post } from "@/lib/notion";
+import Image from "next/image";
 
 interface PostCardProps {
   post: Post;
   index: number;
+  isLarge?: boolean; // 큰 카드인지 여부
 }
 
-export default function PostCard({ post, index }: PostCardProps) {
+export default function PostCard({ post, index, isLarge = false }: PostCardProps) {
   return (
     <motion.div
       initial={{ y: 50, opacity: 0 }}
@@ -25,6 +27,19 @@ export default function PostCard({ post, index }: PostCardProps) {
       <Link href={`/blog/${post.slug}`} className="absolute inset-0 z-10" />
 
       <div className="flex flex-col h-full justify-between gap-12">
+        {/* 큰 카드이고 이미지가 있을 때 이미지 표시 */}
+        {isLarge && post.featuredImage && (
+          <div className="relative w-full h-48 sm:h-64 lg:h-80 mb-6 rounded-xl overflow-hidden">
+            <Image
+              src={post.featuredImage}
+              alt={post.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            />
+          </div>
+        )}
+
         <div>
           <h3 className="text-3xl font-serif mb-4 group-hover:translate-x-2 transition-transform duration-500 text-gray-900 dark:text-white">
             {post.title}
