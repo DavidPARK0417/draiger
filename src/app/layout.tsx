@@ -112,12 +112,11 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
           // font-display: swap은 CSS에서 처리됨 (CLS 최소화)
         />
-        {/* 파비콘 링크 태그 - public/favicon.ico 사용 (고품질 멀티 사이즈 ICO) */}
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/Favicon-16x16.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/Favicon-32x32.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/Icon-180x180.png" />
+        {/* 
+          파비콘은 Next.js App Router가 app/favicon.ico를 자동으로 처리합니다.
+          추가적인 아이콘 링크는 메타데이터의 icons 설정으로 처리되므로
+          여기서는 중복 링크 태그를 제거했습니다.
+        */}
         {/* PWA Manifest */}
         <link rel="manifest" href="/site.webmanifest" />
         {/* PWA Meta Tags */}
@@ -129,8 +128,6 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#10B981" />
         <meta name="msapplication-tap-highlight" content="no" />
         <meta name="theme-color" content="#10B981" />
-        {/* Apple Touch Icons */}
-        <link rel="apple-touch-icon" sizes="180x180" href="/Icon-180x180.png" />
         {/* Microsoft Tiles */}
         <meta name="msapplication-TileImage" content="/Icon-192x192.png" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
