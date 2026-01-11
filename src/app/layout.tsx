@@ -71,18 +71,33 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/Favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/Favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { 
+        url: new URL("/favicon.ico", process.env.NEXT_PUBLIC_SITE_URL || 'https://adtoolkit.kr').toString(), 
+        sizes: "any" 
+      },
+      { 
+        url: new URL("/Favicon-16x16.png", process.env.NEXT_PUBLIC_SITE_URL || 'https://adtoolkit.kr').toString(), 
+        sizes: "16x16", 
+        type: "image/png" 
+      },
+      { 
+        url: new URL("/Favicon-32x32.png", process.env.NEXT_PUBLIC_SITE_URL || 'https://adtoolkit.kr').toString(), 
+        sizes: "32x32", 
+        type: "image/png" 
+      },
     ],
-    shortcut: "/favicon.ico",
+    shortcut: new URL("/favicon.ico", process.env.NEXT_PUBLIC_SITE_URL || 'https://adtoolkit.kr').toString(),
     apple: [
-      { url: "/Icon-180x180.png", sizes: "180x180", type: "image/png" },
+      { 
+        url: new URL("/Icon-180x180.png", process.env.NEXT_PUBLIC_SITE_URL || 'https://adtoolkit.kr').toString(), 
+        sizes: "180x180", 
+        type: "image/png" 
+      },
     ],
     other: [
       {
         rel: "apple-touch-icon",
-        url: "/Icon-180x180.png",
+        url: new URL("/Icon-180x180.png", process.env.NEXT_PUBLIC_SITE_URL || 'https://adtoolkit.kr').toString(),
       },
     ],
   },
