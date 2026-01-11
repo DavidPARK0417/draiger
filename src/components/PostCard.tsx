@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Post } from "@/lib/notion";
 import Image from "next/image";
+import { useState } from "react";
 
 interface PostCardProps {
   post: Post;
@@ -12,6 +13,8 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, index, isLarge = false }: PostCardProps) {
+  const [imageError, setImageError] = useState(false);
+
   return (
     <motion.div
       initial={{ y: 50, opacity: 0 }}
@@ -28,14 +31,19 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
 
       <div className="flex flex-col h-full justify-between gap-12">
         {/* 큰 카드이고 이미지가 있을 때 이미지 표시 */}
-        {isLarge && post.featuredImage && (
-          <div className="relative w-full h-48 sm:h-64 lg:h-80 mb-6 rounded-xl overflow-hidden">
+        {isLarge && post.featuredImage && !imageError && (
+          <div className="relative w-full h-48 sm:h-64 lg:h-80 mb-6 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
             <Image
               src={post.featuredImage}
               alt={post.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              unoptimized
+              onError={() => {
+                console.log('이미지 로드 실패:', post.featuredImage);
+                setImageError(true);
+              }}
             />
           </div>
         )}
