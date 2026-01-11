@@ -525,49 +525,65 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
       
       const utterance = new SpeechSynthesisUtterance(textToRead);
       
-      // 일시정지 마커("...")를 실제 일시정지로 변환
-      // Web Speech API는 직접적인 일시정지 제어가 제한적이므로
-      // 텍스트를 여러 utterance로 나누어 자연스러운 일시정지 효과 구현
-      let textParts = textToRead.split(/\s*\.\.\.\s*/).filter(part => part.trim().length > 0);
+      // 텍스트를 문장 단위로 나누어 속도 변경 시 효율적으로 처리
+      // 문장 단위로 나누면 속도 변경 시 해당 문장부터 재생할 수 있어 더 효율적
       
-      // 텍스트가 1개 부분으로만 나뉘어 있으면 속도 변경 시 다음 부분이 없어서 처음부터 다시 읽게 됨
-      // 따라서 텍스트를 문장 단위로 나누어 속도 변경 시 이어서 읽을 수 있도록 함
-      if (textParts.length === 1 && textParts[0].length > 100) {
-        // 문장 단위로 나누기 (마침표, 느낌표, 물음표 기준)
-        const sentences = textParts[0].split(/([.!?]+\s+)/).filter(s => s.trim().length > 0);
+      // 1단계: 일시정지 마커("...")로 먼저 나누기 (의도적인 일시정지 구분)
+      const pauseParts = textToRead.split(/\s*\.\.\.\s*/).filter(part => part.trim().length > 0);
+      
+      // 2단계: 각 부분을 문장 단위로 더 세분화
+      const sentenceParts: string[] = [];
+      
+      for (const part of pauseParts) {
+        // 문장 단위로 나누기: 마침표(.), 느낌표(!), 물음표(?) 뒤에 공백이 오는 경우를 기준
+        // 정규식: 문장 부호 뒤에 공백이 오거나 문자열 끝인 경우를 기준으로 분할
+        // split(/([.!?]+(?:\s+|$))/)를 사용하면 구분자도 포함되므로, 문장과 구분자를 합쳐서 처리
+        const segments = part.split(/([.!?]+(?:\s+|$))/);
         
-        // 문장들을 합쳐서 적절한 크기의 부분으로 만들기 (너무 작으면 합치기)
-        const newParts: string[] = [];
-        let currentPart = '';
+        let currentSentence = '';
         
-        for (let i = 0; i < sentences.length; i++) {
-          const sentence = sentences[i].trim();
-          if (sentence.length === 0) continue;
+        for (let i = 0; i < segments.length; i++) {
+          const segment = segments[i];
           
-          // 현재 부분에 문장 추가
-          if (currentPart) {
-            currentPart += ' ' + sentence;
+          if (!segment || segment.trim().length === 0) {
+            continue;
+          }
+          
+          // 문장 부호로 끝나는 구분자인 경우 (예: ". ", "! ", "? " 또는 ".", "!", "?"로 끝나는 경우)
+          if (/^[.!?]+(?:\s+|$)/.test(segment)) {
+            // 현재 문장에 구분자 추가하고 문장 완료
+            if (currentSentence.trim()) {
+              currentSentence += segment;
+              sentenceParts.push(currentSentence.trim());
+              currentSentence = '';
+            } else if (sentenceParts.length > 0) {
+              // 이전 문장에 구분자 추가 (빈 문장이 아닌 경우)
+              sentenceParts[sentenceParts.length - 1] += segment;
+            }
           } else {
-            currentPart = sentence;
-          }
-          
-          // 현재 부분이 충분히 크거나 마지막 문장이면 부분으로 추가
-          if (currentPart.length >= 200 || i === sentences.length - 1) {
-            newParts.push(currentPart);
-            currentPart = '';
+            // 일반 텍스트인 경우
+            currentSentence += segment;
           }
         }
         
-        // 남은 부분이 있으면 추가
-        if (currentPart.trim().length > 0) {
-          newParts.push(currentPart);
+        // 마지막 문장이 남아있으면 추가 (문장 부호가 없는 경우)
+        if (currentSentence.trim()) {
+          sentenceParts.push(currentSentence.trim());
         }
-        
-        if (newParts.length > 1) {
-          textParts = newParts;
-          if (process.env.NODE_ENV === 'development') {
-            console.log('텍스트를 문장 단위로 나눔:', textParts.length, '개 부분');
-          }
+      }
+      
+      // 문장 단위로 나눈 결과 사용 (최소 1개는 있어야 함)
+      let textParts: string[] = [];
+      if (sentenceParts.length > 0) {
+        textParts = sentenceParts;
+        if (process.env.NODE_ENV === 'development') {
+          console.log('텍스트를 문장 단위로 나눔:', textParts.length, '개 문장');
+        }
+      } else {
+        // 문장 단위로 나눌 수 없는 경우 원본 사용
+        textParts = pauseParts;
+        if (process.env.NODE_ENV === 'development') {
+          console.log('문장 단위 분할 실패, 원본 사용:', textParts.length, '개 부분');
         }
       }
       
