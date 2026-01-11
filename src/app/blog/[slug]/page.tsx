@@ -67,6 +67,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                       day: "numeric",
                       hour: "2-digit",
                       minute: "2-digit",
+                      timeZone: "Asia/Seoul", // 한국 시간대 명시적 지정
                     })}
                   </time>
                 </div>
