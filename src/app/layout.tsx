@@ -65,9 +65,21 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/Favicon.ico",
-    shortcut: "/Favicon.ico",
-    apple: "/Icon-180x180.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/Favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/Favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/Icon-180x180.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        rel: "apple-touch-icon",
+        url: "/Icon-180x180.png",
+      },
+    ],
   },
   verification: {
     // Google Search Console, Naver Search Advisor 등 검증 코드 추가 가능
@@ -95,6 +107,8 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
           // font-display: swap은 CSS에서 처리됨 (CLS 최소화)
         />
+        {/* PWA Manifest */}
+        <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body className="antialiased text-gray-900 dark:text-white bg-[#F8F9FA] dark:bg-gray-900">
         <ThemeProvider>

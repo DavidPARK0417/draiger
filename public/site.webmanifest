@@ -1,0 +1,25 @@
+{
+  "name": "마케팅 도구 모음 - ADToolkit",
+  "short_name": "ADToolkit",
+  "description": "ROI 계산기, 광고 예산 계산기, 키워드 분석 등 다양한 마케팅 도구를 무료로 제공합니다.",
+  "icons": [
+    {
+      "src": "/Icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#10B981",
+  "background_color": "#F8F9FA",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/"
+}
+
