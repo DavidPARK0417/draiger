@@ -31,13 +31,13 @@ interface FaviconFile {
 
 // 파비콘 사이즈 정의
 const FAVICON_SIZES = [
-  { name: "Favicon-16x16.png", size: 16, key: "favicon16" as const },
-  { name: "Favicon-32x32.png", size: 32, key: "favicon32" as const },
-  { name: "Icon-180x180.png", size: 180, key: "appleTouchIcon" as const },
-  { name: "Icon-192x192.png", size: 192, key: "androidChrome192" as const },
-  { name: "Icon-256x256.png", size: 256, key: "favicon256" as const },
-  { name: "Icon-384x384.png", size: 384, key: "favicon384" as const },
-  { name: "Icon-512x512.png", size: 512, key: "androidChrome512" as const },
+  { name: "favicon-16x16.png", size: 16, key: "favicon16" as const },
+  { name: "favicon-32x32.png", size: 32, key: "favicon32" as const },
+  { name: "icon-180x180.png", size: 180, key: "appleTouchIcon" as const },
+  { name: "icon-192x192.png", size: 192, key: "androidChrome192" as const },
+  { name: "icon-256x256.png", size: 256, key: "favicon256" as const },
+  { name: "icon-384x384.png", size: 384, key: "favicon384" as const },
+  { name: "icon-512x512.png", size: 512, key: "androidChrome512" as const },
 ];
 
 export default function FaviconGeneratorPage() {
@@ -46,46 +46,43 @@ export default function FaviconGeneratorPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 이미지를 Canvas에 그려서 리사이즈하는 함수
-  const resizeImage = useCallback(
-    (file: File, size: number): Promise<Blob> => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement("canvas");
-            canvas.width = size;
-            canvas.height = size;
-            const ctx = canvas.getContext("2d");
-            if (!ctx) {
-              reject(new Error("Canvas context를 가져올 수 없습니다."));
-              return;
-            }
-            // 이미지 품질 향상을 위한 안티앨리어싱 설정
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = "high";
-            ctx.drawImage(img, 0, 0, size, size);
-            canvas.toBlob(
-              (blob) => {
-                if (blob) {
-                  resolve(blob);
-                } else {
-                  reject(new Error("이미지 변환에 실패했습니다."));
-                }
-              },
-              "image/png",
-              0.95
-            );
-          };
-          img.onerror = () => reject(new Error("이미지 로드에 실패했습니다."));
-          img.src = e.target?.result as string;
+  const resizeImage = useCallback((file: File, size: number): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Canvas context를 가져올 수 없습니다."));
+            return;
+          }
+          // 이미지 품질 향상을 위한 안티앨리어싱 설정
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img, 0, 0, size, size);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error("이미지 변환에 실패했습니다."));
+              }
+            },
+            "image/png",
+            0.95
+          );
         };
-        reader.onerror = () => reject(new Error("파일 읽기에 실패했습니다."));
-        reader.readAsDataURL(file);
-      });
-    },
-    []
-  );
+        img.onerror = () => reject(new Error("이미지 로드에 실패했습니다."));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error("파일 읽기에 실패했습니다."));
+      reader.readAsDataURL(file);
+    });
+  }, []);
 
   // ICO 파일 생성 (간단한 버전 - 32x32 PNG를 기반으로 생성)
   const createIcoFile = useCallback(
@@ -160,17 +157,25 @@ export default function FaviconGeneratorPage() {
       });
 
       // 모든 사이즈의 파비콘 생성
-      const [favicon16, favicon32, appleTouchIcon, androidChrome192, favicon256, favicon384, androidChrome512, faviconIco] =
-        await Promise.all([
-          resizeImage(imageFile.file, 16),
-          resizeImage(imageFile.file, 32),
-          resizeImage(imageFile.file, 180),
-          resizeImage(imageFile.file, 192),
-          resizeImage(imageFile.file, 256),
-          resizeImage(imageFile.file, 384),
-          resizeImage(imageFile.file, 512),
-          createIcoFile(imageFile.file),
-        ]);
+      const [
+        favicon16,
+        favicon32,
+        appleTouchIcon,
+        androidChrome192,
+        favicon256,
+        favicon384,
+        androidChrome512,
+        faviconIco,
+      ] = await Promise.all([
+        resizeImage(imageFile.file, 16),
+        resizeImage(imageFile.file, 32),
+        resizeImage(imageFile.file, 180),
+        resizeImage(imageFile.file, 192),
+        resizeImage(imageFile.file, 256),
+        resizeImage(imageFile.file, 384),
+        resizeImage(imageFile.file, 512),
+        createIcoFile(imageFile.file),
+      ]);
 
       setImageFile((prev) =>
         prev
@@ -225,14 +230,14 @@ export default function FaviconGeneratorPage() {
       const zip = new JSZip();
 
       // 각 파비콘 파일 추가
-      zip.file("Favicon-16x16.png", imageFile.processedFiles.favicon16);
-      zip.file("Favicon-32x32.png", imageFile.processedFiles.favicon32);
-      zip.file("Favicon.ico", imageFile.processedFiles.faviconIco);
-      zip.file("Icon-180x180.png", imageFile.processedFiles.appleTouchIcon);
-      zip.file("Icon-192x192.png", imageFile.processedFiles.androidChrome192);
-      zip.file("Icon-256x256.png", imageFile.processedFiles.favicon256);
-      zip.file("Icon-384x384.png", imageFile.processedFiles.favicon384);
-      zip.file("Icon-512x512.png", imageFile.processedFiles.androidChrome512);
+      zip.file("favicon-16x16.png", imageFile.processedFiles.favicon16);
+      zip.file("favicon-32x32.png", imageFile.processedFiles.favicon32);
+      zip.file("favicon.ico", imageFile.processedFiles.faviconIco);
+      zip.file("icon-180x180.png", imageFile.processedFiles.appleTouchIcon);
+      zip.file("icon-192x192.png", imageFile.processedFiles.androidChrome192);
+      zip.file("icon-256x256.png", imageFile.processedFiles.favicon256);
+      zip.file("icon-384x384.png", imageFile.processedFiles.favicon384);
+      zip.file("icon-512x512.png", imageFile.processedFiles.androidChrome512);
 
       // site.webmanifest 파일 생성
       const manifest = {
@@ -240,12 +245,12 @@ export default function FaviconGeneratorPage() {
         short_name: "My App",
         icons: [
           {
-            src: "/Icon-192x192.png",
+            src: "/icon-192x192.png",
             sizes: "192x192",
             type: "image/png",
           },
           {
-            src: "/Icon-512x512.png",
+            src: "/icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
           },
@@ -258,10 +263,10 @@ export default function FaviconGeneratorPage() {
 
       // HTML 링크 태그 생성
       const htmlLinks = `<!-- 파비콘 링크 태그 - HTML <head>에 추가하세요 -->
-<link rel="apple-touch-icon" sizes="180x180" href="/Icon-180x180.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/Favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/Favicon-16x16.png">
-<link rel="icon" type="image/x-icon" href="/Favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/icon-180x180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="manifest" href="/site.webmanifest">`;
 
       zip.file("install-instructions.txt", htmlLinks);
@@ -285,19 +290,16 @@ export default function FaviconGeneratorPage() {
   }, [imageFile]);
 
   // 개별 파일 다운로드
-  const handleDownloadSingle = useCallback(
-    (filename: string, blob: Blob) => {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    },
-    []
-  );
+  const handleDownloadSingle = useCallback((filename: string, blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, []);
 
   // 이미지 제거
   const handleRemoveImage = useCallback(() => {
@@ -329,8 +331,8 @@ export default function FaviconGeneratorPage() {
             max-w-2xl mx-auto
           "
           >
-            이미지를 업로드하여 웹사이트용 파비콘을 생성하세요. 다양한
-            사이즈의 파비콘 파일을 ZIP으로 다운로드할 수 있습니다.
+            이미지를 업로드하여 웹사이트용 파비콘을 생성하세요. 다양한 사이즈의
+            파비콘 파일을 ZIP으로 다운로드할 수 있습니다.
           </p>
         </div>
 
@@ -497,7 +499,7 @@ export default function FaviconGeneratorPage() {
                         variant="secondary"
                         onClick={() =>
                           handleDownloadSingle(
-                            "Favicon-16x16.png",
+                            "favicon-16x16.png",
                             imageFile.processedFiles!.favicon16
                           )
                         }
@@ -510,7 +512,7 @@ export default function FaviconGeneratorPage() {
                         variant="secondary"
                         onClick={() =>
                           handleDownloadSingle(
-                            "Favicon-32x32.png",
+                            "favicon-32x32.png",
                             imageFile.processedFiles!.favicon32
                           )
                         }
@@ -523,7 +525,7 @@ export default function FaviconGeneratorPage() {
                         variant="secondary"
                         onClick={() =>
                           handleDownloadSingle(
-                            "Favicon.ico",
+                            "favicon.ico",
                             imageFile.processedFiles!.faviconIco
                           )
                         }
@@ -536,7 +538,7 @@ export default function FaviconGeneratorPage() {
                         variant="secondary"
                         onClick={() =>
                           handleDownloadSingle(
-                            "Icon-180x180.png",
+                            "icon-180x180.png",
                             imageFile.processedFiles!.appleTouchIcon
                           )
                         }
@@ -549,7 +551,7 @@ export default function FaviconGeneratorPage() {
                         variant="secondary"
                         onClick={() =>
                           handleDownloadSingle(
-                            "Icon-192x192.png",
+                            "icon-192x192.png",
                             imageFile.processedFiles!.androidChrome192
                           )
                         }
@@ -562,7 +564,7 @@ export default function FaviconGeneratorPage() {
                         variant="secondary"
                         onClick={() =>
                           handleDownloadSingle(
-                            "Icon-256x256.png",
+                            "icon-256x256.png",
                             imageFile.processedFiles!.favicon256
                           )
                         }
@@ -575,7 +577,7 @@ export default function FaviconGeneratorPage() {
                         variant="secondary"
                         onClick={() =>
                           handleDownloadSingle(
-                            "Icon-384x384.png",
+                            "icon-384x384.png",
                             imageFile.processedFiles!.favicon384
                           )
                         }
@@ -588,7 +590,7 @@ export default function FaviconGeneratorPage() {
                         variant="secondary"
                         onClick={() =>
                           handleDownloadSingle(
-                            "Icon-512x512.png",
+                            "icon-512x512.png",
                             imageFile.processedFiles!.androidChrome512
                           )
                         }
@@ -622,9 +624,7 @@ export default function FaviconGeneratorPage() {
             <li>이미지 파일을 업로드하세요 (정사각형 이미지 권장)</li>
             <li>&quot;파비콘 생성하기&quot; 버튼을 클릭하세요</li>
             <li>생성된 파비콘을 ZIP 파일로 다운로드하세요</li>
-            <li>
-              다운로드한 파일을 웹사이트 루트 디렉토리에 업로드하세요
-            </li>
+            <li>다운로드한 파일을 웹사이트 루트 디렉토리에 업로드하세요</li>
             <li>
               ZIP 파일에 포함된 `install-instructions.txt`의 링크 태그를 HTML
               &lt;head&gt;에 추가하세요
@@ -635,4 +635,3 @@ export default function FaviconGeneratorPage() {
     </div>
   );
 }
-
