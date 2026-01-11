@@ -1,20 +1,13 @@
 // Service Worker for Draiger (드라이거) PWA
 // 오프라인 캐싱 및 기본 PWA 기능 제공
 
-const CACHE_NAME = 'draiger-v1';
-const RUNTIME_CACHE = 'draiger-runtime-v1';
+const CACHE_NAME = 'draiger-v2';
+const RUNTIME_CACHE = 'draiger-runtime-v2';
 
 // 캐싱할 정적 리소스 목록
+// 파비콘은 제외 (항상 네트워크에서 가져오도록 함)
 const STATIC_ASSETS = [
   '/',
-  '/favicon.ico',
-  '/Favicon-16x16.png',
-  '/Favicon-32x32.png',
-  '/Icon-180x180.png',
-  '/Icon-192x192.png',
-  '/Icon-256x256.png',
-  '/Icon-384x384.png',
-  '/Icon-512x512.png',
   '/site.webmanifest',
   '/globals.css',
 ];
@@ -79,6 +72,23 @@ self.addEventListener('fetch', (event) => {
 
   // GET 요청만 캐싱
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // 파비콘은 항상 네트워크에서 가져오기 (캐시 무시)
+  // 파비콘이 업데이트되었을 때 즉시 반영되도록 함
+  if (url.pathname.includes('favicon') || url.pathname.includes('Favicon') || url.pathname.includes('Icon-')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // 네트워크에서 가져온 응답을 반환 (캐시에 저장하지 않음)
+          return response;
+        })
+        .catch(() => {
+          // 네트워크 실패 시에만 캐시에서 가져오기
+          return caches.match(request);
+        })
+    );
     return;
   }
 
