@@ -3,6 +3,8 @@ import "./globals.css";
 import ConditionalHeader from "@/components/ConditionalHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ScrollToTop from "@/components/ScrollToTop";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import PWAServiceWorker from "@/components/PWAServiceWorker";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://adtoolkit.kr'),
@@ -118,12 +120,28 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/Icon-180x180.png" />
         {/* PWA Manifest */}
         <link rel="manifest" href="/site.webmanifest" />
+        {/* PWA Meta Tags */}
+        <meta name="application-name" content="드라이거" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="드라이거" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="msapplication-TileColor" content="#10B981" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <meta name="theme-color" content="#10B981" />
+        {/* Apple Touch Icons */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/Icon-180x180.png" />
+        {/* Microsoft Tiles */}
+        <meta name="msapplication-TileImage" content="/Icon-192x192.png" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
       </head>
       <body className="antialiased text-gray-900 dark:text-white bg-[#F8F9FA] dark:bg-gray-900">
         <ThemeProvider>
+          <PWAServiceWorker />
           <ConditionalHeader />
           {children}
           <ScrollToTop />
+          <PWAInstallPrompt />
         </ThemeProvider>
       </body>
     </html>
