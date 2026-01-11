@@ -35,60 +35,113 @@ interface PreviewFile {
 
 // 파일 타입 감지
 function detectFileType(file: File): FileType {
-  const name = file.name.toLowerCase();
-  const type = file.type;
+  // 파일명 정규화: 소문자 변환 및 공백 제거
+  const normalizedName = file.name.toLowerCase().trim();
+  const type = file.type.toLowerCase().trim();
+
+  console.log("🔍 [파일 타입 감지] 파일 정보", {
+    fileName: file.name,
+    normalizedName,
+    mimeType: file.type,
+    normalizedMimeType: type,
+  });
 
   // PDF
-  if (type === "application/pdf" || name.endsWith(".pdf")) {
+  if (
+    type === "application/pdf" ||
+    normalizedName.endsWith(".pdf")
+  ) {
     return "pdf";
   }
 
   // 이미지
-  if (type.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(name)) {
+  if (
+    type.startsWith("image/") ||
+    /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)$/i.test(normalizedName)
+  ) {
     return "image";
   }
 
-  // Word
+  // Word 문서 - 다양한 형식 지원
+  const wordMimeTypes = [
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+    "application/msword", // .doc (구버전)
+    "application/vnd.ms-word", // .doc (대체 MIME)
+    "application/x-msword", // .doc (대체 MIME)
+  ];
+  const wordExtensions = /\.(docx?|docm|dotx?|dotm)$/i; // .doc, .docx, .docm, .dotx, .dotm
+
   if (
-    type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-    name.endsWith(".docx")
+    wordMimeTypes.some(mime => type === mime) ||
+    wordExtensions.test(normalizedName)
   ) {
+    console.log("✅ [파일 타입 감지] Word 문서로 감지됨");
     return "word";
   }
 
-  // Excel
+  // Excel 문서 - 다양한 형식 지원
+  const excelMimeTypes = [
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+    "application/vnd.ms-excel", // .xls (구버전)
+    "application/x-msexcel", // .xls (대체 MIME)
+    "application/excel", // .xls (대체 MIME)
+    "application/vnd.ms-excel.sheet.macroEnabled.12", // .xlsm
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.template", // .xltx
+  ];
+  const excelExtensions = /\.(xlsx?|xlsm|xltx?|xlsb|csv)$/i; // .xls, .xlsx, .xlsm, .xltx, .xlt, .xlsb, .csv
+
   if (
-    type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-    name.endsWith(".xlsx")
+    excelMimeTypes.some(mime => type === mime) ||
+    excelExtensions.test(normalizedName)
   ) {
+    console.log("✅ [파일 타입 감지] Excel 문서로 감지됨");
     return "excel";
   }
 
-  // PowerPoint
+  // PowerPoint 문서 - 다양한 형식 지원
+  const powerpointMimeTypes = [
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation", // .pptx
+    "application/vnd.ms-powerpoint", // .ppt (구버전)
+    "application/x-mspowerpoint", // .ppt (대체 MIME)
+    "application/powerpoint", // .ppt (대체 MIME)
+    "application/vnd.ms-powerpoint.presentation.macroEnabled.12", // .pptm
+    "application/vnd.openxmlformats-officedocument.presentationml.template", // .potx
+  ];
+  const powerpointExtensions = /\.(pptx?|pptm|potx?|potm|ppsx?|ppsm)$/i; // .ppt, .pptx, .pptm, .potx, .pot, .potm, .pps, .ppsx, .ppsm
+
   if (
-    type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
-    name.endsWith(".pptx")
+    powerpointMimeTypes.some(mime => type === mime) ||
+    powerpointExtensions.test(normalizedName)
   ) {
+    console.log("✅ [파일 타입 감지] PowerPoint 문서로 감지됨");
     return "powerpoint";
   }
 
   // HWP
-  if (name.endsWith(".hwp")) {
+  if (normalizedName.endsWith(".hwp")) {
     return "hwp";
   }
 
   // 텍스트 파일
-  if (type === "text/plain" || name.endsWith(".txt") || name.endsWith(".md")) {
+  if (
+    type === "text/plain" ||
+    normalizedName.endsWith(".txt") ||
+    normalizedName.endsWith(".md")
+  ) {
     return "text";
   }
 
   // 코드 파일
   if (
-    /\.(js|ts|jsx|tsx|py|java|cpp|c|h|css|html|xml|json|yaml|yml|sh|bash|sql|php|rb|go|rs|swift|kt)$/i.test(name)
+    /\.(js|ts|jsx|tsx|py|java|cpp|c|h|css|html|xml|json|yaml|yml|sh|bash|sql|php|rb|go|rs|swift|kt)$/i.test(normalizedName)
   ) {
     return "code";
   }
 
+  console.warn("⚠️ [파일 타입 감지] 지원하지 않는 파일 형식", {
+    fileName: file.name,
+    mimeType: file.type,
+  });
   return "unknown";
 }
 

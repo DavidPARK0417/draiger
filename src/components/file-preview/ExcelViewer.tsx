@@ -48,7 +48,15 @@ export default function ExcelViewer({ file }: ExcelViewerProps) {
         setProgress(0);
         setVisibleRows(100);
 
-        console.log("📊 [Excel 뷰어] 파싱 시작", { fileName: file.name, fileSize: file.size });
+        const fileName = file.name.toLowerCase();
+        const fileExtension = fileName.substring(fileName.lastIndexOf("."));
+        
+        console.log("📊 [Excel 뷰어] 파싱 시작", { 
+          fileName: file.name, 
+          fileSize: file.size,
+          fileExtension,
+          mimeType: file.type,
+        });
 
         setProgressMessage("파일 읽는 중...");
         setProgress(10);
@@ -60,18 +68,37 @@ export default function ExcelViewer({ file }: ExcelViewerProps) {
         setProgressMessage("Excel 파일 파싱 중...");
         setProgress(20);
 
+        // CSV 파일의 경우 텍스트로 읽어서 파싱
+        const isCsv = fileExtension === ".csv";
+        const readOptions: XLSX.ParsingOptions = {
+          cellDates: true,
+          cellNF: false,
+          cellStyles: false,
+        };
+
         // requestIdleCallback을 사용하여 파싱 작업을 분산
         const workbook = await new Promise<XLSX.WorkBook>((resolve, reject) => {
           const parse = () => {
             try {
-              const wb = XLSX.read(arrayBuffer, {
-                type: "array",
-                cellDates: true,
-                cellNF: false,
-                cellStyles: false,
+              let wb: XLSX.WorkBook;
+              
+              if (isCsv) {
+                // CSV는 문자열로 읽어서 파싱
+                const text = new TextDecoder("utf-8").decode(arrayBuffer);
+                wb = XLSX.read(text, { ...readOptions, type: "string" });
+              } else {
+                // Excel 파일은 바이너리로 파싱
+                wb = XLSX.read(arrayBuffer, { ...readOptions, type: "array" });
+              }
+              
+              console.log("✅ [Excel 뷰어] 파일 파싱 성공", {
+                sheetCount: wb.SheetNames.length,
+                sheetNames: wb.SheetNames,
               });
+              
               resolve(wb);
             } catch (err) {
+              console.error("❌ [Excel 뷰어] 파싱 오류:", err);
               reject(err);
             }
           };

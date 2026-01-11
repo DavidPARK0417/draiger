@@ -38,6 +38,21 @@ export default function PowerPointViewer({ file }: PowerPointViewerProps) {
 
         console.log("📊 [PowerPoint 뷰어] 파싱 시작", { fileName: file.name, fileSize: file.size });
 
+        // 파일 확장자 확인
+        const fileName = file.name.toLowerCase();
+        const isOldFormat = fileName.endsWith(".ppt") && !fileName.endsWith(".pptx");
+
+        if (isOldFormat) {
+          console.warn("⚠️ [PowerPoint 뷰어] 구버전 .ppt 형식은 지원하지 않습니다");
+          setError(
+            "구버전 PowerPoint 문서(.ppt) 형식은 지원하지 않습니다. " +
+            "파일을 최신 형식(.pptx)으로 변환한 후 다시 시도해주세요. " +
+            "또는 Microsoft PowerPoint나 다른 프레젠테이션 프로그램에서 열어주세요."
+          );
+          setIsLoading(false);
+          return;
+        }
+
         setProgressMessage("파일 읽는 중...");
         setProgress(10);
 
