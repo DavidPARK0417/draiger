@@ -83,22 +83,84 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               metaDescription={post.metaDescription}
             />
 
-            <div
-              className="prose prose-xl max-w-none 
-              prose-headings:font-serif prose-headings:font-normal prose-headings:tracking-tight prose-headings:text-gray-900 dark:prose-headings:text-white
-              prose-p:!text-2xl prose-p:text-gray-700 dark:prose-p:text-white/90 prose-p:leading-relaxed
-              prose-li:!text-2xl prose-ul:!text-2xl prose-ol:!text-2xl
-              prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-semibold
-              prose-em:text-gray-900 dark:prose-em:text-white/95
-              prose-a:text-gray-900 dark:prose-a:text-white prose-a:underline-offset-4 hover:prose-a:text-emerald-600 dark:hover:prose-a:text-white/80
-              prose-blockquote:border-l-gray-300 dark:prose-blockquote:border-l-white/20 prose-blockquote:text-gray-600 dark:prose-blockquote:text-white/70
-              prose-code:text-gray-900 dark:prose-code:text-white prose-code:bg-gray-100 dark:prose-code:bg-white/10 prose-code:px-1 prose-code:rounded
-              prose-ul:text-gray-700 dark:prose-ul:text-white/90 prose-ol:text-gray-700 dark:prose-ol:text-white/90
-              prose-li:text-gray-700 dark:prose-li:text-white/90 prose-li:marker:text-gray-500 dark:prose-li:marker:text-white/70
-              prose-hr:border-gray-300 dark:prose-hr:border-white/20
-            "
-            >
-              <ReactMarkdown>{content}</ReactMarkdown>
+            <div className="max-w-none">
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => (
+                    <p className="text-[18px] text-gray-700 dark:text-white/90 leading-relaxed mb-6">
+                      {children}
+                    </p>
+                  ),
+                  h1: ({ children }) => (
+                    <h1 className="font-serif font-normal tracking-tight text-gray-900 dark:text-white text-4xl mt-8 mb-4">
+                      {children}
+                    </h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-3xl mt-8 mb-4">
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-2xl mt-6 mb-3">
+                      {children}
+                    </h3>
+                  ),
+                  h4: ({ children }) => (
+                    <h4 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-xl mt-6 mb-3">
+                      {children}
+                    </h4>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="text-gray-900 dark:text-white font-semibold">
+                      {children}
+                    </strong>
+                  ),
+                  em: ({ children }) => (
+                    <em className="text-gray-900 dark:text-white/95 italic">
+                      {children}
+                    </em>
+                  ),
+                  a: ({ href, children }) => (
+                    <a
+                      href={href}
+                      className="text-gray-900 dark:text-white underline underline-offset-4 hover:text-emerald-600 dark:hover:text-white/80"
+                    >
+                      {children}
+                    </a>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="text-2xl text-gray-700 dark:text-white/90 mb-6 pl-6 list-disc">
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="text-2xl text-gray-700 dark:text-white/90 mb-6 pl-6 list-decimal">
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="text-gray-700 dark:text-white/90 mb-2 marker:text-gray-500 dark:marker:text-white/70">
+                      {children}
+                    </li>
+                  ),
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-l-4 border-gray-300 dark:border-white/20 pl-6 italic text-gray-600 dark:text-white/70 my-6">
+                      {children}
+                    </blockquote>
+                  ),
+                  code: ({ children }) => (
+                    <code className="text-gray-900 dark:text-white bg-gray-100 dark:bg-white/10 px-1 rounded">
+                      {children}
+                    </code>
+                  ),
+                  hr: () => (
+                    <hr className="border-gray-300 dark:border-white/20 my-8" />
+                  ),
+                }}
+              >
+                {content}
+              </ReactMarkdown>
             </div>
 
             {post.tags && post.tags.length > 0 && (
