@@ -112,7 +112,7 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
           // font-display: swap은 CSS에서 처리됨 (CLS 최소화)
         />
-        {/* 파비콘 링크 태그 - 명시적으로 추가하여 외부 서비스 인식 향상 */}
+        {/* 파비콘 링크 태그 - public/favicon.ico 사용 (고품질 멀티 사이즈 ICO) */}
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="16x16" href="/Favicon-16x16.png" />
