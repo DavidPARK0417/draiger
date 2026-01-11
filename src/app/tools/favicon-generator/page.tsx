@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import { formatDateForFilename } from "@/utils/date-format";
 
 interface FaviconFile {
   id: string;
@@ -346,7 +347,10 @@ export default function FaviconGeneratorPage() {
       const url = URL.createObjectURL(zipBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `favicon-package-${Date.now()}.zip`;
+
+      // 날짜시분초 형식으로 파일명 생성 (예: favicon-20260111193105)
+      const dateString = formatDateForFilename();
+      link.download = `favicon-${dateString}.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

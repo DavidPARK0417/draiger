@@ -13,6 +13,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import { formatDateForFilename } from "@/utils/date-format";
 
 type ResizeMode = "pixel" | "percent";
 type ResizeOption = "max" | "exact";
@@ -315,7 +316,10 @@ export default function ImageResizePage() {
       const url = URL.createObjectURL(zipBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `resized_images_${Date.now()}.zip`;
+      
+      // 날짜시분초 형식으로 파일명 생성 (예: resized_images-20260111193105)
+      const dateString = formatDateForFilename();
+      link.download = `resized_images-${dateString}.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
