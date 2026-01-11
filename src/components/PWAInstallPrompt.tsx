@@ -5,6 +5,27 @@ import { X, Download, Smartphone } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
 /**
+ * BeforeInstallPromptEvent 타입 정의
+ * PWA 설치 프롬프트 이벤트의 타입
+ */
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+/**
+ * Navigator 타입 확장 (iOS Safari standalone 속성)
+ */
+interface NavigatorStandalone extends Navigator {
+  standalone?: boolean;
+}
+
+// 컴포넌트 외부에 상수 정의 (한 번만 생성됨)
+const STORAGE_KEY = 'draiger-pwa-install-dismissed';
+const STORAGE_TIMESTAMP_KEY = 'draiger-pwa-install-dismissed-timestamp';
+const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000; // 24시간을 밀리초로 변환
+
+/**
  * PWA 설치 안내 팝업 컴포넌트
  * 
  * Draiger (드라이거) 앱의 모바일 사용자에게 앱 설치를 유도하는 팝업입니다.
@@ -14,15 +35,8 @@ import Button from '@/components/ui/Button';
  */
 export default function PWAInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
-
-  // localStorage 키
-  const STORAGE_KEY = 'draiger-pwa-install-dismissed';
-  const STORAGE_TIMESTAMP_KEY = 'draiger-pwa-install-dismissed-timestamp';
-  
-  // 24시간을 밀리초로 변환
-  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 
   useEffect(() => {
     // 이미 설치되어 있는지 확인
@@ -34,7 +48,8 @@ export default function PWAInstallPrompt() {
       }
       
       // iOS Safari의 경우
-      if ((window.navigator as any).standalone === true) {
+      const nav = window.navigator as NavigatorStandalone;
+      if (nav.standalone === true) {
         setIsInstalled(true);
         return true;
       }
@@ -76,7 +91,7 @@ export default function PWAInstallPrompt() {
     const handleBeforeInstallPrompt = (e: Event) => {
       // 기본 설치 프롬프트 방지
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowPrompt(true);
     };
 
@@ -94,7 +109,8 @@ export default function PWAInstallPrompt() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 상수들은 컴포넌트 외부에 정의되어 있어 의존성 배열에 포함할 필요 없음
 
   // 설치 버튼 클릭 핸들러
   const handleInstallClick = async () => {
