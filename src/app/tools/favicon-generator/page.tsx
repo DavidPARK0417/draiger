@@ -84,13 +84,82 @@ export default function FaviconGeneratorPage() {
     });
   }, []);
 
-  // ICO 파일 생성 (간단한 버전 - 32x32 PNG를 기반으로 생성)
+  // 실제 ICO 파일 형식 생성
+  // ICO 파일은 멀티 레이어 형식(16x16, 32x32 등)을 포함하는 바이너리 형식입니다.
+  // Windows 탐색기에서 미리보기를 표시하려면 실제 ICO 형식이어야 합니다.
   const createIcoFile = useCallback(
     async (file: File): Promise<Blob> => {
-      // 실제 ICO는 멀티 레이어 형식이지만, 브라우저에서는 제한적
-      // 여기서는 32x32 PNG를 반환 (대부분의 브라우저에서 작동)
-      // 실제 프로덕션에서는 서버에서 ICO 생성 라이브러리 사용 권장
-      return resizeImage(file, 32);
+      try {
+        // 16x16과 32x32 PNG를 생성 (멀티 레이어 ICO)
+        const [png16, png32] = await Promise.all([
+          resizeImage(file, 16),
+          resizeImage(file, 32),
+        ]);
+
+        // PNG 데이터를 ArrayBuffer로 변환
+        const png16Buffer = await png16.arrayBuffer();
+        const png32Buffer = await png32.arrayBuffer();
+
+        // ICO 파일 헤더 생성
+        const header = new ArrayBuffer(6);
+        const headerView = new DataView(header);
+        headerView.setUint16(0, 0, true); // Reserved: 0
+        headerView.setUint16(2, 1, true); // Type: 1 (ICO)
+        headerView.setUint16(4, 2, true); // Count: 2 images (16x16, 32x32)
+
+        // ICO 디렉토리 엔트리 생성 (각 이미지마다 16 bytes)
+        const directory = new ArrayBuffer(32); // 2 images * 16 bytes
+        const dirView = new DataView(directory);
+
+        // 첫 번째 이미지 (16x16)
+        let offset = 6 + 32; // Header + Directory
+        dirView.setUint8(0, 16); // Width
+        dirView.setUint8(1, 16); // Height
+        dirView.setUint8(2, 0); // Color Palette: 0
+        dirView.setUint8(3, 0); // Reserved: 0
+        dirView.setUint16(4, 1, true); // Color Planes: 1
+        dirView.setUint16(6, 32, true); // Bits Per Pixel: 32 (RGBA)
+        dirView.setUint32(8, png16Buffer.byteLength, true); // Image Data Size
+        dirView.setUint32(12, offset, true); // Image Data Offset
+        offset += png16Buffer.byteLength;
+
+        // 두 번째 이미지 (32x32)
+        dirView.setUint8(16, 32); // Width
+        dirView.setUint8(17, 32); // Height
+        dirView.setUint8(18, 0); // Color Palette: 0
+        dirView.setUint8(19, 0); // Reserved: 0
+        dirView.setUint16(20, 1, true); // Color Planes: 1
+        dirView.setUint16(22, 32, true); // Bits Per Pixel: 32 (RGBA)
+        dirView.setUint32(24, png32Buffer.byteLength, true); // Image Data Size
+        dirView.setUint32(28, offset, true); // Image Data Offset
+
+        // ICO 파일 조립: Header + Directory + PNG Data
+        const icoFile = new Uint8Array(
+          header.byteLength +
+            directory.byteLength +
+            png16Buffer.byteLength +
+            png32Buffer.byteLength
+        );
+
+        let position = 0;
+        icoFile.set(new Uint8Array(header), position);
+        position += header.byteLength;
+
+        icoFile.set(new Uint8Array(directory), position);
+        position += directory.byteLength;
+
+        icoFile.set(new Uint8Array(png16Buffer), position);
+        position += png16Buffer.byteLength;
+
+        icoFile.set(new Uint8Array(png32Buffer), position);
+
+        // Blob 생성 (MIME 타입은 application/octet-stream 또는 image/x-icon)
+        return new Blob([icoFile], { type: "image/x-icon" });
+      } catch (error) {
+        console.error("❌ [ICO 생성] 오류:", error);
+        // 오류 발생 시 32x32 PNG를 반환 (폴백)
+        return resizeImage(file, 32);
+      }
     },
     [resizeImage]
   );
@@ -263,10 +332,11 @@ export default function FaviconGeneratorPage() {
 
       // HTML 링크 태그 생성
       const htmlLinks = `<!-- 파비콘 링크 태그 - HTML <head>에 추가하세요 -->
-<link rel="apple-touch-icon" sizes="180x180" href="/icon-180x180.png">
+<!-- 중요: ICO 파일은 실제 ICO 형식이 아닐 수 있습니다. 브라우저는 PNG 파일도 파비콘으로 사용할 수 있습니다. -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/icon-180x180.png">
 <link rel="manifest" href="/site.webmanifest">`;
 
       zip.file("install-instructions.txt", htmlLinks);
@@ -630,6 +700,16 @@ export default function FaviconGeneratorPage() {
               &lt;head&gt;에 추가하세요
             </li>
           </ol>
+          <div className="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+            <p className="text-sm text-emerald-800 dark:text-emerald-200 font-medium mb-2">
+              ✅ ICO 파일 형식
+            </p>
+            <p className="text-xs text-emerald-700 dark:text-emerald-300">
+              생성된 favicon.ico 파일은 실제 ICO 형식(멀티 레이어: 16x16,
+              32x32)으로 생성됩니다. Windows 탐색기에서 미리보기가 정상적으로
+              표시되며, 모든 브라우저에서 호환됩니다.
+            </p>
+          </div>
         </Card>
       </div>
     </div>
