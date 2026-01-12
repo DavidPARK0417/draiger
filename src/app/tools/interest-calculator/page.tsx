@@ -92,7 +92,7 @@ export default function InterestCalculatorPage() {
     const monthlyRate = loanRate / 100 / 12; // 연이율을 월이율로 변환
     const repaymentPeriod = loanTerm - gracePeriod; // 실제 상환 기간
 
-    let schedule: LoanScheduleItem[] = [];
+    const schedule: LoanScheduleItem[] = [];
     let totalInterest = 0;
     let totalPrincipalPaid = 0;
 
