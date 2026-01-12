@@ -8,6 +8,8 @@ import {
   Loader2,
   Download as DownloadIcon,
   FileDown,
+  Maximize2,
+  Archive,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -25,6 +27,11 @@ interface ImageFile {
   processedUrl?: string;
   isProcessing: boolean;
   error?: string;
+  // 압축 관련 필드
+  originalSize?: number;
+  compressedSize?: number;
+  compressionRatio?: number;
+  quality?: number;
 }
 
 const SIZE_PRESETS = [
@@ -64,7 +71,13 @@ const SIZE_PRESETS = [
 ] as const;
 
 export default function ImageResizePage() {
+  // 탭 상태
+  const [activeTab, setActiveTab] = useState<"resize" | "compress">("resize");
+
+  // 이미지 파일 상태
   const [imageFiles, setImageFiles] = useState<ImageFile[]>([]);
+  
+  // 크기 조정 관련 상태
   const [resizeMode, setResizeMode] = useState<ResizeMode>("pixel");
   const [resizeOption, setResizeOption] = useState<ResizeOption>("exact");
   const [width, setWidth] = useState<string>("");
@@ -75,6 +88,11 @@ export default function ImageResizePage() {
   const [dontEnlarge, setDontEnlarge] = useState<boolean>(false);
   const [selectedPreset, setSelectedPreset] = useState<string>("custom");
   const [isProcessingAll, setIsProcessingAll] = useState<boolean>(false);
+
+  // 압축 관련 상태
+  const [compressMode, setCompressMode] = useState<"auto" | "manual">("auto");
+  const [quality, setQuality] = useState<number>(80);
+  const [isCompressingAll, setIsCompressingAll] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -300,7 +318,8 @@ export default function ImageResizePage() {
             continue;
           }
           const blob = await response.blob();
-          const fileName = `resized_${imageFile.file.name}`;
+          const prefix = activeTab === "compress" ? "compressed_" : "resized_";
+          const fileName = `${prefix}${imageFile.file.name}`;
           zip.file(fileName, blob);
           console.log(`✅ [ZIP 다운로드] 이미지 추가: ${fileName}`);
         } catch (error) {
@@ -317,9 +336,10 @@ export default function ImageResizePage() {
       const link = document.createElement("a");
       link.href = url;
       
-      // 날짜시분초 형식으로 파일명 생성 (예: resized_images-20260111193105)
+      // 날짜시분초 형식으로 파일명 생성
       const dateString = formatDateForFilename();
-      link.download = `resized_images-${dateString}.zip`;
+      const prefix = activeTab === "compress" ? "compressed_images" : "resized_images";
+      link.download = `${prefix}-${dateString}.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -330,7 +350,7 @@ export default function ImageResizePage() {
       console.error("❌ [ZIP 다운로드] 오류:", error);
       alert("ZIP 다운로드 중 오류가 발생했습니다.");
     }
-  }, [imageFiles]);
+  }, [imageFiles, activeTab]);
 
   // 개별 이미지 다운로드
   const handleDownloadSingle = useCallback((imageFile: ImageFile) => {
@@ -338,11 +358,12 @@ export default function ImageResizePage() {
 
     const link = document.createElement("a");
     link.href = imageFile.processedUrl;
-    link.download = `resized_${imageFile.file.name}`;
+    const prefix = activeTab === "compress" ? "compressed_" : "resized_";
+    link.download = `${prefix}${imageFile.file.name}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, []);
+  }, [activeTab]);
 
   // 이미지 제거
   const handleRemoveImage = useCallback((id: string) => {
@@ -367,6 +388,123 @@ export default function ImageResizePage() {
     }
   }, []);
 
+  // 단일 이미지 압축 처리
+  const handleCompressSingle = useCallback(
+    async (imageFile: ImageFile) => {
+      // 처리 상태 업데이트
+      setImageFiles((prev) =>
+        prev.map((img) =>
+          img.id === imageFile.id
+            ? { ...img, isProcessing: true, error: undefined }
+            : img
+        )
+      );
+
+      try {
+        const formData = new FormData();
+        formData.append("image", imageFile.file);
+        formData.append("mode", compressMode);
+        formData.append("quality", quality.toString());
+
+        console.log("🗜️ [이미지 압축] 요청 시작", {
+          id: imageFile.id,
+          fileName: imageFile.file.name,
+          mode: compressMode,
+          quality: compressMode === "manual" ? quality : undefined,
+        });
+
+        const response = await fetch("/api/compress", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "이미지 처리 중 오류가 발생했습니다.");
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        // 응답 헤더에서 메타데이터 가져오기
+        const originalSize = parseInt(
+          response.headers.get("X-Original-Size") || "0",
+          10
+        );
+        const compressedSize = parseInt(
+          response.headers.get("X-Compressed-Size") || "0",
+          10
+        );
+        const compressionRatio = parseFloat(
+          response.headers.get("X-Compression-Ratio") || "0"
+        );
+        const qualityUsed = parseInt(
+          response.headers.get("X-Quality") || "80",
+          10
+        );
+
+        // 처리 완료 상태 업데이트
+        setImageFiles((prev) =>
+          prev.map((img) =>
+            img.id === imageFile.id
+              ? {
+                  ...img,
+                  processedUrl: url,
+                  isProcessing: false,
+                  originalSize,
+                  compressedSize,
+                  compressionRatio,
+                  quality: qualityUsed,
+                }
+              : img
+          )
+        );
+
+        console.log("✅ [이미지 압축] 완료", {
+          id: imageFile.id,
+          originalSize,
+          compressedSize,
+          compressionRatio: `${compressionRatio}%`,
+        });
+      } catch (error) {
+        console.error("❌ [이미지 압축] 오류:", error);
+        setImageFiles((prev) =>
+          prev.map((img) =>
+            img.id === imageFile.id
+              ? {
+                  ...img,
+                  isProcessing: false,
+                  error:
+                    error instanceof Error
+                      ? error.message
+                      : "처리 중 오류 발생",
+                }
+              : img
+          )
+        );
+      }
+    },
+    [compressMode, quality]
+  );
+
+  // 모든 이미지 일괄 압축 처리
+  const handleCompressAll = useCallback(async () => {
+    if (imageFiles.length === 0) {
+      alert("이미지를 먼저 업로드해주세요.");
+      return;
+    }
+
+    setIsCompressingAll(true);
+
+    // 모든 이미지를 순차적으로 처리
+    for (const imageFile of imageFiles) {
+      await handleCompressSingle(imageFile);
+    }
+
+    setIsCompressingAll(false);
+    console.log("✅ [이미지 압축] 모든 이미지 처리 완료");
+  }, [imageFiles, handleCompressSingle]);
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
@@ -379,19 +517,53 @@ export default function ImageResizePage() {
             text-gray-900 dark:text-white dark:font-extrabold
             leading-tight
           "
+            suppressHydrationWarning
           >
-            이미지 크기 조정
+            이미지 크기 조정 & 압축
           </h1>
           <p
             className="
             text-base sm:text-lg lg:text-xl
             text-gray-600 dark:text-gray-200
-            max-w-2xl mx-auto
+            max-w-2xl mx-auto mb-6
           "
           >
-            여러 이미지를 한 번에 업로드하고 크기를 조정할 수 있습니다. 픽셀
-            또는 퍼센트 단위로 크기를 조정하고 ZIP 파일로 다운로드하세요.
+            여러 이미지를 한 번에 업로드하고 크기를 조정하거나 용량을 줄일 수 있습니다.
           </p>
+
+          {/* 탭 메뉴 */}
+          <div className="flex gap-2 justify-center mb-6 border-b border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setActiveTab("resize")}
+              className={`
+                px-4 sm:px-6 py-2.5 font-medium rounded-t-xl transition-all duration-300
+                flex items-center gap-2
+                ${
+                  activeTab === "resize"
+                    ? "bg-emerald-500 dark:bg-emerald-600 text-white shadow-md"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }
+              `}
+            >
+              <Maximize2 size={20} />
+              <span className="text-sm sm:text-base">크기 조정</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("compress")}
+              className={`
+                px-4 sm:px-6 py-2.5 font-medium rounded-t-xl transition-all duration-300
+                flex items-center gap-2
+                ${
+                  activeTab === "compress"
+                    ? "bg-emerald-500 dark:bg-emerald-600 text-white shadow-md"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }
+              `}
+            >
+              <Archive size={20} />
+              <span className="text-sm sm:text-base">용량 줄이기</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -441,11 +613,12 @@ export default function ImageResizePage() {
             </Card>
 
             {/* 크기 조정 옵션 */}
-            <Card padding="md">
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-                크기 조정 옵션
-              </h2>
-              <div className="space-y-4">
+            {activeTab === "resize" && (
+              <Card padding="md">
+                <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+                  크기 조정 옵션
+                </h2>
+                <div className="space-y-4">
                 {/* 모드 선택 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
@@ -629,6 +802,124 @@ export default function ImageResizePage() {
                 })()}
               </div>
             </Card>
+            )}
+
+            {/* 압축 옵션 */}
+            {activeTab === "compress" && (
+              <Card padding="md">
+                <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+                  압축 옵션
+                </h2>
+                <div className="space-y-4">
+                  {/* 압축 모드 선택 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                      압축 모드
+                    </label>
+                    <Select
+                      value={compressMode}
+                      onChange={(e) =>
+                        setCompressMode(e.target.value as "auto" | "manual")
+                      }
+                    >
+                      <option value="auto">자동 (품질 손실 최소화)</option>
+                      <option value="manual">수동 (품질 직접 조정)</option>
+                    </Select>
+                  </div>
+
+                  {/* 수동 모드일 때 품질 조정 */}
+                  {compressMode === "manual" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        품질: {quality}%
+                      </label>
+                      <input
+                        type="range"
+                        min="1"
+                        max="100"
+                        value={quality}
+                        onChange={(e) => setQuality(parseInt(e.target.value, 10))}
+                        className="
+                          w-full
+                          h-2
+                          bg-gray-200 dark:bg-gray-700
+                          rounded-lg
+                          appearance-none
+                          cursor-pointer
+                          accent-emerald-500
+                        "
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <span>낮음 (용량 ↓)</span>
+                        <span>높음 (화질 ↑)</span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        낮은 품질일수록 파일 크기는 작아지지만 화질이 저하됩니다.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* 자동 모드 설명 */}
+                  {compressMode === "auto" && (
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
+                      <p className="text-sm text-emerald-800 dark:text-emerald-200">
+                        자동 모드는 품질 손실을 최소화하면서 최대한 압축합니다.
+                        형식별로 최적의 설정을 자동으로 적용합니다.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* 일괄 처리 버튼 */}
+                  <Button
+                    fullWidth
+                    onClick={handleCompressAll}
+                    disabled={isCompressingAll || imageFiles.length === 0}
+                    isLoading={isCompressingAll}
+                  >
+                    {isCompressingAll ? "압축 중..." : "모든 이미지 압축"}
+                  </Button>
+
+                  {/* ZIP 다운로드 버튼 */}
+                  {(() => {
+                    // 처리 완료된 이미지 수
+                    const processedCount = imageFiles.filter(
+                      (img) => img.processedUrl && !img.isProcessing && !img.error
+                    ).length;
+                    // 처리 중인 이미지 수
+                    const processingCount = imageFiles.filter(
+                      (img) => img.isProcessing
+                    ).length;
+                    // 에러가 발생한 이미지 수
+                    const errorCount = imageFiles.filter(
+                      (img) => img.error && !img.processedUrl
+                    ).length;
+                    // 모든 이미지가 처리 완료되었는지 확인
+                    const allProcessed =
+                      processedCount > 0 &&
+                      processingCount === 0 &&
+                      imageFiles.length === processedCount + errorCount;
+
+                    if (processedCount === 0) return null;
+
+                    return (
+                      <Button
+                        fullWidth
+                        variant="secondary"
+                        onClick={handleDownloadAll}
+                        disabled={!allProcessed || isCompressingAll}
+                      >
+                        <FileDown className="w-4 h-4 mr-2" />
+                        {allProcessed
+                          ? `모든 이미지 ZIP 다운로드 (${processedCount}개)`
+                          : `ZIP 다운로드 (${processedCount}/${
+                              imageFiles.length - errorCount
+                            }개 완료)`}
+                      </Button>
+                    );
+                  })()}
+                </div>
+              </Card>
+            )}
           </div>
 
           {/* 오른쪽: 이미지 목록 */}
@@ -705,8 +996,51 @@ export default function ImageResizePage() {
                         )}
 
                         {imageFile.processedUrl && (
-                          <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 mb-2">
-                            <span>✅ 처리 완료</span>
+                          <div className="space-y-1 mb-2">
+                            <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+                              <span>✅ 처리 완료</span>
+                            </div>
+                            {/* 압축 정보 표시 */}
+                            {activeTab === "compress" &&
+                              imageFile.originalSize &&
+                              imageFile.compressedSize &&
+                              imageFile.compressionRatio !== undefined && (
+                                <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <span>원본:</span>
+                                    <span className="font-medium">
+                                      {(imageFile.originalSize / 1024).toFixed(2)} KB
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span>압축 후:</span>
+                                    <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                                      {(imageFile.compressedSize / 1024).toFixed(2)} KB
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span>압축률:</span>
+                                    <span
+                                      className={`font-semibold ${
+                                        imageFile.compressionRatio > 0
+                                          ? "text-emerald-600 dark:text-emerald-400"
+                                          : "text-gray-600 dark:text-gray-400"
+                                      }`}
+                                    >
+                                      {imageFile.compressionRatio > 0 ? "-" : "+"}
+                                      {Math.abs(imageFile.compressionRatio).toFixed(1)}%
+                                    </span>
+                                  </div>
+                                  {imageFile.quality && (
+                                    <div className="flex items-center gap-2">
+                                      <span>품질:</span>
+                                      <span className="font-medium">
+                                        {imageFile.quality}%
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                           </div>
                         )}
 
@@ -716,9 +1050,16 @@ export default function ImageResizePage() {
                             !imageFile.isProcessing && (
                               <Button
                                 size="sm"
-                                onClick={() => handleResizeSingle(imageFile)}
+                                onClick={() =>
+                                  activeTab === "resize"
+                                    ? handleResizeSingle(imageFile)
+                                    : handleCompressSingle(imageFile)
+                                }
                                 disabled={
-                                  resizeMode === "pixel" && !width && !height
+                                  activeTab === "resize" &&
+                                  resizeMode === "pixel" &&
+                                  !width &&
+                                  !height
                                 }
                               >
                                 처리하기
