@@ -15,6 +15,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { renderMarkdown as renderMarkdownCommon } from '@/utils/markdown-renderer';
+import { InfoTooltip } from '@/components/Tooltip';
 
 export default function BudgetCalculatorPage() {
   const [productName, setProductName] = useState<string>('');
@@ -242,7 +243,9 @@ export default function BudgetCalculatorPage() {
 
             <div>
               <label className="block text-sm font-medium mb-2 text-foreground">
-                목표 전환수
+                <InfoTooltip text="이번 광고로 몇 명의 고객을 얻고 싶은지 목표 수예요. 예를 들어 10명의 고객을 얻고 싶다면 목표 전환수는 10이에요.">
+                  목표 전환수
+                </InfoTooltip>
               </label>
               <input
                 type="number"
@@ -259,7 +262,9 @@ export default function BudgetCalculatorPage() {
 
             <div>
               <label className="block text-sm font-medium mb-2 text-foreground">
-                CPC (클릭당 비용, 원)
+                <InfoTooltip text="광고를 클릭한 사람 1명당 내야 하는 비용이에요. 예를 들어 광고비 10,000원으로 100번 클릭을 받았다면 CPC는 100원이에요.">
+                  CPC (클릭당 비용, 원)
+                </InfoTooltip>
               </label>
               <input
                 type="number"
@@ -276,7 +281,9 @@ export default function BudgetCalculatorPage() {
 
             <div>
               <label className="block text-sm font-medium mb-2 text-foreground">
-                전환율 (%)
+                <InfoTooltip text="광고를 본 사람 중에서 실제로 구매한 사람의 비율이에요. 예를 들어 100명이 봤는데 5명이 샀다면 전환율은 5%예요.">
+                  전환율 (%)
+                </InfoTooltip>
               </label>
               <input
                 type="number"
@@ -381,7 +388,7 @@ export default function BudgetCalculatorPage() {
                                 stroke="currentColor"
                                 tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                               />
-                              <Tooltip 
+                              <InfoTooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                   border: '1px solid #ccc',
@@ -422,7 +429,7 @@ export default function BudgetCalculatorPage() {
                                   <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                               </Pie>
-                              <Tooltip 
+                              <InfoTooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                   border: '1px solid #ccc',
@@ -451,7 +458,7 @@ export default function BudgetCalculatorPage() {
                                 stroke="currentColor"
                                 tickFormatter={(value) => `${value.toLocaleString('ko-KR')}원`}
                               />
-                              <Tooltip 
+                              <InfoTooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                   border: '1px solid #ccc',

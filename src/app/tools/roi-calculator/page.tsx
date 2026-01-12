@@ -15,6 +15,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { renderMarkdown as renderMarkdownCommon } from '@/utils/markdown-renderer';
+import { InfoTooltip } from '@/components/Tooltip';
 
 export default function ROICalculatorPage() {
   const [productName, setProductName] = useState<string>('');
@@ -316,13 +317,21 @@ export default function ROICalculatorPage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-700 dark:text-gray-300">ROI:</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      <InfoTooltip text="투자한 광고비 대비 얼마나 이익을 냈는지 보여주는 지표예요. 100%면 광고비만큼 이익을 냈다는 뜻이에요.">
+                        ROI:
+                      </InfoTooltip>
+                    </span>
                     <span className="font-semibold text-foreground">
                       {roi.toFixed(2)}%
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-700 dark:text-gray-300">ROAS:</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      <InfoTooltip text="광고비 1원당 벌어들인 매출액이에요. 예를 들어 ROAS가 3배면 광고비 1원에 매출 3원을 벌었다는 뜻이에요.">
+                        ROAS:
+                      </InfoTooltip>
+                    </span>
                     <span className="font-semibold text-foreground">
                       {roas.toFixed(2)}배
                     </span>
@@ -389,7 +398,7 @@ export default function ROICalculatorPage() {
                                 stroke="currentColor"
                                 tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                               />
-                              <Tooltip 
+                              <InfoTooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                   border: '1px solid #ccc',
@@ -430,7 +439,7 @@ export default function ROICalculatorPage() {
                                   <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                               </Pie>
-                              <Tooltip 
+                              <InfoTooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                   border: '1px solid #ccc',
@@ -468,10 +477,18 @@ export default function ROICalculatorPage() {
               <strong>순이익</strong> = 매출 - 비용
             </li>
             <li>
-              <strong>ROI</strong> = ((순이익 - 투자금) ÷ 투자금) × 100
+              <strong>
+                <InfoTooltip text="투자한 광고비 대비 얼마나 이익을 냈는지 보여주는 지표예요. 100%면 광고비만큼 이익을 냈다는 뜻이에요.">
+                  ROI
+                </InfoTooltip>
+              </strong> = ((순이익 - 투자금) ÷ 투자금) × 100
             </li>
             <li>
-              <strong>ROAS</strong> = 매출 ÷ 투자금
+              <strong>
+                <InfoTooltip text="광고비 1원당 벌어들인 매출액이에요. 예를 들어 ROAS가 3배면 광고비 1원에 매출 3원을 벌었다는 뜻이에요.">
+                  ROAS
+                </InfoTooltip>
+              </strong> = 매출 ÷ 투자금
             </li>
           </ul>
         </div>

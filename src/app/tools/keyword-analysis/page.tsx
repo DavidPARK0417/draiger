@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { renderMarkdown as renderMarkdownCommon } from '@/utils/markdown-renderer';
+import { InfoTooltip } from '@/components/Tooltip';
 
 interface Keyword {
   id: string;
@@ -340,7 +341,11 @@ export default function KeywordAnalysisPage() {
                 <th className="text-left p-3 font-semibold text-sm">키워드</th>
                 <th className="text-left p-3 font-semibold text-sm">검색량</th>
                 <th className="text-left p-3 font-semibold text-sm">경쟁도 (1-10)</th>
-                <th className="text-left p-3 font-semibold text-sm">CPC (원)</th>
+                <th className="text-left p-3 font-semibold text-sm">
+                  <InfoTooltip text="광고를 클릭한 사람 1명당 내야 하는 비용이에요. 예를 들어 광고비 10,000원으로 100번 클릭을 받았다면 CPC는 100원이에요.">
+                    CPC (원)
+                  </InfoTooltip>
+                </th>
                 <th className="text-left p-3 font-semibold text-sm">점수</th>
                 <th className="text-left p-3 font-semibold text-sm">삭제</th>
               </tr>

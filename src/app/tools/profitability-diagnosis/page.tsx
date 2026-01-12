@@ -15,6 +15,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { renderMarkdown as renderMarkdownCommon } from '@/utils/markdown-renderer';
+import { InfoTooltip } from '@/components/Tooltip';
 
 export default function ProfitabilityDiagnosisPage() {
   // 공통 상품명
@@ -376,10 +377,10 @@ export default function ProfitabilityDiagnosisPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
             <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-foreground">
-                1단계: 목표 CPA 계산기
+                1단계: 목표 <InfoTooltip text="고객 1명을 얻기 위해 쓸 수 있는 최대 광고비예요. 예를 들어 상품을 10,000원에 팔고 원가가 6,000원이면, 최대 4,000원까지 광고비를 써도 손해가 없어요.">CPA</InfoTooltip> 계산기
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                판매가와 원가를 기반으로 1회 전환당 최대 광고비를 계산하세요
+                판매가와 원가를 입력하면 고객 1명당 쓸 수 있는 최대 광고비를 알려드려요
               </p>
             </div>
 
@@ -445,7 +446,7 @@ export default function ProfitabilityDiagnosisPage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-700 dark:text-gray-300">
-                        1회 전환당 최대 광고비:
+                        1회 전환당 최대 광고비 (CPA):
                       </span>
                       <span className="font-semibold text-foreground">
                         {targetCPA.toLocaleString('ko-KR')} 원
@@ -465,9 +466,8 @@ export default function ProfitabilityDiagnosisPage() {
                   <strong>목표 CPA</strong> = 판매가 - 원가
                 </li>
                 <li className="mt-4 text-gray-600 dark:text-gray-400">
-                  목표 CPA는 1회 전환당 지출할 수 있는 최대 광고비를 의미합니다.
-                  이 값을 기준으로 광고 예산을 설정하면 수익성을 유지할 수
-                  있습니다.
+                  목표 CPA는 고객 1명을 얻기 위해 쓸 수 있는 최대 광고비예요.
+                  이 값보다 적게 광고비를 쓰면 이익이 나고, 많이 쓰면 손해가 나요.
                 </li>
               </ul>
             </div>
@@ -477,10 +477,10 @@ export default function ProfitabilityDiagnosisPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
             <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-foreground">
-                2단계: LTV 계산기
+                2단계: <InfoTooltip text="한 고객이 평생 동안 우리에게 지불할 총 금액이에요. 예를 들어 한 고객이 평균 3번 구매하고, 한 번에 10,000원씩 산다면 LTV는 30,000원이에요.">LTV</InfoTooltip> 계산기
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                주문액과 구매 빈도로 고객 생애 가치를 계산하세요
+                한 고객이 평생 동안 우리에게 얼마를 지불할지 계산해요
               </p>
             </div>
 
@@ -552,7 +552,7 @@ export default function ProfitabilityDiagnosisPage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-700 dark:text-gray-300">
-                        고객 생애 가치:
+                        고객 생애 가치 (LTV):
                       </span>
                       <span className="font-semibold text-foreground">
                         {ltv.toLocaleString('ko-KR')} 원
@@ -572,9 +572,8 @@ export default function ProfitabilityDiagnosisPage() {
                   <strong>LTV (고객 생애 가치)</strong> = 주문액 × 구매 빈도
                 </li>
                 <li className="mt-4 text-gray-600 dark:text-gray-400">
-                  LTV는 한 고객이 평생 동안 기업에 가져다주는 총 수익을 의미합니다.
-                  이 값을 통해 고객 획득에 투자할 수 있는 적정 비용을 판단할 수
-                  있습니다.
+                  LTV는 한 고객이 평생 동안 우리에게 지불할 총 금액이에요.
+                  이 값이 크면 고객을 얻기 위해 더 많은 광고비를 써도 괜찮아요.
                 </li>
               </ul>
             </div>
@@ -584,10 +583,10 @@ export default function ProfitabilityDiagnosisPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
             <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-foreground">
-                3단계: LTV:CAC 비율 계산기
+                3단계: <InfoTooltip text="한 고객이 평생 동안 우리에게 지불할 총 금액이에요. 예를 들어 한 고객이 평균 3번 구매하고, 한 번에 10,000원씩 산다면 LTV는 30,000원이에요.">LTV</InfoTooltip>:<InfoTooltip text="고객 1명을 얻기 위해 실제로 쓴 광고비예요. 예를 들어 광고비 10,000원으로 고객 5명을 얻었다면 CAC는 2,000원이에요.">CAC</InfoTooltip> 비율 계산기
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                LTV와 CAC를 입력받아 마케팅 건전성을 진단하세요
+                고객 생애 가치와 고객 획득 비용을 비교해서 마케팅이 건강한지 확인해요
               </p>
             </div>
 
@@ -626,7 +625,7 @@ export default function ProfitabilityDiagnosisPage() {
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  고객 생애 가치를 입력하세요 (2단계에서 계산된 값이 자동 입력됩니다)
+                  한 고객이 평생 동안 우리에게 지불할 총 금액을 입력하세요 (2단계에서 계산된 값이 자동 입력됩니다)
                 </p>
               </div>
 
@@ -646,7 +645,7 @@ export default function ProfitabilityDiagnosisPage() {
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  고객 획득 비용을 입력하세요
+                  고객 1명을 얻기 위해 실제로 쓴 광고비를 입력하세요
                 </p>
               </div>
 
@@ -698,13 +697,13 @@ export default function ProfitabilityDiagnosisPage() {
                   <strong>건전성 판정 기준:</strong>
                 </li>
                 <li className="text-gray-600 dark:text-gray-400">
-                  • 3:1 이상: 건강함 - 마케팅 투자가 효율적입니다
+                  • 3:1 이상: 건강함 - 고객이 평생 동안 지불할 금액이 광고비보다 3배 이상 많아요
                 </li>
                 <li className="text-gray-600 dark:text-gray-400">
-                  • 1:1 ~ 3:1: 보통 - 개선 여지가 있습니다
+                  • 1:1 ~ 3:1: 보통 - 좀 더 개선할 여지가 있어요
                 </li>
                 <li className="text-gray-600 dark:text-gray-400">
-                  • 1:1 미만: 개선 필요 - 고객 획득 비용이 너무 높거나 LTV가 낮습니다
+                  • 1:1 미만: 개선 필요 - 광고비가 너무 많이 들거나 고객이 적게 구매해요
                 </li>
               </ul>
             </div>
@@ -817,7 +816,7 @@ export default function ProfitabilityDiagnosisPage() {
                                   <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                               </Pie>
-                              <Tooltip 
+                              <InfoTooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                   border: '1px solid #ccc',

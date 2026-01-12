@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { renderMarkdown as renderMarkdownCommon } from '@/utils/markdown-renderer';
+import { InfoTooltip } from '@/components/Tooltip';
 
 interface Product {
   id: string;
@@ -304,12 +305,28 @@ export default function AdPerformancePage() {
               <tr className="border-b border-gray-300 dark:border-gray-700">
                 <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">상품명</th>
                 <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">판매가</th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">개당 순이익</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
+                  <InfoTooltip text="상품 1개를 팔았을 때 실제로 남는 돈이에요. (판매가 - 원가)로 계산해요.">
+                    개당 순이익
+                  </InfoTooltip>
+                </th>
                 <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">광고비</th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">전환수</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
+                  <InfoTooltip text="광고를 보고 실제로 구매한 사람 수예요. 예를 들어 100명이 봤는데 5명이 샀다면 전환수는 5예요.">
+                    전환수
+                  </InfoTooltip>
+                </th>
                 <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">매출</th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">ROAS</th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">ROI (%)</th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
+                  <InfoTooltip text="광고비 1원당 벌어들인 매출액이에요. 예를 들어 ROAS가 3배면 광고비 1원에 매출 3원을 벌었다는 뜻이에요.">
+                    ROAS
+                  </InfoTooltip>
+                </th>
+                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
+                  <InfoTooltip text="투자한 광고비 대비 얼마나 이익을 냈는지 보여주는 지표예요. 100%면 광고비만큼 이익을 냈다는 뜻이에요.">
+                    ROI (%)
+                  </InfoTooltip>
+                </th>
                 <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">순이익</th>
                 <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">삭제</th>
               </tr>
@@ -522,7 +539,11 @@ export default function AdPerformancePage() {
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600 dark:text-gray-400">ROAS:</span>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        <InfoTooltip text="광고비 1원당 벌어들인 매출액이에요. 예를 들어 ROAS가 3배면 광고비 1원에 매출 3원을 벌었다는 뜻이에요.">
+                          ROAS:
+                        </InfoTooltip>
+                      </span>
                       <span className="ml-2 font-semibold text-gray-800 dark:text-gray-200">
                         {(calculatedResults.get(bestProductId)?.roas || 0).toFixed(2)}배
                       </span>
@@ -897,10 +918,18 @@ export default function AdPerformancePage() {
               <strong>매출</strong> = 판매가 × 전환수
             </li>
             <li>
-              <strong>ROAS</strong> = 매출 ÷ 광고비
+              <strong>
+                <InfoTooltip text="광고비 1원당 벌어들인 매출액이에요. 예를 들어 ROAS가 3배면 광고비 1원에 매출 3원을 벌었다는 뜻이에요.">
+                  ROAS
+                </InfoTooltip>
+              </strong> = 매출 ÷ 광고비
             </li>
             <li>
-              <strong>ROI</strong> = (순이익 - 광고비) ÷ 광고비 × 100
+              <strong>
+                <InfoTooltip text="투자한 광고비 대비 얼마나 이익을 냈는지 보여주는 지표예요. 100%면 광고비만큼 이익을 냈다는 뜻이에요.">
+                  ROI
+                </InfoTooltip>
+              </strong> = (순이익 - 광고비) ÷ 광고비 × 100
             </li>
             <li>
               <strong>순이익</strong> = (개당 순이익 × 전환수) - 광고비
