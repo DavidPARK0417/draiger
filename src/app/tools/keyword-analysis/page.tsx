@@ -19,6 +19,13 @@ interface Keyword {
   searchVolume: number;
   competition: number;
   cpc: number;
+  // 네이버 검색광고 API 데이터
+  naverSearchVolume?: number; // 네이버 공식 검색량 (PC + 모바일 합산)
+  naverPcSearchVolume?: number; // PC 검색량
+  naverMobileSearchVolume?: number; // 모바일 검색량
+  naverCompetition?: string | null; // 네이버 경쟁도 텍스트 (높음/중간/낮음)
+  naverCompetitionColor?: string | null; // 네이버 경쟁도 색상 (red/orange/green)
+  naverCpc?: number | null; // 네이버 CPC (표시용)
 }
 
 export default function KeywordAnalysisPage() {
@@ -32,6 +39,7 @@ export default function KeywordAnalysisPage() {
     },
   ]);
   const [loadingKeywordId, setLoadingKeywordId] = useState<string | null>(null);
+  const [loadingNaverKeywordId, setLoadingNaverKeywordId] = useState<string | null>(null);
   
   // AI 분석 상태
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
@@ -120,6 +128,89 @@ export default function KeywordAnalysisPage() {
       alert('키워드 정보 추정 중 오류가 발생했습니다.');
     } finally {
       setLoadingKeywordId(null);
+    }
+  };
+
+  // 네이버 검색광고 API로 검색량 조회
+  const handleNaverSearch = async (id: string) => {
+    const keyword = keywords.find((k) => k.id === id);
+    if (!keyword || !keyword.keyword.trim()) {
+      alert('키워드를 먼저 입력해주세요.');
+      return;
+    }
+
+    console.log('=== 네이버 검색광고 API 호출 시작 ===', keyword.keyword);
+    setLoadingNaverKeywordId(id);
+
+    try {
+      const response = await fetch('/api/naver-keyword-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          keyword: keyword.keyword,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('네이버 API 오류:', result.error);
+        
+        // 환경 변수 미설정 오류인 경우 상세 안내
+        if (result.required) {
+          const missing = Object.entries(result.required)
+            .filter(([_, isMissing]) => isMissing)
+            .map(([key]) => key)
+            .join(', ');
+          alert(
+            `네이버 API 인증 정보가 설정되지 않았습니다.\n\n누락된 환경 변수: ${missing}\n\n.env.local 파일에 다음 변수를 추가해주세요:\n- NAVER_CUSTOMER_ID\n- NAVER_ACCESS_LICENSE\n- NAVER_SECRET_KEY`
+          );
+        } else {
+          alert(result.error || '네이버 검색량 조회에 실패했습니다.');
+        }
+        return;
+      }
+
+      if (result.success && result.data) {
+        console.log('네이버 검색량 조회 결과:', result.data);
+        setKeywords(
+          keywords.map((k) =>
+            k.id === id
+              ? {
+                  ...k,
+                  naverSearchVolume: result.data.totalSearchVolume,
+                  naverPcSearchVolume: result.data.pcSearchVolume,
+                  naverMobileSearchVolume: result.data.mobileSearchVolume,
+                  // 네이버 검색량이 있고 기존 검색량이 0이면 네이버 검색량으로 채우기
+                  searchVolume: k.searchVolume !== 0 ? k.searchVolume : result.data.totalSearchVolume,
+                  // 경쟁도: 네이버 데이터가 있고 기존 값이 0이면 네이버 경쟁도로 채우기
+                  competition: (k.competition !== 0 && k.competition !== undefined) 
+                    ? k.competition 
+                    : (result.data.competition || k.competition || 0),
+                  // CPC: 네이버 입찰가 데이터가 있으면 사용, 없으면 기존 값 유지
+                  cpc: result.data.cpc && result.data.cpc > 0 
+                    ? result.data.cpc 
+                    : (k.cpc !== 0 ? k.cpc : 0),
+                  // 네이버 경쟁도 정보 (표시용)
+                  naverCompetition: result.data.competitionText || null,
+                  naverCompetitionColor: result.data.competitionColor || null,
+                  // 네이버 CPC 여부 (표시용)
+                  naverCpc: result.data.cpc && result.data.cpc > 0 ? result.data.cpc : null,
+                }
+              : k
+          )
+        );
+      } else {
+        console.error('응답 형식 오류:', result);
+        alert(result.data?.message || '네이버 검색량 조회에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('네이버 API 호출 오류:', error);
+      alert('네이버 검색량 조회 중 오류가 발생했습니다.');
+    } finally {
+      setLoadingNaverKeywordId(null);
     }
   };
 
@@ -269,58 +360,134 @@ export default function KeywordAnalysisPage() {
                     }`}
                   >
                     <td className="p-3">
-                      <div className="flex gap-2 items-center">
-                        <input
-                          type="text"
-                          value={keyword.keyword}
-                          onChange={(e) => handleInputChange(keyword.id, 'keyword', e.target.value)}
-                          placeholder="키워드 입력"
-                          className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
-                        />
-                        <button
-                          onClick={() => handleAIEstimate(keyword.id)}
-                          disabled={loadingKeywordId === keyword.id || !keyword.keyword.trim()}
-                          className="px-3 py-1 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg"
-                          title="AI로 키워드 정보 자동 입력"
-                        >
-                          {loadingKeywordId === keyword.id ? 'AI 분석 중...' : '🤖 AI 추정'}
-                        </button>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            value={keyword.keyword}
+                            onChange={(e) => handleInputChange(keyword.id, 'keyword', e.target.value)}
+                            placeholder="키워드 입력"
+                            className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
+                          />
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                          <button
+                            onClick={() => handleAIEstimate(keyword.id)}
+                            disabled={loadingKeywordId === keyword.id || !keyword.keyword.trim()}
+                            className="px-3 py-1 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg"
+                            title="AI로 키워드 정보 자동 입력"
+                          >
+                            {loadingKeywordId === keyword.id ? 'AI 분석 중...' : '🤖 AI 추정'}
+                          </button>
+                          <button
+                            onClick={() => handleNaverSearch(keyword.id)}
+                            disabled={loadingNaverKeywordId === keyword.id || !keyword.keyword.trim()}
+                            className="px-3 py-1 bg-blue-500 dark:bg-blue-600 text-white rounded-xl hover:bg-blue-600 dark:hover:bg-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg"
+                            title="네이버 검색광고 API로 공식 검색량 조회"
+                          >
+                            {loadingNaverKeywordId === keyword.id ? '조회 중...' : '🔍 네이버 검색량'}
+                          </button>
+                        </div>
+                        {/* 네이버 검색량 표시 */}
+                        {keyword.naverSearchVolume !== undefined && (
+                          <div className="mt-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg">
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="font-semibold text-blue-700 dark:text-blue-300">
+                                네이버 공식 데이터:
+                              </span>
+                              <span className="text-blue-600 dark:text-blue-400">
+                                총 {keyword.naverSearchVolume.toLocaleString()}회
+                              </span>
+                              {keyword.naverPcSearchVolume !== undefined && keyword.naverMobileSearchVolume !== undefined && (
+                                <span className="text-blue-500 dark:text-blue-500 text-[10px]">
+                                  (PC: {keyword.naverPcSearchVolume.toLocaleString()}, 모바일: {keyword.naverMobileSearchVolume.toLocaleString()})
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="p-3">
-                      <input
-                        type="number"
-                        value={keyword.searchVolume || ''}
-                        onChange={(e) =>
-                          handleInputChange(keyword.id, 'searchVolume', parseFloat(e.target.value) || 0)
-                        }
-                        placeholder="0"
-                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
-                      />
+                      <div className="space-y-1">
+                        <input
+                          type="number"
+                          value={keyword.searchVolume || ''}
+                          onChange={(e) =>
+                            handleInputChange(keyword.id, 'searchVolume', parseFloat(e.target.value) || 0)
+                          }
+                          placeholder="0"
+                          className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
+                        />
+                        {keyword.naverSearchVolume !== undefined && keyword.naverSearchVolume > 0 && (
+                          <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                            네이버: {keyword.naverSearchVolume.toLocaleString()}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="p-3">
-                      <input
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={keyword.competition || ''}
-                        onChange={(e) =>
-                          handleInputChange(keyword.id, 'competition', parseFloat(e.target.value) || 0)
-                        }
-                        placeholder="1-10"
-                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
-                      />
+                      <div className="space-y-1">
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={keyword.competition || ''}
+                          onChange={(e) =>
+                            handleInputChange(keyword.id, 'competition', parseFloat(e.target.value) || 0)
+                          }
+                          placeholder="1-10"
+                          className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
+                        />
+                        {/* 네이버 경쟁도 표시 */}
+                        {keyword.naverCompetition && (
+                          <div className="flex items-center gap-1.5">
+                            <div 
+                              className={`w-2 h-2 rounded-full ${
+                                keyword.naverCompetitionColor === 'red' 
+                                  ? 'bg-red-500' 
+                                  : keyword.naverCompetitionColor === 'orange'
+                                  ? 'bg-orange-500'
+                                  : 'bg-green-500'
+                              }`}
+                              title={`네이버 경쟁도: ${keyword.naverCompetition}`}
+                            />
+                            <span 
+                              className={`text-xs font-medium ${
+                                keyword.naverCompetitionColor === 'red' 
+                                  ? 'text-red-600 dark:text-red-400' 
+                                  : keyword.naverCompetitionColor === 'orange'
+                                  ? 'text-orange-600 dark:text-orange-400'
+                                  : 'text-green-600 dark:text-green-400'
+                              }`}
+                            >
+                              네이버: {keyword.naverCompetition}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="p-3">
-                      <input
-                        type="number"
-                        value={keyword.cpc || ''}
-                        onChange={(e) =>
-                          handleInputChange(keyword.id, 'cpc', parseFloat(e.target.value) || 0)
-                        }
-                        placeholder="0"
-                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
-                      />
+                      <div className="space-y-1">
+                        <input
+                          type="number"
+                          value={keyword.cpc || ''}
+                          onChange={(e) =>
+                            handleInputChange(keyword.id, 'cpc', parseFloat(e.target.value) || 0)
+                          }
+                          placeholder="0"
+                          className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-foreground text-sm"
+                        />
+                        {/* 네이버 CPC 표시 */}
+                        {keyword.naverCpc && keyword.naverCpc > 0 && (
+                          <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                            네이버 예상: 약 {keyword.naverCpc.toLocaleString()}원
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 ml-1">
+                              (최근 30일 평균)
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="p-3 text-sm font-semibold">
                       {score > 0 ? score.toFixed(2) : '-'}
