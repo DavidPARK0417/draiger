@@ -117,7 +117,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     </p>
                   ),
                   h1: ({ children }) => (
-                    <h1 className="font-serif font-normal tracking-tight text-gray-900 dark:text-white text-4xl mt-8 mb-4">
+                    <h1 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-4xl mt-8 mb-4">
                       {children}
                     </h1>
                   ),

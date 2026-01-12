@@ -161,6 +161,15 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
       .replace(/[^\s\)]+\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?[^\s\)]*)?/gi, '') // 이미지 파일명 제거 (URL이 아닌 경우)
       .trim();
 
+    // 출처 부분 제거 (읽지 않도록 함)
+    // "출처: ...", "출처 : ...", "출처 - ...", "출처(...)" 등의 패턴 제거
+    text = text
+      .replace(/출처\s*[:：]\s*[^\n]*/gi, '') // "출처: ..." 또는 "출처 : ..." 형식
+      .replace(/출처\s*[-－]\s*[^\n]*/gi, '') // "출처 - ..." 형식
+      .replace(/출처\s*\([^\)]*\)[^\n]*/gi, '') // "출처(...)" 형식
+      .replace(/출처\s*[^\n]*/gi, '') // "출처"로 시작하는 모든 줄 제거
+      .trim();
+
     // 날짜/시간 형식 정규화 (시간 형식이 명확한 경우만)
     text = normalizeDateTime(text);
 
