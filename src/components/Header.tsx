@@ -24,6 +24,7 @@ const usefulTools = [
   { name: "세계시간 변환기", href: "/tools/world-time-converter" },
   { name: "알람시계", href: "/tools/alarm-clock" },
   { name: "파일 미리보기", href: "/tools/file-preview" },
+  { name: "이자 계산기", href: "/tools/interest-calculator" },
 ];
 
 const blogCategories = [
