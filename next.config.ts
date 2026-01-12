@@ -17,6 +17,21 @@ const nextConfig: NextConfig = {
     // 외부 이미지 최적화 허용
     unoptimized: false,
   },
+  // 캐시 헤더 설정: 최신 콘텐츠를 빠르게 반영
+  async headers() {
+    return [
+      {
+        // 모든 페이지에 적용
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=10, stale-while-revalidate=59',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
