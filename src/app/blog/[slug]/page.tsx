@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { getPostBySlug, getPostContent } from "@/lib/notion";
+import { getPostBySlug, getPostContent, getPublishedPosts } from "@/lib/notion";
 import ReactMarkdown from "react-markdown";
 import SmoothScroll from "@/components/SmoothScroll";
 import GrainOverlay from "@/components/GrainOverlay";
@@ -7,11 +7,32 @@ import TextToSpeech from "@/components/TextToSpeech";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
-// ISR 설정
+// ISR 설정: 60초마다 재검증
 export const revalidate = 60;
+
+// 동적 라우트 설정: 새로운 slug가 추가되면 자동으로 생성
+export const dynamicParams = true;
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
+}
+
+// 빌드 시점에 모든 블로그 포스트 slug를 생성
+export async function generateStaticParams() {
+  try {
+    const posts = await getPublishedPosts();
+    console.log(`[generateStaticParams] 총 ${posts.length}개의 블로그 포스트 slug 생성`);
+    
+    return posts
+      .filter((post) => post.slug) // slug가 있는 포스트만 필터링
+      .map((post) => ({
+        slug: post.slug,
+      }));
+  } catch (error) {
+    console.error("[generateStaticParams] 블로그 포스트 slug 생성 실패:", error);
+    // 에러 발생 시 빈 배열 반환 (동적 생성으로 대체)
+    return [];
+  }
 }
 
 // 동적 메타데이터 생성
