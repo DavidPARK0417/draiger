@@ -388,7 +388,7 @@ export default function BudgetCalculatorPage() {
                                 stroke="currentColor"
                                 tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                               />
-                              <InfoTooltip 
+                              <Tooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                   border: '1px solid #ccc',
@@ -458,7 +458,7 @@ export default function BudgetCalculatorPage() {
                                 stroke="currentColor"
                                 tickFormatter={(value) => `${value.toLocaleString('ko-KR')}원`}
                               />
-                              <InfoTooltip 
+                              <Tooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                   border: '1px solid #ccc',
