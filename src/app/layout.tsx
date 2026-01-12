@@ -111,6 +111,8 @@ export default function RootLayout({
           crossOrigin="anonymous"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
           // font-display: swap은 CSS에서 처리됨 (CLS 최소화)
+          // 캐시 무효화를 위한 버전 쿼리 파라미터 추가
+          key="pretendard-font"
         />
         {/* 
           파비콘은 Next.js App Router가 app/favicon.ico를 자동으로 처리합니다.

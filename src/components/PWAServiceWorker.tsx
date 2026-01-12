@@ -18,18 +18,37 @@ export default function PWAServiceWorker() {
           .then((registration) => {
             console.log('[PWA] Service Worker 등록 성공:', registration.scope);
             
+            // 주기적으로 업데이트 확인 (1시간마다)
+            setInterval(() => {
+              registration.update();
+            }, 3600000); // 1시간 = 3600000ms
+            
             // 업데이트 확인
             registration.addEventListener('updatefound', () => {
               const newWorker = registration.installing;
               if (newWorker) {
                 newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    // 새 버전이 설치되었음을 사용자에게 알림
-                    console.log('[PWA] 새 버전이 사용 가능합니다.');
-                    // 필요시 사용자에게 업데이트 알림 표시
+                  if (newWorker.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                      // 새 버전이 설치되었음 - 즉시 활성화
+                      console.log('[PWA] 새 버전이 설치되었습니다. 즉시 활성화합니다.');
+                      newWorker.postMessage({ type: 'SKIP_WAITING' });
+                      // 페이지 새로고침하여 새 버전 적용
+                      window.location.reload();
+                    } else {
+                      // 첫 설치
+                      console.log('[PWA] Service Worker 첫 설치 완료');
+                    }
                   }
                 });
               }
+            });
+            
+            // Service Worker 메시지 리스너 (skipWaiting 요청 처리)
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+              console.log('[PWA] 새 Service Worker가 활성화되었습니다.');
+              // 페이지 새로고침하여 새 버전 적용
+              window.location.reload();
             });
           })
           .catch((error) => {

@@ -21,6 +21,26 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Next.js 빌드 산출물 (CSS, JS 등) - 해시가 포함되어 있어도 짧은 캐시
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // 정적 파일 (이미지, 아이콘 등)
+        source: '/:path*\\.(ico|png|jpg|jpeg|svg|webp|woff|woff2|ttf|eot)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, must-revalidate',
+          },
+        ],
+      },
+      {
         // 모든 페이지에 적용
         source: '/:path*',
         headers: [

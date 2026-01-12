@@ -1,8 +1,8 @@
 // Service Worker for Draiger (드라이거) PWA
 // 오프라인 캐싱 및 기본 PWA 기능 제공
 
-const CACHE_NAME = 'draiger-v2';
-const RUNTIME_CACHE = 'draiger-runtime-v2';
+const CACHE_NAME = 'draiger-v3'; // 버전 업데이트로 기존 캐시 무효화
+const RUNTIME_CACHE = 'draiger-runtime-v3';
 
 // 캐싱할 정적 리소스 목록
 // 파비콘은 제외 (항상 네트워크에서 가져오도록 함)
@@ -60,6 +60,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// skipWaiting 메시지 처리 (즉시 활성화)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[Service Worker] skipWaiting 요청 수신 - 즉시 활성화');
+    self.skipWaiting();
+  }
+});
+
 // 네트워크 요청 가로채기 (Fetch 이벤트)
 self.addEventListener('fetch', (event) => {
   const { request } = event;
@@ -110,7 +118,56 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 정적 리소스 및 페이지는 캐시 우선 전략 사용
+  // HTML 페이지와 CSS/JS 파일은 네트워크 우선 전략 사용 (최신 버전 보장)
+  if (request.destination === 'document' || 
+      request.destination === 'style' || 
+      request.destination === 'script' ||
+      url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // 네트워크에서 성공적으로 가져온 경우
+          if (response && response.status === 200) {
+            // 응답을 복제하여 캐시에 저장 (오프라인 대비)
+            const responseToCache = response.clone();
+            caches.open(RUNTIME_CACHE)
+              .then((cache) => {
+                cache.put(request, responseToCache);
+              });
+            return response;
+          }
+          // 네트워크 응답이 실패한 경우 캐시에서 가져오기
+          return caches.match(request)
+            .then((cachedResponse) => {
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              // 캐시에도 없으면 네트워크 응답 반환 (에러 페이지 등)
+              return response;
+            });
+        })
+        .catch(() => {
+          // 네트워크 실패 시 캐시에서 가져오기
+          return caches.match(request)
+            .then((cachedResponse) => {
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              // 캐시에도 없으면 오프라인 메시지
+              if (request.destination === 'document') {
+                return caches.match('/');
+              }
+              return new Response('오프라인 상태입니다.', {
+                status: 503,
+                headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+              });
+            });
+        })
+    );
+    return;
+  }
+
+  // 이미지 등 기타 정적 리소스는 캐시 우선 전략 사용 (성능 최적화)
   event.respondWith(
     caches.match(request)
       .then((cachedResponse) => {
@@ -138,10 +195,7 @@ self.addEventListener('fetch', (event) => {
             return response;
           })
           .catch(() => {
-            // 네트워크 실패 시 오프라인 페이지 반환 (있는 경우)
-            if (request.destination === 'document') {
-              return caches.match('/');
-            }
+            // 네트워크 실패 시 오프라인 메시지
             return new Response('오프라인 상태입니다.', {
               status: 503,
               headers: { 'Content-Type': 'text/plain; charset=utf-8' },
