@@ -55,12 +55,12 @@ export default function InterestCalculatorPage() {
   const [monthlyDeposit, setMonthlyDeposit] = useState<number>(0);
   const [savingsTerm, setSavingsTerm] = useState<number>(0); // 개월
   const [savingsRate, setSavingsRate] = useState<number>(0); // %
-  const [savingsInterestMethod, setSavingsInterestMethod] = useState<InterestMethod>('simple');
+  const [savingsInterestMethod, setSavingsInterestMethod] = useState<InterestMethod>('compound');
   // 예금
   const [depositAmount, setDepositAmount] = useState<number>(0);
   const [depositTerm, setDepositTerm] = useState<number>(0); // 개월
   const [depositRate, setDepositRate] = useState<number>(0); // %
-  const [depositInterestMethod, setDepositInterestMethod] = useState<InterestMethod>('simple');
+  const [depositInterestMethod, setDepositInterestMethod] = useState<InterestMethod>('compound');
   
   const [savingsResult, setSavingsResult] = useState<SavingsResult | null>(null);
   const savingsResultRef = useRef<HTMLDivElement>(null);
