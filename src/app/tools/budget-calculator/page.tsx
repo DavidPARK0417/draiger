@@ -429,7 +429,7 @@ export default function BudgetCalculatorPage() {
                                   <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                               </Pie>
-                              <InfoTooltip 
+                              <Tooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                   border: '1px solid #ccc',
