@@ -4,15 +4,63 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Post } from "@/lib/notion";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface SmallPostCardProps {
   post: Post;
   index: number;
 }
 
+// 외부 이미지인 경우 프록시 URL 생성
+function getProxyImageUrl(imageUrl: string | undefined): string | undefined {
+  if (!imageUrl) return undefined;
+  
+  // 이미 프록시 URL인 경우 그대로 반환
+  if (imageUrl.startsWith('/api/proxy-image')) {
+    return imageUrl;
+  }
+  
+  // 외부 이미지인 경우 프록시 URL 생성
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    try {
+      const urlObj = new URL(imageUrl);
+      // 브라우저 환경에서만 hostname 비교
+      const isExternal = typeof window !== 'undefined' 
+        ? urlObj.hostname !== window.location.hostname && 
+          urlObj.hostname !== 'localhost' && 
+          urlObj.hostname !== '127.0.0.1'
+        : !urlObj.hostname.includes('localhost') && !urlObj.hostname.includes('127.0.0.1');
+      
+      if (isExternal) {
+        const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+        console.log('[SmallPostCard] 프록시 URL 생성:', {
+          original: imageUrl.substring(0, 100),
+          proxy: proxyUrl.substring(0, 100)
+        });
+        return proxyUrl;
+      }
+    } catch (error) {
+      console.error('[SmallPostCard] URL 파싱 오류:', error);
+    }
+  }
+  
+  return imageUrl;
+}
+
 export default function SmallPostCard({ post, index }: SmallPostCardProps) {
   const [imageError, setImageError] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
+  
+  // 이미지 URL 처리 (외부 이미지인 경우 프록시 사용)
+  useEffect(() => {
+    if (post.featuredImage) {
+      const proxyUrl = getProxyImageUrl(post.featuredImage);
+      setImageSrc(proxyUrl);
+      setImageError(false); // URL이 변경되면 에러 상태 리셋
+    } else {
+      setImageSrc(undefined);
+    }
+  }, [post.featuredImage]);
 
   return (
     <motion.div
@@ -30,18 +78,35 @@ export default function SmallPostCard({ post, index }: SmallPostCardProps) {
 
       <div className="flex flex-col h-full gap-3 sm:gap-4">
         {/* 이미지가 있을 때 작은 이미지 표시 */}
-        {post.featuredImage && !imageError && (
-          <div className="relative w-full h-20 sm:h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
+        {imageSrc && !imageError && (
+          <div className="
+            relative w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0
+            aspect-video
+            min-h-[120px] sm:min-h-[140px]
+          ">
             <Image
-              src={post.featuredImage}
+              src={imageSrc}
               alt={post.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
               sizes="(max-width: 768px) 100vw, 50vw"
               unoptimized
+              style={{
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
               onError={() => {
-                console.log('이미지 로드 실패:', post.featuredImage);
+                console.error('[SmallPostCard] 이미지 로드 실패:', {
+                  original: post.featuredImage,
+                  proxy: imageSrc
+                });
                 setImageError(true);
+              }}
+              onLoad={() => {
+                console.log('[SmallPostCard] ✅ 이미지 로드 성공:', {
+                  original: post.featuredImage,
+                  proxy: imageSrc
+                });
               }}
             />
           </div>

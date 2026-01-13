@@ -135,7 +135,76 @@ function getNotionClient(): Client {
  */
 function getNotionToMarkdown() {
   const notion = getNotionClient();
-  return new NotionToMarkdown({ notionClient: notion });
+  const n2m = new NotionToMarkdown({ notionClient: notion });
+  
+  // 이미지 블록에 대한 커스텀 변환기 설정
+  // Notion API에서 직접 이미지 URL을 가져와서 사용
+  n2m.setCustomTransformer("image", async (block) => {
+    try {
+      const { image } = block as any;
+      
+      // 이미지 URL 추출
+      let imageUrl = "";
+      let caption = "";
+      let imageType = "";
+      
+      if (image) {
+        // External 이미지 (외부 URL)
+        if (image.type === "external" && image.external?.url) {
+          imageUrl = image.external.url;
+          imageType = "external";
+        }
+        // File 이미지 (Notion에 업로드된 파일)
+        else if (image.type === "file" && image.file?.url) {
+          imageUrl = image.file.url;
+          imageType = "file";
+        }
+        
+         // URL 정규화: thumbnews URL은 원본 그대로 사용 (실제로 작동함)
+         // 참고: thumbnews.nateimg.co.kr/view610///news.nateimg.co.kr/... 형식도 실제로 작동함
+         if (imageUrl) {
+           // 단순히 앞뒤 공백만 제거 (URL 변환하지 않음)
+           imageUrl = imageUrl.trim();
+           
+           // 디버깅: 원본 URL 유지 확인
+           console.log(`[getNotionToMarkdown] 이미지 URL (원본 유지): ${imageUrl.substring(0, 100)}...`);
+         }
+        
+        // 캡션 추출
+        if (image.caption && image.caption.length > 0) {
+          caption = image.caption
+            .map((cap: { plain_text?: string }) => cap.plain_text || "")
+            .join("");
+        }
+      }
+      
+      // URL이 없으면 빈 문자열 반환
+      if (!imageUrl) {
+        console.warn("[getNotionToMarkdown] 이미지 URL을 찾을 수 없습니다:", JSON.stringify(block, null, 2).substring(0, 300));
+        return "";
+      }
+      
+      // 디버깅: 이미지 URL 로그
+      console.log(`[getNotionToMarkdown] 이미지 변환 성공:`, {
+        type: imageType,
+        url: imageUrl.substring(0, 100) + "...",
+        hasCaption: !!caption,
+        captionLength: caption.length
+      });
+      
+      // 마크다운 이미지 형식으로 반환
+      if (caption) {
+        return `![${caption}](${imageUrl})`;
+      } else {
+        return `![](${imageUrl})`;
+      }
+    } catch (error) {
+      console.error("[getNotionToMarkdown] 이미지 변환 오류:", error);
+      return "";
+    }
+  });
+  
+  return n2m;
 }
 
 /**
@@ -932,14 +1001,258 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 }
 
 /**
+ * Notion API를 직접 사용하여 이미지 블록의 URL을 가져옵니다
+ */
+async function getImageUrlFromNotionBlock(blockId: string): Promise<string | null> {
+  try {
+    const notion = getNotionClient();
+    const block = await notion.blocks.retrieve({ block_id: blockId });
+    
+    if (block.type === 'image') {
+      const imageBlock = block as any;
+      if (imageBlock.image) {
+        // External 이미지
+        if (imageBlock.image.type === 'external' && imageBlock.image.external?.url) {
+          return imageBlock.image.external.url;
+        }
+        // File 이미지
+        if (imageBlock.image.type === 'file' && imageBlock.image.file?.url) {
+          return imageBlock.image.file.url;
+        }
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error(`[getImageUrlFromNotionBlock] 이미지 블록 조회 실패 (${blockId}):`, error);
+    return null;
+  }
+}
+
+/**
+ * Notion 페이지의 모든 블록을 가져와서 이미지 URL을 추출합니다
+ */
+async function extractImageUrlsFromPage(pageId: string): Promise<Map<string, string>> {
+  const imageUrlMap = new Map<string, string>();
+  
+  try {
+    const notion = getNotionClient();
+    let cursor: string | undefined = undefined;
+    let hasMore = true;
+    
+    while (hasMore) {
+      const response = await notion.blocks.children.list({
+        block_id: pageId,
+        start_cursor: cursor,
+        page_size: 100,
+      });
+      
+      // 이미지 블록 찾기
+      for (const block of response.results) {
+        if (block.type === 'image') {
+          const imageBlock = block as any;
+          let imageUrl = '';
+          
+          if (imageBlock.image) {
+            // External 이미지
+            if (imageBlock.image.type === 'external' && imageBlock.image.external?.url) {
+              imageUrl = imageBlock.image.external.url;
+            }
+            // File 이미지
+            else if (imageBlock.image.type === 'file' && imageBlock.image.file?.url) {
+              imageUrl = imageBlock.image.file.url;
+            }
+            
+             if (imageUrl) {
+               // URL 정규화: thumbnews URL은 원본 그대로 사용 (실제로 작동함)
+               // 참고: thumbnews.nateimg.co.kr/view610///news.nateimg.co.kr/... 형식도 실제로 작동함
+               let normalizedUrl = imageUrl.trim();
+               
+               // 디버깅: 원본 URL 유지 확인
+               console.log(`[extractImageUrlsFromPage] 이미지 발견: ${block.id} -> ${normalizedUrl.substring(0, 100)}...`);
+               
+               imageUrlMap.set(block.id, normalizedUrl);
+             }
+          }
+        }
+        
+        // 중첩된 블록도 확인 (예: column, callout 등)
+        if ('has_children' in block && block.has_children) {
+          const nestedImages = await extractImageUrlsFromPage(block.id);
+          nestedImages.forEach((url, id) => imageUrlMap.set(id, url));
+        }
+      }
+      
+      cursor = response.next_cursor || undefined;
+      hasMore = response.has_more;
+    }
+  } catch (error) {
+    console.error(`[extractImageUrlsFromPage] 페이지 블록 조회 실패 (${pageId}):`, error);
+  }
+  
+  return imageUrlMap;
+}
+
+/**
  * Notion 페이지의 콘텐츠를 마크다운으로 변환합니다
  */
 export async function getPostContent(pageId: string): Promise<string> {
   try {
+    // 먼저 Notion API에서 직접 이미지 URL 추출
+    const imageUrlMap = await extractImageUrlsFromPage(pageId);
+    console.log(`[getPostContent] Notion API에서 추출한 이미지: ${imageUrlMap.size}개`);
+    
     const n2m = getNotionToMarkdown();
     const mdblocks = await n2m.pageToMarkdown(pageId);
+    
+    // 디버깅: 마크다운 블록에서 이미지 확인
+    const imageBlocks = mdblocks.filter(
+      (block: { type?: string; parent?: string }) => 
+        block.type === 'image' || block.parent?.includes('image')
+    );
+    
+    if (imageBlocks.length > 0) {
+      console.log(`[getPostContent] notion-to-md에서 발견된 이미지 블록: ${imageBlocks.length}개`);
+    }
+    
     const mdString = n2m.toMarkdownString(mdblocks);
-    return mdString.parent || "";
+    let markdownContent = mdString.parent || "";
+    
+    // 디버깅: 원본 마크다운 콘텐츠 확인
+    console.log(`[getPostContent] 원본 마크다운 길이: ${markdownContent.length}자`);
+    const imageFilenameInContent = markdownContent.match(/news_1756856273_1543672_m_1\.png/);
+    if (imageFilenameInContent) {
+      console.log(`[getPostContent] ⚠️ 이미지 파일명 발견: ${imageFilenameInContent[0]}`);
+      console.log(`[getPostContent] 파일명 주변 텍스트:`, markdownContent.substring(
+        Math.max(0, markdownContent.indexOf(imageFilenameInContent[0]) - 50),
+        Math.min(markdownContent.length, markdownContent.indexOf(imageFilenameInContent[0]) + imageFilenameInContent[0].length + 50)
+      ));
+    }
+    
+    // 이미지 파일명만 있는 경우 (URL이 없는 경우) Notion API에서 가져온 URL로 대체
+    // 패턴: 이미지 파일명만 있는 경우 (예: "news_1756856273_1543672_m_1.png")
+    if (imageUrlMap.size > 0) {
+      const imageUrls = Array.from(imageUrlMap.values());
+      console.log(`[getPostContent] 사용 가능한 이미지 URL: ${imageUrls.length}개`);
+      imageUrls.forEach((url, index) => {
+        console.log(`[getPostContent] 이미지 URL ${index + 1}: ${url.substring(0, 100)}...`);
+      });
+      
+      // 이미 마크다운 형식인 이미지가 있는지 확인
+      const existingMarkdownImages = markdownContent.match(/!\[.*?\]\([^\)]+\)/g) || [];
+      console.log(`[getPostContent] 기존 마크다운 이미지: ${existingMarkdownImages.length}개`);
+      
+      // 이미지 파일명 패턴 찾기 (더 포괄적이고 정확한 패턴)
+      // 1. 단독 줄에 있는 파일명: "news_1756856273_1543672_m_1.png"
+      // 2. 앞뒤에 공백/줄바꿈이 있는 파일명
+      // 3. 특정 파일명을 직접 찾기 (디버깅용)
+      const specificFilename = 'news_1756856273_1543672_m_1.png';
+      const hasSpecificFile = markdownContent.includes(specificFilename);
+      
+      if (hasSpecificFile) {
+        console.log(`[getPostContent] 🎯 특정 파일명 발견: ${specificFilename}`);
+        const filenameIndex = markdownContent.indexOf(specificFilename);
+        const beforeText = markdownContent.substring(Math.max(0, filenameIndex - 20), filenameIndex);
+        const afterText = markdownContent.substring(
+          filenameIndex + specificFilename.length,
+          Math.min(markdownContent.length, filenameIndex + specificFilename.length + 20)
+        );
+        console.log(`[getPostContent] 파일명 앞 텍스트: "${beforeText}"`);
+        console.log(`[getPostContent] 파일명 뒤 텍스트: "${afterText}"`);
+        
+        // 이미 마크다운 형식인지 확인
+        const isAlreadyMarkdown = beforeText.includes('![') || beforeText.includes('](') || 
+                                  afterText.includes('](') || afterText.includes(')');
+        
+        if (!isAlreadyMarkdown && imageUrls.length > 0) {
+          const imageUrl = imageUrls[0];
+          const replacement = `![${specificFilename}](${imageUrl})`;
+          markdownContent = markdownContent.substring(0, filenameIndex) + 
+                            replacement + 
+                            markdownContent.substring(filenameIndex + specificFilename.length);
+          
+          console.log(`[getPostContent] ✅ 특정 파일명 대체 성공: "${specificFilename}" -> "${imageUrl.substring(0, 80)}..."`);
+        } else {
+          console.log(`[getPostContent] ⚠️ 이미 마크다운 형식이거나 URL이 없음: isMarkdown=${isAlreadyMarkdown}, hasUrl=${imageUrls.length > 0}`);
+        }
+      }
+      
+      // 일반적인 이미지 파일명 패턴 찾기 (다른 이미지들도 처리)
+      const imageFilenamePatterns = [
+        /^([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))$/gm,  // 단독 줄
+        /(?:^|\n|\r)([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))(?:\n|\r|$)/gm,  // 줄 시작/끝
+        /(?:^|\s)([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))(?:\s|$)/g,  // 공백으로 구분
+      ];
+      
+      let imageIndex = hasSpecificFile ? 1 : 0; // 특정 파일명을 이미 처리했으면 인덱스 증가
+      let replacementCount = hasSpecificFile ? 1 : 0;
+      
+      // 각 패턴으로 파일명 찾기 및 대체 (특정 파일명 제외)
+      for (const pattern of imageFilenamePatterns) {
+        const matches = Array.from(markdownContent.matchAll(pattern));
+        
+        for (const match of matches) {
+          const filename = match[1] || match[0];
+          const fullMatch = match[0];
+          const matchIndex = match.index!;
+          
+          // 특정 파일명은 이미 처리했으므로 건너뛰기
+          if (filename === specificFilename) continue;
+          
+          // 이미 마크다운 형식인지 확인
+          const beforeText = markdownContent.substring(Math.max(0, matchIndex - 10), matchIndex);
+          const afterText = markdownContent.substring(
+            matchIndex + fullMatch.length,
+            Math.min(markdownContent.length, matchIndex + fullMatch.length + 10)
+          );
+          
+          const isAlreadyMarkdown = beforeText.includes('![') || beforeText.includes('](') || 
+                                    afterText.includes('](') || afterText.includes(')');
+          
+          // 이미 마크다운 형식이 아니고, 이미지 URL이 있는 경우
+          if (!isAlreadyMarkdown && imageIndex < imageUrls.length) {
+            const imageUrl = imageUrls[imageIndex];
+            
+            if (imageUrl) {
+              // 파일명을 마크다운 이미지 형식으로 변환
+              const replacement = `![${filename}](${imageUrl})`;
+              markdownContent = markdownContent.substring(0, matchIndex) + 
+                                replacement + 
+                                markdownContent.substring(matchIndex + fullMatch.length);
+              
+              console.log(`[getPostContent] ✅ 이미지 대체 성공: "${filename}" -> "${imageUrl.substring(0, 80)}..."`);
+              imageIndex++;
+              replacementCount++;
+            }
+          }
+        }
+      }
+      
+      if (replacementCount > 0) {
+        console.log(`[getPostContent] ✅ 이미지 URL로 대체 완료: ${replacementCount}개`);
+      } else {
+        console.log(`[getPostContent] ⚠️ 이미지 대체 실패: 파일명을 찾지 못했거나 이미 마크다운 형식임`);
+      }
+    } else {
+      console.log(`[getPostContent] ⚠️ 이미지 URL 맵이 비어있음: ${imageUrlMap.size}개`);
+    }
+    
+    // 디버깅: 변환된 마크다운에서 이미지 확인
+    const imagePatterns = [
+      /!\[.*?\]\([^\)]+\)/g,  // 마크다운 이미지
+      /<img[^>]+>/g,           // HTML 이미지 태그
+      /https:\/\/[^\s\)]+\.(png|jpg|jpeg|gif|webp|svg)/gi  // 이미지 URL
+    ];
+    
+    imagePatterns.forEach((pattern, index) => {
+      const patternMatches = markdownContent.match(pattern);
+      if (patternMatches && patternMatches.length > 0) {
+        console.log(`[getPostContent] 패턴 ${index + 1} 매칭: ${patternMatches.length}개`);
+        console.log(`[getPostContent] 예시:`, patternMatches.slice(0, 2));
+      }
+    });
+    
+    return markdownContent;
   } catch (error) {
     console.error("Error converting Notion page to markdown:", error);
     throw error;
