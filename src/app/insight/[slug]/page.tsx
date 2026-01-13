@@ -170,7 +170,7 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
                         }
                         // MarkdownImage 컴포넌트 확인
                         if (typeof node.type === 'function') {
-                          const componentType = node.type as React.ComponentType<any> & { displayName?: string; name?: string };
+                          const componentType = node.type as React.ComponentType<unknown> & { displayName?: string; name?: string };
                           const componentName = componentType.displayName || componentType.name;
                           if (componentName === 'MarkdownImage') {
                             return true;
