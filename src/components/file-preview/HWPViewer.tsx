@@ -9,7 +9,6 @@ interface HWPViewerProps {
 }
 
 export default function HWPViewer({ file }: HWPViewerProps) {
-  const [content, setContent] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -179,7 +178,7 @@ export default function HWPViewer({ file }: HWPViewerProps) {
       }
       // pdfUrl은 컴포넌트 언마운트 시에만 정리
     };
-  }, [file]); // pdfUrl을 의존성에서 제거하여 무한 루프 방지
+  }, [file, pdfUrl, useServerConversion]); // pdfUrl과 useServerConversion을 의존성에 포함
 
   // 컴포넌트 언마운트 시 blob URL 정리
   useEffect(() => {

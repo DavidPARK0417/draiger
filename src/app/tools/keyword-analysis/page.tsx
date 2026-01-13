@@ -162,7 +162,7 @@ export default function KeywordAnalysisPage() {
         // 환경 변수 미설정 오류인 경우 상세 안내
         if (result.required) {
           const missing = Object.entries(result.required)
-            .filter(([_, isMissing]) => isMissing)
+            .filter(([, isMissing]) => isMissing)
             .map(([key]) => key)
             .join(', ');
           alert(

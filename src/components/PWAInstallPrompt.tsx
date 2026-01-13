@@ -109,7 +109,6 @@ export default function PWAInstallPrompt() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 상수들은 컴포넌트 외부에 정의되어 있어 의존성 배열에 포함할 필요 없음
 
   // 설치 버튼 클릭 핸들러

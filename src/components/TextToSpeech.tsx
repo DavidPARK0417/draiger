@@ -367,7 +367,7 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
         console.error('  - 언어:', logData.utteranceLang);
         console.error('  - 속도:', logData.utteranceRate);
         console.error('  - 텍스트 길이:', logData.textLength);
-      } catch (logErr) {
+      } catch {
         // 로깅 실패 시 간단한 메시지만 출력
         console.error('TTS 오류 발생:', errorMessage, `(타입: ${errorType})`);
       }
@@ -531,8 +531,6 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
         setError('텍스트를 처리하는 중 오류가 발생했습니다.');
         return;
       }
-      
-      const utterance = new SpeechSynthesisUtterance(textToRead);
       
       // 텍스트를 문장 단위로 나누어 속도 변경 시 효율적으로 처리
       // 문장 단위로 나누면 속도 변경 시 해당 문장부터 재생할 수 있어 더 효율적

@@ -121,7 +121,7 @@ export default function MarkdownImage({ src, alt, ...props }: MarkdownImageProps
     } else {
       console.warn('[MarkdownImage] ⚠️ src가 없습니다:', { src, alt });
     }
-  }, [src]);
+  }, [src, alt, proxySrc]);
 
   // 이미지가 없으면 렌더링하지 않음
   if (!imageSrc || !proxySrc) {

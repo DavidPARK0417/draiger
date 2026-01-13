@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { InfoTooltip } from '@/components/Tooltip';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 

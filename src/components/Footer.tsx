@@ -97,7 +97,7 @@ export default function Footer() {
             flex-shrink-0
             pr-12 sm:pr-14 lg:pr-16
           ">
-            {footerLinks.map((link, index) => (
+            {footerLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}

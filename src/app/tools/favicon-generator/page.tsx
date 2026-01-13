@@ -110,43 +110,6 @@ export default function FaviconGeneratorPage() {
     });
   }, []);
 
-  // 고품질 ICO 파일 생성 (서버 사이드 API 사용)
-  // 서버에서 Pillow를 사용하여 멀티 사이즈(16x16, 32x32, 48x48) ICO를 생성합니다.
-  const createIcoFile = useCallback(async (file: File): Promise<Blob> => {
-    try {
-      console.log("🎨 [ICO 생성] 서버 사이드 고품질 ICO 생성 시작");
-
-      // 서버 API 호출
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const response = await fetch("/api/generate-ico", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const icoBlob = await response.blob();
-        console.log("✅ [ICO 생성] 서버 사이드 ICO 생성 완료", {
-          size: icoBlob.size,
-        });
-        return icoBlob;
-      } else {
-        // 서버 사이드 생성 실패 시 클라이언트 사이드 폴백 사용
-        const errorData = await response.json().catch(() => ({}));
-        console.warn(
-          "⚠️ [ICO 생성] 서버 사이드 생성 실패, 클라이언트 사이드 폴백 사용",
-          errorData
-        );
-        return createIcoFileFallback(file);
-      }
-    } catch (error) {
-      console.error("❌ [ICO 생성] 서버 사이드 오류:", error);
-      // 오류 발생 시 클라이언트 사이드 폴백 사용
-      return createIcoFileFallback(file);
-    }
-  }, []);
-
   // 클라이언트 사이드 ICO 생성 (폴백)
   // 멀티 사이즈(16x16, 32x32, 48x48)를 포함하는 ICO 파일을 생성합니다.
   const createIcoFileFallback = useCallback(
@@ -249,6 +212,43 @@ export default function FaviconGeneratorPage() {
     },
     [resizeImage]
   );
+
+  // 고품질 ICO 파일 생성 (서버 사이드 API 사용)
+  // 서버에서 Pillow를 사용하여 멀티 사이즈(16x16, 32x32, 48x48) ICO를 생성합니다.
+  const createIcoFile = useCallback(async (file: File): Promise<Blob> => {
+    try {
+      console.log("🎨 [ICO 생성] 서버 사이드 고품질 ICO 생성 시작");
+
+      // 서버 API 호출
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch("/api/generate-ico", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const icoBlob = await response.blob();
+        console.log("✅ [ICO 생성] 서버 사이드 ICO 생성 완료", {
+          size: icoBlob.size,
+        });
+        return icoBlob;
+      } else {
+        // 서버 사이드 생성 실패 시 클라이언트 사이드 폴백 사용
+        const errorData = await response.json().catch(() => ({}));
+        console.warn(
+          "⚠️ [ICO 생성] 서버 사이드 생성 실패, 클라이언트 사이드 폴백 사용",
+          errorData
+        );
+        return createIcoFileFallback(file);
+      }
+    } catch (error) {
+      console.error("❌ [ICO 생성] 서버 사이드 오류:", error);
+      // 오류 발생 시 클라이언트 사이드 폴백 사용
+      return createIcoFileFallback(file);
+    }
+  }, [createIcoFileFallback]);
 
   // 파일 선택 처리
   const handleFileSelect = useCallback((files: FileList | File[]) => {

@@ -50,6 +50,31 @@ interface NotionQueryResponse {
   [key: string]: unknown;
 }
 
+// Notion 블록 타입 정의
+interface NotionImageBlock {
+  type: 'image';
+  image: {
+    type: 'external' | 'file';
+    external?: {
+      url: string;
+    };
+    file?: {
+      url: string;
+      expiry_time?: string;
+    };
+    caption?: NotionRichText[];
+  };
+  id: string;
+  [key: string]: unknown;
+}
+
+interface NotionBlock {
+  type: string;
+  id: string;
+  has_children?: boolean;
+  [key: string]: unknown;
+}
+
 // 페이지네이션 결과 타입
 export interface PaginatedPosts {
   posts: Post[];
@@ -141,7 +166,8 @@ function getNotionToMarkdown() {
   // Notion API에서 직접 이미지 URL을 가져와서 사용
   n2m.setCustomTransformer("image", async (block) => {
     try {
-      const { image } = block as any;
+      const imageBlock = block as NotionImageBlock;
+      const { image } = imageBlock;
       
       // 이미지 URL 추출
       let imageUrl = "";
@@ -1002,14 +1028,16 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 
 /**
  * Notion API를 직접 사용하여 이미지 블록의 URL을 가져옵니다
+ * @deprecated 현재 사용되지 않음 - extractImageUrlsFromPage에서 직접 처리
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getImageUrlFromNotionBlock(blockId: string): Promise<string | null> {
   try {
     const notion = getNotionClient();
     const block = await notion.blocks.retrieve({ block_id: blockId });
     
     if (block.type === 'image') {
-      const imageBlock = block as any;
+      const imageBlock = block as NotionImageBlock;
       if (imageBlock.image) {
         // External 이미지
         if (imageBlock.image.type === 'external' && imageBlock.image.external?.url) {
@@ -1050,7 +1078,7 @@ async function extractImageUrlsFromPage(pageId: string): Promise<Map<string, str
       // 이미지 블록 찾기
       for (const block of response.results) {
         if (block.type === 'image') {
-          const imageBlock = block as any;
+          const imageBlock = block as NotionImageBlock;
           let imageUrl = '';
           
           if (imageBlock.image) {
@@ -1066,7 +1094,7 @@ async function extractImageUrlsFromPage(pageId: string): Promise<Map<string, str
              if (imageUrl) {
                // URL 정규화: thumbnews URL은 원본 그대로 사용 (실제로 작동함)
                // 참고: thumbnews.nateimg.co.kr/view610///news.nateimg.co.kr/... 형식도 실제로 작동함
-               let normalizedUrl = imageUrl.trim();
+               const normalizedUrl = imageUrl.trim();
                
                // 디버깅: 원본 URL 유지 확인
                console.log(`[extractImageUrlsFromPage] 이미지 발견: ${block.id} -> ${normalizedUrl.substring(0, 100)}...`);
@@ -1077,7 +1105,8 @@ async function extractImageUrlsFromPage(pageId: string): Promise<Map<string, str
         }
         
         // 중첩된 블록도 확인 (예: column, callout 등)
-        if ('has_children' in block && block.has_children) {
+        const blockWithChildren = block as NotionBlock;
+        if (blockWithChildren.has_children) {
           const nestedImages = await extractImageUrlsFromPage(block.id);
           nestedImages.forEach((url, id) => imageUrlMap.set(id, url));
         }
