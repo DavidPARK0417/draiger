@@ -1,4 +1,4 @@
-import { getLatestPostsByCategory } from "@/lib/notion";
+import { getLatestPostsByCategory, type Post } from "@/lib/notion";
 import PostCard from "@/components/PostCard";
 import SmallPostCard from "@/components/SmallPostCard";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -38,13 +38,7 @@ const categories = [
 
 interface CategorySectionProps {
   category: string;
-  posts: Array<{
-    id: string;
-    title: string;
-    slug: string;
-    metaDescription: string;
-    featuredImage?: string;
-  }>;
+  posts: Post[];
   sectionIndex: number;
 }
 
