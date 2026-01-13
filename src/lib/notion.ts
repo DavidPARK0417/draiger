@@ -1036,7 +1036,8 @@ async function getImageUrlFromNotionBlock(blockId: string): Promise<string | nul
     const notion = getNotionClient();
     const block = await notion.blocks.retrieve({ block_id: blockId });
     
-    if (block.type === 'image') {
+    // 타입 가드: block이 type 속성을 가지고 있고 'image' 타입인지 확인
+    if ('type' in block && block.type === 'image') {
       const imageBlock = block as NotionImageBlock;
       if (imageBlock.image) {
         // External 이미지
@@ -1077,7 +1078,8 @@ async function extractImageUrlsFromPage(pageId: string): Promise<Map<string, str
       
       // 이미지 블록 찾기
       for (const block of response.results) {
-        if (block.type === 'image') {
+        // 타입 가드: block이 type 속성을 가지고 있고 'image' 타입인지 확인
+        if ('type' in block && block.type === 'image') {
           const imageBlock = block as NotionImageBlock;
           let imageUrl = '';
           
