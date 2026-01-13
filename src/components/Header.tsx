@@ -46,12 +46,18 @@ export default function Header() {
   const [isUsefulToolsOpen, setIsUsefulToolsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(48); // 기본값: min-h-12 (48px)
+  const [mounted, setMounted] = useState(false); // Hydration 오류 방지
   const blogDropdownRef = useRef<HTMLDivElement>(null);
   const marketingToolsDropdownRef = useRef<HTMLDivElement>(null);
   const usefulToolsDropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuButtonRef = useRef<HTMLDivElement>(null);
   const mobileMenuPanelRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
+
+  // Hydration 오류 방지: 클라이언트에서만 마운트
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
@@ -136,19 +142,20 @@ export default function Header() {
     return () => window.removeEventListener("resize", updateHeaderHeight);
   }, []);
 
-  // 현재 경로가 블로그 관련인지 확인
-  const isBlogActive =
+  // 현재 경로가 블로그 관련인지 확인 (Hydration 오류 방지: mounted 후에만 확인)
+  const isBlogActive = mounted && (
     pathname === "/insight" ||
     pathname.startsWith("/insight") ||
-    blogCategories.some((cat) => pathname === cat.href);
+    blogCategories.some((cat) => pathname === cat.href)
+  );
 
   // 현재 경로가 마케팅 도구 중 하나인지 확인
-  const isMarketingToolActive = marketingTools.some(
+  const isMarketingToolActive = mounted && marketingTools.some(
     (tool) => pathname === tool.href
   );
 
   // 현재 경로가 유용한 도구 중 하나인지 확인
-  const isUsefulToolActive = usefulTools.some((tool) => pathname === tool.href);
+  const isUsefulToolActive = mounted && usefulTools.some((tool) => pathname === tool.href);
 
   // 디버깅: 드롭다운 상태 변경 로그
   useEffect(() => {

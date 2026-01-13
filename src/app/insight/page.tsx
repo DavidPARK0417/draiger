@@ -12,15 +12,15 @@ export const revalidate = 10;
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: '전체 | DRAIGER Blog',
-  description: '모든 블로그 포스트를 최신순으로 확인하세요.',
+  title: '전체 | DRAIGER 인사이트',
+  description: '모든 인사이트 포스트를 최신순으로 확인하세요.',
 };
 
-interface BlogPageProps {
+interface InsightPageProps {
   searchParams: Promise<{ page?: string }>;
 }
 
-export default async function BlogPage({ searchParams }: BlogPageProps) {
+export default async function InsightPage({ searchParams }: InsightPageProps) {
   const params_search = await searchParams;
   const currentPage = parseInt(params_search.page || '1', 10) || 1;
 

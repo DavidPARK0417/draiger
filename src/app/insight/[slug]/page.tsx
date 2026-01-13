@@ -17,15 +17,15 @@ export const dynamic = 'force-dynamic';
 // 동적 라우트 설정: 새로운 slug가 추가되면 자동으로 생성
 export const dynamicParams = true;
 
-interface BlogPostPageProps {
+interface InsightPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
-// 빌드 시점에 모든 블로그 포스트 slug를 생성
+// 빌드 시점에 모든 인사이트 포스트 slug를 생성
 export async function generateStaticParams() {
   try {
     const posts = await getPublishedPosts();
-    console.log(`[generateStaticParams] 총 ${posts.length}개의 블로그 포스트 slug 생성`);
+    console.log(`[generateStaticParams] 총 ${posts.length}개의 인사이트 포스트 slug 생성`);
     
     return posts
       .filter((post) => post.slug) // slug가 있는 포스트만 필터링
@@ -33,7 +33,7 @@ export async function generateStaticParams() {
         slug: post.slug,
       }));
   } catch (error) {
-    console.error("[generateStaticParams] 블로그 포스트 slug 생성 실패:", error);
+    console.error("[generateStaticParams] 인사이트 포스트 slug 생성 실패:", error);
     // 에러 발생 시 빈 배열 반환 (동적 생성으로 대체)
     return [];
   }
@@ -42,7 +42,7 @@ export async function generateStaticParams() {
 // 동적 메타데이터 생성
 export async function generateMetadata({
   params,
-}: BlogPostPageProps): Promise<Metadata> {
+}: InsightPostPageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
 
@@ -51,7 +51,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${post.title} | DRAIGER Blog`,
+    title: `${post.title} | DRAIGER 인사이트`,
     description: post.metaDescription,
     openGraph: {
       title: post.title,
@@ -61,7 +61,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function InsightPostPage({ params }: InsightPostPageProps) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
 

@@ -1,8 +1,8 @@
 // Service Worker for Draiger (드라이거) PWA
 // 오프라인 캐싱 및 기본 PWA 기능 제공
 
-const CACHE_NAME = 'draiger-v3'; // 버전 업데이트로 기존 캐시 무효화
-const RUNTIME_CACHE = 'draiger-runtime-v3';
+const CACHE_NAME = 'draiger-v4'; // 버전 업데이트로 기존 캐시 무효화 (인사이트 변경 반영)
+const RUNTIME_CACHE = 'draiger-runtime-v4';
 
 // 캐싱할 정적 리소스 목록
 // 파비콘은 제외 (항상 네트워크에서 가져오도록 함)

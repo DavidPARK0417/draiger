@@ -34,8 +34,8 @@ export async function generateMetadata({
   const decodedCategory = decodeURIComponent(category);
 
   return {
-    title: `${decodedCategory} | DRAIGER Blog`,
-    description: `${decodedCategory} 카테고리 블로그 포스트`,
+    title: `${decodedCategory} | DRAIGER 인사이트`,
+    description: `${decodedCategory} 카테고리 인사이트 포스트`,
   };
 }
 

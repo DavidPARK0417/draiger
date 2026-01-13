@@ -11,6 +11,39 @@ export default function PWAServiceWorker() {
   useEffect(() => {
     // Service Worker 지원 여부 확인
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      // 개발 환경에서는 기존 Service Worker 해제 및 캐시 삭제
+      if (process.env.NODE_ENV === 'development') {
+        // 기존 Service Worker 등록 해제
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const registration of registrations) {
+            registration.unregister().then((success) => {
+              if (success) {
+                console.log('[PWA] 개발 환경: Service Worker 해제 완료');
+                // 모든 캐시 삭제 (caches API 지원 확인)
+                if ('caches' in window) {
+                  caches.keys().then((cacheNames) => {
+                    return Promise.all(
+                      cacheNames.map((cacheName) => {
+                        console.log('[PWA] 개발 환경: 캐시 삭제:', cacheName);
+                        return caches.delete(cacheName);
+                      })
+                    );
+                  }).then(() => {
+                    console.log('[PWA] 개발 환경: 모든 캐시 삭제 완료');
+                  }).catch((error) => {
+                    console.warn('[PWA] 개발 환경: 캐시 삭제 중 오류:', error);
+                  });
+                }
+              }
+            });
+          }
+        }).catch((error) => {
+          console.warn('[PWA] 개발 환경: Service Worker 해제 중 오류:', error);
+        });
+        console.log('[PWA] 개발 환경에서는 Service Worker를 등록하지 않습니다.');
+        return;
+      }
+      
       // 프로덕션 환경에서만 Service Worker 등록
       if (process.env.NODE_ENV === 'production') {
         navigator.serviceWorker
@@ -67,8 +100,6 @@ export default function PWAServiceWorker() {
           .catch((error) => {
             console.error('[PWA] Service Worker 등록 실패:', error);
           });
-      } else {
-        console.log('[PWA] 개발 환경에서는 Service Worker를 등록하지 않습니다.');
       }
     }
   }, []);
