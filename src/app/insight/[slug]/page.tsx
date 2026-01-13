@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import SmoothScroll from "@/components/SmoothScroll";
 import GrainOverlay from "@/components/GrainOverlay";
 import TextToSpeech from "@/components/TextToSpeech";
+import FormattedDate from "@/components/FormattedDate";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -84,19 +85,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </h1>
               {post.date && (
                 <div className="mb-4 sm:mb-6">
-                  <time className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-sans">
-                    {new Date(post.date).toLocaleString("ko-KR", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      timeZone: "Asia/Seoul", // 한국 시간대 명시적 지정
-                    })}
-                  </time>
+                  <FormattedDate
+                    date={post.date}
+                    className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-sans"
+                  />
                 </div>
               )}
-              <p className="text-lg sm:text-xl text-gray-600 dark:text-white/50 font-sans italic leading-relaxed">
+              <p className="text-base sm:text-lg text-gray-600 dark:text-white/50 font-sans italic leading-relaxed">
                 {post.metaDescription}
               </p>
             </header>
@@ -112,27 +107,27 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <ReactMarkdown
                 components={{
                   p: ({ children }) => (
-                    <p className="text-[18px] text-gray-700 dark:text-white/90 leading-relaxed mb-6">
+                    <p className="text-base sm:text-lg text-gray-700 dark:text-white/90 leading-relaxed mb-6">
                       {children}
                     </p>
                   ),
                   h1: ({ children }) => (
-                    <h1 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-4xl mt-8 mb-4">
+                    <h1 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-2xl sm:text-3xl lg:text-4xl mt-8 mb-4">
                       {children}
                     </h1>
                   ),
                   h2: ({ children }) => (
-                    <h2 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-3xl mt-8 mb-4">
+                    <h2 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-xl sm:text-2xl lg:text-3xl mt-8 mb-4">
                       {children}
                     </h2>
                   ),
                   h3: ({ children }) => (
-                    <h3 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-2xl mt-6 mb-3">
+                    <h3 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-6 mb-3">
                       {children}
                     </h3>
                   ),
                   h4: ({ children }) => (
-                    <h4 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-xl mt-6 mb-3">
+                    <h4 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-base sm:text-lg lg:text-xl mt-6 mb-3">
                       {children}
                     </h4>
                   ),
@@ -155,12 +150,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     </a>
                   ),
                   ul: ({ children }) => (
-                    <ul className="text-2xl text-gray-700 dark:text-white/90 mb-6 pl-6 list-disc">
+                    <ul className="text-base sm:text-lg text-gray-700 dark:text-white/90 mb-6 pl-6 list-disc">
                       {children}
                     </ul>
                   ),
                   ol: ({ children }) => (
-                    <ol className="text-2xl text-gray-700 dark:text-white/90 mb-6 pl-6 list-decimal">
+                    <ol className="text-base sm:text-lg text-gray-700 dark:text-white/90 mb-6 pl-6 list-decimal">
                       {children}
                     </ol>
                   ),
@@ -244,3 +239,4 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     </SmoothScroll>
   );
 }
+

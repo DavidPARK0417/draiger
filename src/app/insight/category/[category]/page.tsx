@@ -13,14 +13,13 @@ export const revalidate = 10;
 export const dynamic = 'force-dynamic';
 
 const categories = [
-  "정치",
-  "경제",
-  "주식",
-  "사회",
-  "AI 신기술",
-  "생활 문화",
-  "세계",
-  "스포츠",
+  "내일의 AI",
+  "돈이 되는 소식",
+  "궁금한 세상 이야기",
+  "슬기로운 생활",
+  "오늘보다 건강하게",
+  "마음 채우기",
+  "기타",
 ];
 
 interface CategoryPageProps {
@@ -75,20 +74,20 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         <GrainOverlay />
         <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8">
           <header className="mb-12 sm:mb-16 lg:mb-20">
-            <h1 className="text-[12vw] sm:text-[10vw] lg:text-[8vw] leading-[0.9] tracking-tighter uppercase font-serif text-gray-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl leading-tight tracking-tight font-serif font-bold text-gray-900 dark:text-white">
               {decodedCategory}
             </h1>
           </header>
 
           {posts.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-gray-600 dark:text-white/50 text-lg">
+              <p className="text-gray-600 dark:text-white/50 text-base sm:text-lg">
                 {decodedCategory} 카테고리에 게시글이 없습니다.
               </p>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-[300px]">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-[minmax(320px,auto)]">
                 {posts.map((post, index) => {
                   // Bento Grid 효과: 카드 크기 변형
                   // 각 페이지 내에서도 동일한 패턴 유지
@@ -113,7 +112,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}
-                baseUrl={`/blog/category/${encodeURIComponent(decodedCategory)}`}
+                baseUrl={`/insight/category/${encodeURIComponent(decodedCategory)}`}
                 hasNextPage={hasNextPage}
                 hasPrevPage={hasPrevPage}
               />

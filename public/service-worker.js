@@ -62,9 +62,49 @@ self.addEventListener('activate', (event) => {
 
 // skipWaiting 메시지 처리 (즉시 활성화)
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[Service Worker] skipWaiting 요청 수신 - 즉시 활성화');
-    self.skipWaiting();
+  // 메시지 채널이 유효한지 확인
+  if (!event.ports || event.ports.length === 0) {
+    // 포트가 없으면 단순 메시지만 처리
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+      console.log('[Service Worker] skipWaiting 요청 수신 - 즉시 활성화');
+      self.skipWaiting();
+    }
+    return;
+  }
+
+  // 포트가 있는 경우 응답 처리
+  try {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+      console.log('[Service Worker] skipWaiting 요청 수신 - 즉시 활성화');
+      self.skipWaiting().then(() => {
+        // 성공 응답
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({ success: true });
+        }
+      }).catch((error) => {
+        console.error('[Service Worker] skipWaiting 실패:', error);
+        // 실패 응답
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({ success: false, error: error.message });
+        }
+      });
+    } else {
+      // 알 수 없는 메시지 타입
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ success: false, error: 'Unknown message type' });
+      }
+    }
+  } catch (error) {
+    console.error('[Service Worker] 메시지 처리 오류:', error);
+    // 오류 발생 시에도 응답 시도
+    if (event.ports && event.ports[0]) {
+      try {
+        event.ports[0].postMessage({ success: false, error: error.message });
+      } catch (e) {
+        // 포트가 이미 닫혔을 수 있음 (무시)
+        console.warn('[Service Worker] 포트 응답 실패 (무시):', e);
+      }
+    }
   }
 });
 

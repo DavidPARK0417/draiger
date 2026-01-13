@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
-  baseUrl: string; // 예: '/' 또는 '/blog/category/정치'
+  baseUrl: string; // 예: '/' 또는 '/insight/category/정치'
   hasNextPage: boolean;
   hasPrevPage: boolean;
 }

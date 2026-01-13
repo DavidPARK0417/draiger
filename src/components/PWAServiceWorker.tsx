@@ -32,7 +32,12 @@ export default function PWAServiceWorker() {
                     if (navigator.serviceWorker.controller) {
                       // 새 버전이 설치되었음 - 즉시 활성화
                       console.log('[PWA] 새 버전이 설치되었습니다. 즉시 활성화합니다.');
-                      newWorker.postMessage({ type: 'SKIP_WAITING' });
+                      // 메시지 채널을 사용하지 않고 직접 메시지 전송 (오류 방지)
+                      try {
+                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                      } catch (error) {
+                        console.warn('[PWA] Service Worker 메시지 전송 실패 (무시):', error);
+                      }
                       // 페이지 새로고침하여 새 버전 적용
                       window.location.reload();
                     } else {
@@ -49,6 +54,14 @@ export default function PWAServiceWorker() {
               console.log('[PWA] 새 Service Worker가 활성화되었습니다.');
               // 페이지 새로고침하여 새 버전 적용
               window.location.reload();
+            });
+
+            // Service Worker 메시지 핸들링 (오류 방지)
+            navigator.serviceWorker.addEventListener('message', (event) => {
+              // Service Worker로부터 메시지 수신 시 처리
+              if (event.data && event.data.type) {
+                console.log('[PWA] Service Worker 메시지 수신:', event.data.type);
+              }
             });
           })
           .catch((error) => {

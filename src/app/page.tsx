@@ -1,8 +1,9 @@
-import { getPublishedPostsPaginated } from "@/lib/notion";
+import { getLatestPostsByCategory } from "@/lib/notion";
 import PostCard from "@/components/PostCard";
+import SmallPostCard from "@/components/SmallPostCard";
 import SmoothScroll from "@/components/SmoothScroll";
 import GrainOverlay from "@/components/GrainOverlay";
-import Pagination from "@/components/Pagination";
+import Link from "next/link";
 import type { Metadata } from 'next';
 
 // ISR 설정: 10초마다 재검증 (더 빠른 업데이트)
@@ -24,67 +25,109 @@ export const metadata: Metadata = {
   },
 };
 
-interface HomeProps {
-  searchParams: Promise<{ page?: string }>;
+// 카테고리 목록
+const categories = [
+  "내일의 AI",
+  "돈이 되는 소식",
+  "궁금한 세상 이야기",
+  "슬기로운 생활",
+  "오늘보다 건강하게",
+  "마음 채우기",
+  "기타",
+];
+
+interface CategorySectionProps {
+  category: string;
+  posts: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    metaDescription: string;
+    featuredImage?: string;
+  }>;
+  sectionIndex: number;
 }
 
-export default async function Home({ searchParams }: HomeProps) {
-  const params = await searchParams;
-  const currentPage = parseInt(params.page || '1', 10) || 1;
-  
-  const { posts, currentPage: page, totalPages, hasNextPage, hasPrevPage } = 
-    await getPublishedPostsPaginated(currentPage, 12);
+function CategorySection({ category, posts, sectionIndex }: CategorySectionProps) {
+  if (posts.length === 0) return null;
+
+  const [mainPost, ...smallPosts] = posts;
+  const smallPostsToShow = smallPosts.slice(0, 2);
+
+  return (
+    <section className="mb-16 sm:mb-20 lg:mb-24">
+      {/* 카테고리 제목 */}
+      <div className="mb-6 sm:mb-8">
+        <Link
+          href={`/insight/category/${encodeURIComponent(category)}`}
+          className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300"
+        >
+          {category}
+        </Link>
+      </div>
+
+      {/* 카드 레이아웃: 큰 카드 1개 + 작은 카드 2개 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* 큰 카드 (왼쪽) */}
+        <div className="lg:col-span-2">
+          {mainPost && (
+            <PostCard post={mainPost} index={sectionIndex * 3} isLarge={true} />
+          )}
+        </div>
+
+        {/* 작은 카드들 (오른쪽) */}
+        <div className="lg:col-span-1 flex flex-col gap-4 sm:gap-6">
+          {smallPostsToShow.map((post, index) => (
+            <SmallPostCard
+              key={post.id}
+              post={post}
+              index={sectionIndex * 3 + index + 1}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default async function Home() {
+  // 각 카테고리별로 최신 3개 포스트 가져오기
+  const categoryPostsMap = await Promise.all(
+    categories.map(async (category) => {
+      try {
+        const posts = await getLatestPostsByCategory(category, 3);
+        return { category, posts };
+      } catch (error) {
+        console.error(`카테고리 "${category}" 포스트 조회 실패:`, error);
+        return { category, posts: [] };
+      }
+    })
+  );
+
+  const hasAnyPosts = categoryPostsMap.some(({ posts }) => posts.length > 0);
 
   return (
     <SmoothScroll>
       <div className="blog-page min-h-screen bg-[#F8F9FA] dark:bg-[#0d0d0d]">
         <GrainOverlay />
-        <main className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8">
-
-          <header className="mb-12 sm:mb-16 lg:mb-20">
-            <h1 className="text-[12vw] sm:text-[10vw] lg:text-[8vw] leading-[0.9] tracking-tighter uppercase font-serif text-gray-900 dark:text-white">
-              Journal
-            </h1>
-          </header>
-
-          {posts.length === 0 ? (
+        <main className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          {!hasAnyPosts ? (
             <div className="text-center py-20">
               <p className="text-gray-600 dark:text-white/50 text-lg">
                 게시글이 없습니다.
               </p>
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-[300px]">
-                {posts.map((post, index) => {
-                  // Bento Grid 효과: 카드 크기 변형
-                  // 각 페이지 내에서도 동일한 패턴 유지
-                  const isLarge = index % 4 === 0;  // 4번째마다 큰 카드
-                  const isWide = index % 4 === 2;    // 2번째마다 넓은 카드
-
-                  return (
-                    <div
-                      key={post.id}
-                      className={`
-                        ${isLarge ? "md:col-span-2 md:row-span-2" : ""}
-                        ${isWide ? "md:col-span-2" : ""}
-                      `}
-                    >
-                      <PostCard post={post} index={index} isLarge={isLarge} />
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* 페이지네이션 */}
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                baseUrl="/"
-                hasNextPage={hasNextPage}
-                hasPrevPage={hasPrevPage}
-              />
-            </>
+            <div className="space-y-16 sm:space-y-20 lg:space-y-24">
+              {categoryPostsMap.map(({ category, posts }, index) => (
+                <CategorySection
+                  key={category}
+                  category={category}
+                  posts={posts}
+                  sectionIndex={index}
+                />
+              ))}
+            </div>
           )}
         </main>
       </div>

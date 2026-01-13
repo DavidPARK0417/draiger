@@ -53,10 +53,10 @@
       ]
     },
     {
-      "name": "블로그",
-      "short_name": "블로그",
+      "name": "인사이트",
+      "short_name": "인사이트",
       "description": "최신 트렌드와 정보 확인",
-      "url": "/blog",
+      "url": "/insight",
       "icons": [
         {
           "src": "/Icon-192x192.png",

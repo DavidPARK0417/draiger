@@ -9,7 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const posts = await getPublishedPosts();
     blogPosts = posts.map((post) => ({
-      url: `${baseUrl}/blog/${post.slug}`,
+      url: `${baseUrl}/insight/${post.slug}`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.7,
@@ -20,17 +20,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 카테고리 페이지 추가
   const categories = [
-    '정치',
-    '경제',
-    '주식',
-    '사회',
-    'AI 신기술',
-    '생활 문화',
-    '세계',
-    '스포츠',
+    '내일의 AI',
+    '돈이 되는 소식',
+    '궁금한 세상 이야기',
+    '슬기로운 생활',
+    '오늘보다 건강하게',
+    '마음 채우기',
+    '기타',
   ];
   const categoryPages = categories.map((category) => ({
-    url: `${baseUrl}/blog/category/${encodeURIComponent(category)}`,
+    url: `${baseUrl}/insight/category/${encodeURIComponent(category)}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.6,

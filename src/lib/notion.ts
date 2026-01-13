@@ -35,7 +35,7 @@ interface NotionPage {
     metaDescription?: { rich_text: NotionRichText[] };
     Published?: { checkbox: boolean };
     blogPost?: { rich_text: NotionRichText[] };
-    category?: { select: { name: string } };
+    category?: { rich_text: NotionRichText[] };
     date?: { date: { start: string } | null };
     tags?: { multi_select: { name: string; color?: string }[] };
     [key: string]: unknown;
@@ -325,20 +325,43 @@ export async function getPublishedPosts(): Promise<Post[]> {
       ],
     });
 
-    return data.results.map((page: NotionPage) => ({
-      id: page.id,
-      title: page.properties.title?.title[0]?.plain_text || "Untitled",
-      slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-      metaDescription:
-        page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
-      published: page.properties.Published?.checkbox || false,
-      blogPost: page.properties.blogPost?.rich_text
-        ? page.properties.blogPost.rich_text
-            .map((rt: NotionRichText) => rt.plain_text)
-            .join("")
-        : "",
-      category: page.properties.category?.select?.name || undefined,
-    }));
+      const posts: Post[] = await Promise.all(
+        data.results.map(async (page: NotionPage) => {
+          const blogPostContent = page.properties.blogPost?.rich_text
+            ? page.properties.blogPost.rich_text
+                .map((rt: NotionRichText) => rt.plain_text)
+                .join("")
+            : "";
+
+          // blogPost 필드에서 이미지 추출 시도
+          let featuredImage = extractFirstImageUrl(blogPostContent);
+
+          // blogPost에 이미지가 없으면 본문 콘텐츠에서 추출
+          if (!featuredImage) {
+            try {
+              const fullContent = await getPostContent(page.id);
+              featuredImage = extractFirstImageUrl(fullContent);
+            } catch (error) {
+              // 이미지 추출 실패는 무시 (로그만 남김)
+              console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
+            }
+          }
+
+          return {
+            id: page.id,
+            title: page.properties.title?.title[0]?.plain_text || "Untitled",
+            slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+            metaDescription:
+              page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
+            published: page.properties.Published?.checkbox || false,
+            blogPost: blogPostContent,
+            category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+            featuredImage,
+          };
+        })
+      );
+
+      return posts;
   } catch (error) {
     console.error("Error fetching posts from Notion:", error);
     throw error;
@@ -441,7 +464,7 @@ export async function getPublishedPostsPaginated(
             page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
           published: page.properties.Published?.checkbox || false,
           blogPost: blogPostContent,
-          category: page.properties.category?.select?.name || undefined,
+          category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
           featuredImage,
         };
       })
@@ -490,7 +513,7 @@ export async function getTotalPostsCountByCategory(
             },
             {
               property: "category",
-              select: {
+              rich_text: {
                 equals: category,
               },
             },
@@ -513,12 +536,12 @@ export async function getTotalPostsCountByCategory(
                   equals: true,
                 },
               },
-              {
-                property: "category",
-                select: {
-                  equals: category,
-                },
+            {
+              property: "category",
+              rich_text: {
+                equals: category,
               },
+            },
             ],
           },
           page_size: 100,
@@ -585,7 +608,7 @@ export async function getPublishedPostsByCategory(
             },
             {
               property: "category",
-              select: {
+              rich_text: {
                 equals: category,
               },
             },
@@ -597,22 +620,46 @@ export async function getPublishedPostsByCategory(
             direction: "descending",
           },
         ],
+        page_size: 100,
       });
 
-      return data.results.map((page: NotionPage) => ({
-        id: page.id,
-        title: page.properties.title?.title[0]?.plain_text || "Untitled",
-        slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-        metaDescription:
-          page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
-        published: page.properties.Published?.checkbox || false,
-        blogPost: page.properties.blogPost?.rich_text
-          ? page.properties.blogPost.rich_text
-              .map((rt: NotionRichText) => rt.plain_text)
-              .join("")
-          : "",
-        category: page.properties.category?.select?.name || undefined,
-      }));
+      const posts: Post[] = await Promise.all(
+        data.results.map(async (page: NotionPage) => {
+          const blogPostContent = page.properties.blogPost?.rich_text
+            ? page.properties.blogPost.rich_text
+                .map((rt: NotionRichText) => rt.plain_text)
+                .join("")
+            : "";
+
+          // blogPost 필드에서 이미지 추출 시도
+          let featuredImage = extractFirstImageUrl(blogPostContent);
+
+          // blogPost에 이미지가 없으면 본문 콘텐츠에서 추출
+          if (!featuredImage) {
+            try {
+              const fullContent = await getPostContent(page.id);
+              featuredImage = extractFirstImageUrl(fullContent);
+            } catch (error) {
+              // 이미지 추출 실패는 무시 (로그만 남김)
+              console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
+            }
+          }
+
+          return {
+            id: page.id,
+            title: page.properties.title?.title[0]?.plain_text || "Untitled",
+            slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+            metaDescription:
+              page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
+            published: page.properties.Published?.checkbox || false,
+            blogPost: blogPostContent,
+            category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+            featuredImage,
+          };
+        })
+      );
+
+      return posts;
     } catch (categoryError: unknown) {
       // category 속성이 없는 경우 (validation_error)
       const errorMessage =
@@ -644,6 +691,19 @@ export async function getPublishedPostsByCategory(
     console.error("Error fetching posts by category from Notion:", error);
     throw error;
   }
+}
+
+/**
+ * 카테고리별 최신 포스트를 지정된 개수만큼 가져옵니다
+ * @param category 카테고리 이름
+ * @param limit 가져올 포스트 개수 (기본값: 3)
+ */
+export async function getLatestPostsByCategory(
+  category: string,
+  limit: number = 3
+): Promise<Post[]> {
+  const posts = await getPublishedPostsByCategory(category);
+  return posts.slice(0, limit);
 }
 
 /**
@@ -694,12 +754,12 @@ export async function getPublishedPostsByCategoryPaginated(
                   equals: true,
                 },
               },
-              {
-                property: "category",
-                select: {
-                  equals: category,
-                },
+            {
+              property: "category",
+              rich_text: {
+                equals: category,
               },
+            },
             ],
           },
           sorts: [
@@ -789,7 +849,7 @@ export async function getPublishedPostsByCategoryPaginated(
             page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
           published: page.properties.Published?.checkbox || false,
           blogPost: blogPostContent,
-          category: page.properties.category?.select?.name || undefined,
+          category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
           featuredImage,
         };
       })

@@ -28,20 +28,13 @@ const usefulTools = [
 ];
 
 const blogCategories = [
-  { name: "정치", href: "/blog/category/" + encodeURIComponent("정치") },
-  { name: "경제", href: "/blog/category/" + encodeURIComponent("경제") },
-  { name: "주식", href: "/blog/category/" + encodeURIComponent("주식") },
-  { name: "사회", href: "/blog/category/" + encodeURIComponent("사회") },
-  {
-    name: "AI 신기술",
-    href: "/blog/category/" + encodeURIComponent("AI 신기술"),
-  },
-  {
-    name: "생활 문화",
-    href: "/blog/category/" + encodeURIComponent("생활 문화"),
-  },
-  { name: "세계", href: "/blog/category/" + encodeURIComponent("세계") },
-  { name: "스포츠", href: "/blog/category/" + encodeURIComponent("스포츠") },
+  { name: "내일의 AI", href: "/insight/category/" + encodeURIComponent("내일의 AI") },
+  { name: "돈이 되는 소식", href: "/insight/category/" + encodeURIComponent("돈이 되는 소식") },
+  { name: "궁금한 세상 이야기", href: "/insight/category/" + encodeURIComponent("궁금한 세상 이야기") },
+  { name: "슬기로운 생활", href: "/insight/category/" + encodeURIComponent("슬기로운 생활") },
+  { name: "오늘보다 건강하게", href: "/insight/category/" + encodeURIComponent("오늘보다 건강하게") },
+  { name: "마음 채우기", href: "/insight/category/" + encodeURIComponent("마음 채우기") },
+  { name: "기타", href: "/insight/category/" + encodeURIComponent("기타") },
 ];
 
 const navigation = [{ name: "문의하기", href: "/contact" }];
@@ -145,8 +138,8 @@ export default function Header() {
 
   // 현재 경로가 블로그 관련인지 확인
   const isBlogActive =
-    pathname === "/" ||
-    pathname.startsWith("/blog") ||
+    pathname === "/insight" ||
+    pathname.startsWith("/insight") ||
     blogCategories.some((cat) => pathname === cat.href);
 
   // 현재 경로가 마케팅 도구 중 하나인지 확인
@@ -263,7 +256,7 @@ export default function Header() {
                   }
                 `}
               >
-                블로그
+                인사이트
                 <svg
                   className={`w-4 h-4 transition-transform duration-300 ${
                     isBlogOpen ? "rotate-180" : ""
@@ -308,13 +301,13 @@ export default function Header() {
                   }}
                 >
                   <Link
-                    href="/"
+                    href="/insight"
                     onClick={() => setIsBlogOpen(false)}
                     className={`
                       block px-4 py-2.5 text-sm
                       transition-all duration-200
                       ${
-                        pathname === "/"
+                        pathname === "/insight" || (pathname.startsWith("/insight") && !pathname.startsWith("/insight/category"))
                           ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold"
                           : "text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-700 hover:text-emerald-600 dark:hover:text-emerald-400"
                       }
@@ -617,7 +610,7 @@ export default function Header() {
                   }
                 `}
               >
-                <span>블로그</span>
+                <span>인사이트</span>
                 <svg
                   className={`w-5 h-5 transition-transform duration-300 ${
                     isBlogOpen ? "rotate-180" : ""
@@ -638,7 +631,7 @@ export default function Header() {
               {isBlogOpen && (
                 <div className="pl-4 space-y-1">
                   <Link
-                    href="/"
+                    href="/insight"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsBlogOpen(false);
@@ -648,7 +641,7 @@ export default function Header() {
                       block px-4 py-2.5 rounded-lg text-sm
                       transition-all duration-200
                       ${
-                        pathname === "/"
+                        pathname === "/insight" || (pathname.startsWith("/insight") && !pathname.startsWith("/insight/category"))
                           ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold"
                           : "text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800"
                       }
