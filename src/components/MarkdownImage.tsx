@@ -201,8 +201,7 @@ export default function MarkdownImage({ src, alt, ...props }: MarkdownImageProps
                 retryCount,
                 naturalWidth: target.naturalWidth,
                 naturalHeight: target.naturalHeight,
-                complete: target.complete,
-                error: target.error
+                complete: target.complete
               });
               
               // 재시도 로직: 프록시가 실패하면 원본 URL로 재시도
