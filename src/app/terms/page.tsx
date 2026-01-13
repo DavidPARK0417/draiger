@@ -83,7 +83,7 @@ export default function TermsPage() {
                 text-gray-600 dark:text-gray-400
                 leading-relaxed
               ">
-                본 약관은 Draiger : 데일리 툴킷(이하 "서비스")이 제공하는 온라인
+                본 약관은 Draiger : 데일리 툴킷(이하 &quot;서비스&quot;)이 제공하는 온라인
                 서비스의 이용과 관련하여 서비스와 이용자 간의 권리, 의무 및
                 책임사항을 규정함을 목적으로 합니다.
               </p>
@@ -107,15 +107,15 @@ export default function TermsPage() {
                 <p>본 약관에서 사용하는 용어의 정의는 다음과 같습니다:</p>
                 <ul className="list-disc list-inside space-y-1 ml-4">
                   <li>
-                    "서비스"란 Draiger : 데일리 툴킷이 제공하는 모든 온라인
+                    &quot;서비스&quot;란 Draiger : 데일리 툴킷이 제공하는 모든 온라인
                     서비스를 의미합니다.
                   </li>
                   <li>
-                    "이용자"란 본 약관에 따라 서비스를 이용하는 모든 사용자를
+                    &quot;이용자&quot;란 본 약관에 따라 서비스를 이용하는 모든 사용자를
                     의미합니다.
                   </li>
                   <li>
-                    "콘텐츠"란 서비스를 통해 제공되는 모든 정보, 데이터, 텍스트,
+                    &quot;콘텐츠&quot;란 서비스를 통해 제공되는 모든 정보, 데이터, 텍스트,
                     이미지 등을 의미합니다.
                   </li>
                 </ul>

@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
     console.log("🐍 [ICO 생성 API] Python 스크립트 실행", { command });
 
-    const { stdout, stderr } = await execAsync(command, {
+    const { stderr } = await execAsync(command, {
       timeout: 30000, // 30초 타임아웃
     });
 

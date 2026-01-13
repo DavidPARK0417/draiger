@@ -62,7 +62,7 @@ export default function PrivacyPage() {
               text-gray-700 dark:text-gray-300
               leading-relaxed
             ">
-              Draiger : 데일리 툴킷(이하 "서비스")은 개인정보보호법에 따라 이용자의
+              Draiger : 데일리 툴킷(이하 &quot;서비스&quot;)은 개인정보보호법에 따라 이용자의
               개인정보 보호 및 권익을 보호하고자 다음과 같은 처리방침을 두고 있습니다.
             </p>
           </div>
