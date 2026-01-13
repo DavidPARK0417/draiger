@@ -164,21 +164,22 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
                     // 자식에 이미지가 있는지 확인하는 함수 (더 정확한 감지)
                     const checkForImage = (node: React.ReactNode): boolean => {
                       if (React.isValidElement(node)) {
+                        const element = node as React.ReactElement<{ children?: React.ReactNode }>;
                         // img 태그 직접 확인
-                        if (node.type === 'img') {
+                        if (element.type === 'img') {
                           return true;
                         }
                         // MarkdownImage 컴포넌트 확인
-                        if (typeof node.type === 'function') {
-                          const componentType = node.type as React.ComponentType<unknown> & { displayName?: string; name?: string };
+                        if (typeof element.type === 'function') {
+                          const componentType = element.type as React.ComponentType<unknown> & { displayName?: string; name?: string };
                           const componentName = componentType.displayName || componentType.name;
                           if (componentName === 'MarkdownImage') {
                             return true;
                           }
                         }
                         // 자식 요소 재귀적으로 확인
-                        if (node.props?.children) {
-                          return React.Children.toArray(node.props.children).some(checkForImage);
+                        if (element.props?.children) {
+                          return React.Children.toArray(element.props.children).some(checkForImage);
                         }
                       }
                       // 문자열이 아닌 경우에만 재귀 확인
