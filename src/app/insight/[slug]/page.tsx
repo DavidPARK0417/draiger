@@ -280,7 +280,9 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
                   img: ({ src, alt, ...props }) => {
                     // 디버깅: ReactMarkdown이 전달하는 src 확인
                     console.log('[ReactMarkdown img] src:', src, 'alt:', alt);
-                    return <MarkdownImage src={src} alt={alt} {...props} />;
+                    // src가 Blob인 경우 문자열로 변환, undefined인 경우 그대로 전달
+                    const srcString = typeof src === 'string' ? src : src instanceof Blob ? URL.createObjectURL(src) : undefined;
+                    return <MarkdownImage src={srcString} alt={alt} {...props} />;
                   },
                   // 텍스트 노드에서 이미지 파일명을 감지하여 처리
                   text: ({ children }) => {
