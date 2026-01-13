@@ -50,6 +50,8 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [headerHeight, setHeaderHeight] = useState(48); // 기본값: min-h-12 (48px)
   const [mounted, setMounted] = useState(false); // Hydration 오류 방지
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [totalCount, setTotalCount] = useState<number>(0);
   const blogDropdownRef = useRef<HTMLDivElement>(null);
   const marketingToolsDropdownRef = useRef<HTMLDivElement>(null);
   const usefulToolsDropdownRef = useRef<HTMLDivElement>(null);
@@ -62,6 +64,30 @@ export default function Header() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // 카테고리별 게시글 개수 가져오기
+  useEffect(() => {
+    const fetchCategoryCounts = async () => {
+      try {
+        console.log("카테고리별 게시글 개수 조회 시작");
+        const response = await fetch("/api/category-counts");
+        if (response.ok) {
+          const data = await response.json();
+          console.log("카테고리별 게시글 개수 조회 성공:", data);
+          setCategoryCounts(data.categories || {});
+          setTotalCount(data.total || 0);
+        } else {
+          console.error("카테고리별 게시글 개수 조회 실패:", response.status);
+        }
+      } catch (error) {
+        console.error("카테고리별 게시글 개수 조회 오류:", error);
+      }
+    };
+
+    if (mounted) {
+      fetchCategoryCounts();
+    }
+  }, [mounted]);
 
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
@@ -423,10 +449,11 @@ export default function Header() {
                       }
                     `}
                   >
-                    전체
+                    전체{totalCount > 0 && ` (${totalCount})`}
                   </Link>
                   {blogCategories.map((category) => {
                     const isActive = pathname === category.href;
+                    const count = categoryCounts[category.name] || 0;
                     return (
                       <Link
                         key={category.name}
@@ -442,7 +469,7 @@ export default function Header() {
                           }
                         `}
                       >
-                        {category.name}
+                        {category.name}{count > 0 && ` (${count})`}
                       </Link>
                     );
                   })}
@@ -819,10 +846,11 @@ export default function Header() {
                       }
                     `}
                   >
-                    전체
+                    전체{totalCount > 0 && ` (${totalCount})`}
                   </Link>
                   {blogCategories.map((category) => {
                     const isActive = pathname === category.href;
+                    const count = categoryCounts[category.name] || 0;
                     return (
                       <Link
                         key={category.name}
@@ -842,7 +870,7 @@ export default function Header() {
                           }
                         `}
                       >
-                        {category.name}
+                        {category.name}{count > 0 && ` (${count})`}
                       </Link>
                     );
                   })}
