@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Search } from "lucide-react";
 
 const marketingTools = [
   { name: "광고 성과 계산", href: "/tools/ad-performance" },
@@ -41,10 +41,13 @@ const navigation = [{ name: "문의하기", href: "/contact" }];
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isBlogOpen, setIsBlogOpen] = useState(false);
   const [isMarketingToolsOpen, setIsMarketingToolsOpen] = useState(false);
   const [isUsefulToolsOpen, setIsUsefulToolsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [headerHeight, setHeaderHeight] = useState(48); // 기본값: min-h-12 (48px)
   const [mounted, setMounted] = useState(false); // Hydration 오류 방지
   const blogDropdownRef = useRef<HTMLDivElement>(null);
@@ -53,6 +56,7 @@ export default function Header() {
   const mobileMenuButtonRef = useRef<HTMLDivElement>(null);
   const mobileMenuPanelRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Hydration 오류 방지: 클라이언트에서만 마운트
   useEffect(() => {
@@ -210,6 +214,44 @@ export default function Header() {
     }
   }, [isMobileMenuOpen, headerHeight]);
 
+  // 검색창 열릴 때 포커스 및 다른 드롭다운 닫기
+  useEffect(() => {
+    if (isSearchOpen) {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+      // 다른 드롭다운 닫기
+      setIsBlogOpen(false);
+      setIsMarketingToolsOpen(false);
+      setIsUsefulToolsOpen(false);
+    }
+  }, [isSearchOpen]);
+
+  // ESC 키로 검색창 닫기
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isSearchOpen) {
+        setIsSearchOpen(false);
+        setSearchQuery("");
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isSearchOpen]);
+
+  // 검색 실행
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchOpen(false);
+      setSearchQuery("");
+    }
+  };
+
   return (
     <header
       ref={headerRef}
@@ -244,6 +286,67 @@ export default function Header() {
           </div>
           {/* 데스크탑 네비게이션 (640px 이상) */}
           <nav className="hidden sm:flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+            {/* 검색 아이콘/검색창 */}
+            {!isSearchOpen ? (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsSearchOpen(true);
+                }}
+                className="
+                  p-2 rounded-xl text-sm font-medium
+                  transition-all duration-300
+                  text-gray-700 dark:text-white dark:font-semibold
+                  hover:bg-emerald-50 dark:hover:bg-gray-700
+                  hover:text-emerald-600 dark:hover:text-emerald-300
+                "
+                aria-label="검색"
+              >
+                <Search size={20} />
+              </button>
+            ) : (
+              <form
+                onSubmit={handleSearch}
+                className="flex items-center gap-2 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 px-3 py-2 shadow-md"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Search size={18} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="검색어를 입력하세요..."
+                  className="
+                    w-48 sm:w-64 lg:w-80
+                    bg-transparent
+                    text-gray-900 dark:text-gray-100
+                    placeholder:text-gray-400 dark:placeholder:text-gray-500
+                    focus:outline-none
+                    text-sm
+                  "
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSearchOpen(false);
+                    setSearchQuery("");
+                  }}
+                  className="
+                    p-1 rounded-lg
+                    text-gray-400 hover:text-gray-600
+                    dark:text-gray-500 dark:hover:text-gray-300
+                    transition-colors duration-150
+                    flex-shrink-0
+                  "
+                  aria-label="닫기"
+                >
+                  <X size={16} />
+                </button>
+              </form>
+            )}
+
             {/* 블로그 드롭다운 메뉴 */}
             <div className="relative" ref={blogDropdownRef}>
               <button
@@ -555,30 +658,92 @@ export default function Header() {
           </nav>
 
           {/* 모바일 햄버거 메뉴 버튼 (640px 미만) */}
-          <div className="sm:hidden flex-shrink-0" ref={mobileMenuButtonRef}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log("햄버거 메뉴 클릭, 현재 상태:", isMobileMenuOpen);
-                setIsMobileMenuOpen(!isMobileMenuOpen);
-              }}
-              className="
-                p-2 rounded-xl
-                text-gray-700 dark:text-white
-                hover:bg-emerald-50 dark:hover:bg-gray-700
-                transition-all duration-300
-              "
-              aria-label={isMobileMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
-            >
-              {isMobileMenuOpen ? (
-                <X
-                  size={24}
-                  className="text-emerald-500 dark:text-emerald-400"
+          <div className="sm:hidden flex items-center gap-2 flex-shrink-0">
+            {/* 모바일 검색 아이콘/검색창 */}
+            {!isSearchOpen ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsSearchOpen(true);
+                }}
+                className="
+                  p-2 rounded-xl
+                  text-gray-700 dark:text-white
+                  hover:bg-emerald-50 dark:hover:bg-gray-700
+                  transition-all duration-300
+                "
+                aria-label="검색"
+              >
+                <Search size={20} />
+              </button>
+            ) : (
+              <form
+                onSubmit={handleSearch}
+                className="flex items-center gap-2 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 px-2 py-1.5 shadow-md flex-1 max-w-xs"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Search size={16} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="검색..."
+                  className="
+                    flex-1 min-w-0
+                    bg-transparent
+                    text-gray-900 dark:text-gray-100
+                    placeholder:text-gray-400 dark:placeholder:text-gray-500
+                    focus:outline-none
+                    text-sm
+                  "
                 />
-              ) : (
-                <Menu size={24} />
-              )}
-            </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSearchOpen(false);
+                    setSearchQuery("");
+                  }}
+                  className="
+                    p-1 rounded-lg
+                    text-gray-400 hover:text-gray-600
+                    dark:text-gray-500 dark:hover:text-gray-300
+                    transition-colors duration-150
+                    flex-shrink-0
+                  "
+                  aria-label="닫기"
+                >
+                  <X size={14} />
+                </button>
+              </form>
+            )}
+
+            {/* 모바일 햄버거 메뉴 버튼 */}
+            <div ref={mobileMenuButtonRef}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log("햄버거 메뉴 클릭, 현재 상태:", isMobileMenuOpen);
+                  setIsMobileMenuOpen(!isMobileMenuOpen);
+                }}
+                className="
+                  p-2 rounded-xl
+                  text-gray-700 dark:text-white
+                  hover:bg-emerald-50 dark:hover:bg-gray-700
+                  transition-all duration-300
+                "
+                aria-label={isMobileMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
+              >
+                {isMobileMenuOpen ? (
+                  <X
+                    size={24}
+                    className="text-emerald-500 dark:text-emerald-400"
+                  />
+                ) : (
+                  <Menu size={24} />
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
