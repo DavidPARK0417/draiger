@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ConditionalHeader from "@/components/ConditionalHeader";
+import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ScrollToTop from "@/components/ScrollToTop";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
@@ -137,9 +138,20 @@ export default function RootLayout({
       <body className="antialiased text-gray-900 dark:text-white bg-[#F8F9FA] dark:bg-gray-900" suppressHydrationWarning>
         <ThemeProvider>
           <PWAServiceWorker />
-          <ConditionalHeader />
-          {children}
+          {/* 전체 페이지 레이아웃: Header, Main, Footer 구조 */}
+          <div className="flex flex-col min-h-screen">
+            {/* 헤더: 모든 페이지에 표시 */}
+            <ConditionalHeader />
+            {/* 메인 콘텐츠: 각 페이지의 내용 */}
+            <main className="flex-grow">
+              {children}
+            </main>
+            {/* 푸터: 모든 페이지에 표시 */}
+            <Footer />
+          </div>
+          {/* 위로가기 버튼 */}
           <ScrollToTop />
+          {/* PWA 설치 프롬프트 */}
           <PWAInstallPrompt />
         </ThemeProvider>
       </body>
