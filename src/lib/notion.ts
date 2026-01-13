@@ -921,7 +921,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
             .map((rt: NotionRichText) => rt.plain_text)
             .join("")
         : "",
-      category: page.properties.category?.select?.name || undefined,
+      category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
       date: page.properties.date?.date?.start || undefined,
       tags: page.properties.tags?.multi_select?.map((tag) => tag.name) || undefined,
     };
