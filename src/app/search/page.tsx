@@ -17,6 +17,7 @@ const usefulTools = [
   { name: "이미지크기 조정", href: "/tools/image-resize" },
   { name: "파비콘 생성기", href: "/tools/favicon-generator" },
   { name: "QR코드 생성기", href: "/tools/qr-code-generator" },
+  { name: "URL 단축", href: "/tools/url-shortener" },
   { name: "글자수 세기", href: "/tools/character-counter" },
   { name: "세계시간 변환기", href: "/tools/world-time-converter" },
   { name: "알람시계", href: "/tools/alarm-clock" },
@@ -44,9 +45,7 @@ function searchContent(query: string, posts: Post[]): SearchResult[] {
   if (!lowerQuery) return results;
 
   // 검색어를 단어 단위로 분리 (공백으로 구분)
-  const queryWords = lowerQuery
-    .split(/\s+/)
-    .filter((word) => word.length > 0);
+  const queryWords = lowerQuery.split(/\s+/).filter((word) => word.length > 0);
 
   // 인사이트 글 검색
   const insightResults = posts
@@ -131,7 +130,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   // 검색 실행
   const allResults = searchContent(query, allPosts);
   console.log("검색 결과:", allResults.length, "개");
-  
+
   // 타입별 필터링
   const filteredResults =
     searchType === "all"
@@ -156,7 +155,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const allToolResults = filteredResults.filter((r) => r.type === "tool");
 
   // 페이지네이션 URL 생성
-  const baseSearchUrl = `/search?q=${encodeURIComponent(query)}${searchType !== "all" ? `&type=${searchType}` : ""}`;
+  const baseSearchUrl = `/search?q=${encodeURIComponent(query)}${
+    searchType !== "all" ? `&type=${searchType}` : ""
+  }`;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8">
@@ -168,7 +169,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </h1>
           {query && (
             <p className="text-gray-600 dark:text-gray-400">
-              &quot;<span className="font-semibold text-emerald-600 dark:text-emerald-400">{query}</span>&quot;에 대한 검색 결과
+              &quot;
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                {query}
+              </span>
+              &quot;에 대한 검색 결과
             </p>
           )}
         </header>
@@ -224,14 +229,20 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         {/* 검색 결과 */}
         {!query ? (
           <div className="text-center py-20">
-            <Search size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
+            <Search
+              size={48}
+              className="mx-auto text-gray-400 dark:text-gray-600 mb-4"
+            />
             <p className="text-gray-600 dark:text-gray-400 text-lg">
               검색어를 입력해주세요.
             </p>
           </div>
         ) : filteredResults.length === 0 ? (
           <div className="text-center py-20">
-            <Search size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
+            <Search
+              size={48}
+              className="mx-auto text-gray-400 dark:text-gray-600 mb-4"
+            />
             <p className="text-gray-600 dark:text-gray-400 text-lg">
               검색 결과가 없습니다.
             </p>
@@ -240,22 +251,24 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <>
             {/* 결과 통계 */}
             <div className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-              총 {totalResults}개의 결과 중 {startIndex + 1}-{Math.min(endIndex, totalResults)}개 표시
+              총 {totalResults}개의 결과 중 {startIndex + 1}-
+              {Math.min(endIndex, totalResults)}개 표시
             </div>
 
             <div className="space-y-8">
               {/* 인사이트 결과 */}
-              {(searchType === "all" || searchType === "insight") && insightResults.length > 0 && (
-                <section>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    인사이트 글 ({allInsightResults.length})
-                  </h2>
-                  <div className="space-y-4">
-                    {insightResults.map((result, index) => (
-                      <Link
-                        key={`${result.href}-${index}`}
-                        href={result.href}
-                        className="
+              {(searchType === "all" || searchType === "insight") &&
+                insightResults.length > 0 && (
+                  <section>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      인사이트 글 ({allInsightResults.length})
+                    </h2>
+                    <div className="space-y-4">
+                      {insightResults.map((result, index) => (
+                        <Link
+                          key={`${result.href}-${index}`}
+                          href={result.href}
+                          className="
                           block p-6 rounded-2xl
                           bg-white dark:bg-gray-800
                           border border-gray-200 dark:border-gray-700
@@ -264,38 +277,39 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                           transition-all duration-300
                           hover:-translate-y-1
                         "
-                      >
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                          {result.title}
-                        </h3>
-                        {result.description && (
-                          <p className="text-gray-600 dark:text-gray-400 text-sm mb-2 line-clamp-2">
-                            {result.description}
-                          </p>
-                        )}
-                        {result.category && (
-                          <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400">
-                            {result.category}
-                          </span>
-                        )}
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              )}
+                        >
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            {result.title}
+                          </h3>
+                          {result.description && (
+                            <p className="text-gray-600 dark:text-gray-400 text-sm mb-2 line-clamp-2">
+                              {result.description}
+                            </p>
+                          )}
+                          {result.category && (
+                            <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400">
+                              {result.category}
+                            </span>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
 
               {/* 도구 결과 */}
-              {(searchType === "all" || searchType === "tool") && toolResults.length > 0 && (
-                <section>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    도구 ({allToolResults.length})
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {toolResults.map((result, index) => (
-                      <Link
-                        key={`${result.href}-${index}`}
-                        href={result.href}
-                        className="
+              {(searchType === "all" || searchType === "tool") &&
+                toolResults.length > 0 && (
+                  <section>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      도구 ({allToolResults.length})
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {toolResults.map((result, index) => (
+                        <Link
+                          key={`${result.href}-${index}`}
+                          href={result.href}
+                          className="
                           block p-6 rounded-2xl
                           bg-white dark:bg-gray-800
                           border border-gray-200 dark:border-gray-700
@@ -305,15 +319,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                           hover:-translate-y-1
                           text-center
                         "
-                      >
-                        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                          {result.title}
-                        </h3>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              )}
+                        >
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                            {result.title}
+                          </h3>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
             </div>
 
             {/* 페이지네이션 */}
@@ -332,4 +346,3 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     </div>
   );
 }
-
