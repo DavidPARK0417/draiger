@@ -22,6 +22,17 @@ const categories = [
   "기타",
 ];
 
+// 카테고리별 소개 문구
+const categoryDescriptions: Record<string, string> = {
+  "내일의 AI": "AI 기술의 미래와 혁신적인 변화를 탐구합니다.",
+  "돈이 되는 소식": "경제와 투자에 도움이 되는 실용적인 정보를 제공합니다.",
+  "궁금한 세상 이야기": "세상의 다양한 현상과 이야기를 다룹니다.",
+  "슬기로운 생활": "일상생활을 더 스마트하고 편리하게 만드는 팁을 공유합니다.",
+  "오늘보다 건강하게": "건강한 삶을 위한 조언과 정보를 제공합니다.",
+  "마음 채우기": "정신적 웰빙과 마음의 평화를 위한 콘텐츠를 다룹니다.",
+  "기타": "다양한 주제의 인사이트를 제공합니다.",
+};
+
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
   searchParams: Promise<{ page?: string }>;
@@ -74,9 +85,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         <GrainOverlay />
         <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8">
           <header className="mb-12 sm:mb-16 lg:mb-20">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl leading-tight tracking-tight font-serif font-bold text-gray-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl leading-tight tracking-tight font-serif font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
               {decodedCategory}
             </h1>
+            {categoryDescriptions[decodedCategory] && (
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                {categoryDescriptions[decodedCategory]}
+              </p>
+            )}
           </header>
 
           {posts.length === 0 ? (
