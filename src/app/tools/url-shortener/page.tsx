@@ -310,12 +310,12 @@ export default function UrlShortenerPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-emerald-500 font-bold">2.</span>
-              <span>"단축하기" 버튼을 클릭하거나 Enter 키를 누르세요.</span>
+              <span>&quot;단축하기&quot; 버튼을 클릭하거나 Enter 키를 누르세요.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-emerald-500 font-bold">3.</span>
               <span>
-                생성된 짧은 URL이 표시됩니다. "복사" 버튼을 클릭하여 클립보드에
+                생성된 짧은 URL이 표시됩니다. &quot;복사&quot; 버튼을 클릭하여 클립보드에
                 복사할 수 있습니다.
               </span>
             </li>
