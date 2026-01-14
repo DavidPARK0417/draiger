@@ -232,7 +232,7 @@ export default function AboutPage() {
                   🛠️ 실용적인 업무 도구
                 </h3>
                 <p className="mb-3">
-                  일상 업무에서 자주 사용하는 <strong className="text-gray-900 dark:text-gray-100">8가지 실용 도구</strong>를 
+                  일상 업무에서 자주 사용하는 <strong className="text-gray-900 dark:text-gray-100">9가지 실용 도구</strong>를 
                   무료로 제공하여 업무 효율성을 높입니다.
                 </p>
                 <ul className="
@@ -245,6 +245,7 @@ export default function AboutPage() {
                   <li><strong>이미지 크기 조정</strong>: 웹 최적화를 위한 이미지 리사이징</li>
                   <li><strong>파비콘 생성기</strong>: 브랜드 아이덴티티를 위한 파비콘 제작</li>
                   <li><strong>QR코드 생성기</strong>: 빠른 정보 공유를 위한 QR코드 생성</li>
+                  <li><strong>URL 단축</strong>: 긴 URL을 짧고 공유하기 쉬운 링크로 변환</li>
                   <li><strong>글자수 세기</strong>: 콘텐츠 작성 시 글자수 및 단어수 확인</li>
                   <li><strong>세계시간 변환기</strong>: 글로벌 협업을 위한 시간대 변환</li>
                   <li><strong>알람시계</strong>: 업무 시간 관리 및 알림 설정</li>
