@@ -53,7 +53,7 @@ export default function AdFit({
   className = "",
   onFail,
 }: AdFitProps) {
-  const adElementRef = useRef<HTMLElement>(null);
+  const adElementRef = useRef<HTMLModElement>(null);
   const callbackNameRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export default function AdFit({
   return (
     <div className={`adfit-container ${className}`}>
       <ins
-        ref={adElementRef as React.LegacyRef<HTMLElement>}
+        ref={adElementRef}
         className="kakao_ad_area"
         style={{ display: "none", width: "100%" }}
         data-ad-unit={unitId}
