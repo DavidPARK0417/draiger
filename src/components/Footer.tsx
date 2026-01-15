@@ -71,13 +71,33 @@ export default function Footer() {
                 매일 쌓이는 지식과 꼭 필요한 스마트 도구를 제공하는<br />
                 데일리 툴킷입니다.
               </p>
-              <p className="
-                text-xs sm:text-sm
-                text-gray-500 dark:text-gray-500
-                font-light
-              ">
-                © 2026 Draiger : 데일리 툴킷. All rights reserved.
-              </p>
+              <div className="space-y-1">
+                <p className="
+                  text-xs
+                  text-gray-500 dark:text-gray-500
+                  font-light
+                ">
+                  소유주: 박용범 | 이메일:{" "}
+                  <a
+                    href="mailto:decidepyb@gmail.com"
+                    className="
+                      text-gray-500 dark:text-gray-500
+                      hover:text-gray-600 dark:hover:text-gray-400
+                      underline
+                      transition-colors duration-200
+                    "
+                  >
+                    decidepyb@gmail.com
+                  </a>
+                </p>
+                <p className="
+                  text-xs sm:text-sm
+                  text-gray-500 dark:text-gray-500
+                  font-light
+                ">
+                  © 2026 Draiger : 데일리 툴킷. All rights reserved.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -118,11 +138,33 @@ export default function Footer() {
           pt-3 sm:pt-4
           border-t border-gray-200 dark:border-gray-700
           text-center
-          text-xs sm:text-sm
-          text-gray-500 dark:text-gray-500
-          font-light
+          space-y-1
         ">
-          © 2026 Draiger : 데일리 툴킷. All rights reserved.
+          <p className="
+            text-xs
+            text-gray-500 dark:text-gray-500
+            font-light
+          ">
+            소유주: 박용범 | 이메일:{" "}
+            <a
+              href="mailto:decidepyb@gmail.com"
+              className="
+                text-gray-500 dark:text-gray-500
+                hover:text-gray-600 dark:hover:text-gray-400
+                underline
+                transition-colors duration-200
+              "
+            >
+              decidepyb@gmail.com
+            </a>
+          </p>
+          <p className="
+            text-xs sm:text-sm
+            text-gray-500 dark:text-gray-500
+            font-light
+          ">
+            © 2026 Draiger : 데일리 툴킷. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

@@ -30,9 +30,9 @@ export const metadata: Metadata = {
     "CRO 계산기",
     "스마트 도구",
   ],
-  authors: [{ name: "Draiger" }],
-  creator: "Draiger",
-  publisher: "Draiger",
+  authors: [{ name: "박용범", email: "decidepyb@gmail.com" }],
+  creator: "박용범",
+  publisher: "박용범",
   formatDetection: {
     email: false,
     address: false,
@@ -137,6 +137,37 @@ export default function RootLayout({
         <meta name="msapplication-config" content="/browserconfig.xml" />
       </head>
       <body className="antialiased text-gray-900 dark:text-white bg-[#F8F9FA] dark:bg-gray-900" suppressHydrationWarning>
+        {/* 구조화된 데이터 (JSON-LD) - SEO 최적화 */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "Draiger : 데일리 툴킷",
+              "url": process.env.NEXT_PUBLIC_SITE_URL || "https://adtoolkit.kr",
+              "description": "마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.",
+              "author": {
+                "@type": "Person",
+                "name": "박용범",
+                "email": "decidepyb@gmail.com"
+              },
+              "publisher": {
+                "@type": "Person",
+                "name": "박용범",
+                "email": "decidepyb@gmail.com"
+              },
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": `${process.env.NEXT_PUBLIC_SITE_URL || "https://adtoolkit.kr"}/search?q={search_term_string}`
+                },
+                "query-input": "required name=search_term_string"
+              }
+            }),
+          }}
+        />
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
