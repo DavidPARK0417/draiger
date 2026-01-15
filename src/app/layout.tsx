@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     "CRO 계산기",
     "스마트 도구",
   ],
-  authors: [{ name: "박용범", email: "decidepyb@gmail.com" }],
+  authors: [{ name: "박용범" }],
   creator: "박용범",
   publisher: "박용범",
   formatDetection: {
