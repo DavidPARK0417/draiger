@@ -86,12 +86,12 @@ export default function Pagination({
           className="
             flex items-center justify-center
             w-10 h-10 sm:w-12 sm:h-12
-            rounded-xl
-            bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10
-            border border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20
-            text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white
+            rounded-lg
+            bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600
+            border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500
+            text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white
             transition-all duration-300
-            hover:-translate-y-0.5
+            shadow-sm hover:shadow
             active:scale-95
           "
           aria-label="이전 페이지"
@@ -103,11 +103,12 @@ export default function Pagination({
           className="
             flex items-center justify-center
             w-10 h-10 sm:w-12 sm:h-12
-            rounded-xl
-            bg-gray-100 dark:bg-white/5
-            border border-gray-300 dark:border-white/10
-            text-gray-400 dark:text-white/30
+            rounded-lg
+            bg-gray-100 dark:bg-gray-700
+            border border-gray-200 dark:border-gray-600
+            text-gray-400 dark:text-gray-500
             cursor-not-allowed
+            shadow-sm
           "
           aria-disabled="true"
         >
@@ -144,7 +145,7 @@ export default function Pagination({
               className={`
                 flex items-center justify-center
                 w-10 h-10 sm:w-12 sm:h-12
-                rounded-xl
+                rounded-lg
                 text-sm sm:text-base font-medium
                 transition-all duration-300
                 ${
@@ -153,14 +154,13 @@ export default function Pagination({
                       bg-emerald-500 hover:bg-emerald-600
                       dark:bg-emerald-600 dark:hover:bg-emerald-500
                       text-white
-                      shadow-md hover:shadow-lg
-                      hover:-translate-y-0.5
+                      shadow-sm hover:shadow
                     `
                     : `
-                      bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10
-                      border border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20
-                      text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white
-                      hover:-translate-y-0.5
+                      bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600
+                      border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500
+                      text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white
+                      shadow-sm hover:shadow
                       active:scale-95
                     `
                 }
@@ -181,12 +181,12 @@ export default function Pagination({
           className="
             flex items-center justify-center
             w-10 h-10 sm:w-12 sm:h-12
-            rounded-xl
-            bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10
-            border border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20
-            text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white
+            rounded-lg
+            bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600
+            border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500
+            text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white
             transition-all duration-300
-            hover:-translate-y-0.5
+            shadow-sm hover:shadow
             active:scale-95
           "
           aria-label="다음 페이지"
@@ -198,11 +198,12 @@ export default function Pagination({
           className="
             flex items-center justify-center
             w-10 h-10 sm:w-12 sm:h-12
-            rounded-xl
-            bg-gray-100 dark:bg-white/5
-            border border-gray-300 dark:border-white/10
-            text-gray-400 dark:text-white/30
+            rounded-lg
+            bg-gray-100 dark:bg-gray-700
+            border border-gray-200 dark:border-gray-600
+            text-gray-400 dark:text-gray-500
             cursor-not-allowed
+            shadow-sm
           "
           aria-disabled="true"
         >

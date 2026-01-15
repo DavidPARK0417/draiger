@@ -73,7 +73,7 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
         delay: index * 0.1,
         ease: [0.16, 1, 0.3, 1],
       }}
-      className={`group relative overflow-hidden rounded-2xl bg-white/80 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors h-full ${
+      className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors h-full shadow-sm dark:shadow-gray-900/30 ${
         isLarge ? "p-8" : "p-4 sm:p-6"
       }`}
     >

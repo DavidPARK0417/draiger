@@ -102,7 +102,7 @@ export default async function Home() {
 
   return (
     <SmoothScroll>
-      <div className="blog-page min-h-screen bg-[#F8F9FA] dark:bg-[#0d0d0d]">
+      <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
         <GrainOverlay />
         <main className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           {!hasAnyPosts ? (
