@@ -381,6 +381,15 @@ export default function Header() {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsBlogOpen(!isBlogOpen);
+                  
+                  // Google Analytics 이벤트 전송
+                  if (typeof window !== 'undefined' && (window as any).gtag) {
+                    (window as any).gtag('event', 'view_insights', {
+                      event_category: 'navigation',
+                      event_label: '인사이트 버튼 클릭',
+                    });
+                    console.log('view_insights 이벤트 전송 완료');
+                  }
                 }}
                 className={`
                   px-3 py-2 rounded-xl text-sm font-medium whitespace-nowrap 
@@ -799,6 +808,15 @@ export default function Header() {
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsBlogOpen(!isBlogOpen);
+                  
+                  // Google Analytics 이벤트 전송
+                  if (typeof window !== 'undefined' && (window as any).gtag) {
+                    (window as any).gtag('event', 'view_insights', {
+                      event_category: 'navigation',
+                      event_label: '인사이트 버튼 클릭 (모바일)',
+                    });
+                    console.log('view_insights 이벤트 전송 완료 (모바일)');
+                  }
                 }}
                 className={`
                   w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium
