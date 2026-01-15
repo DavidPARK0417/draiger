@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -27,6 +27,55 @@ export default function ROICalculatorPage() {
   // AI 분석 상태
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [aiAnalysis, setAiAnalysis] = useState<string>("");
+  
+  // 차트 반응형 및 다크모드 상태
+  const [chartHeight, setChartHeight] = useState(300);
+  const [chartFontSize, setChartFontSize] = useState(12);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // 화면 크기에 따라 차트 높이 및 폰트 크기 조정
+  useEffect(() => {
+    const updateChartSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setChartHeight(200); // 모바일
+        setChartFontSize(10);
+        setIsMobile(true);
+      } else if (width < 1024) {
+        setChartHeight(250); // 태블릿
+        setChartFontSize(11);
+        setIsMobile(false);
+      } else {
+        setChartHeight(300); // 데스크탑
+        setChartFontSize(12);
+        setIsMobile(false);
+      }
+    };
+
+    // 다크모드 감지 함수
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+
+    updateChartSize();
+    checkDarkMode();
+
+    // 리사이즈 이벤트 리스너
+    window.addEventListener('resize', updateChartSize);
+    
+    // 다크모드 변경 감지를 위한 MutationObserver
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateChartSize);
+      observer.disconnect();
+    };
+  }, []);
 
   const handleCalculate = () => {
     console.log("=== ROI 계산 ===");
@@ -209,7 +258,7 @@ export default function ROICalculatorPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           ROI 계산기
@@ -218,10 +267,10 @@ export default function ROICalculatorPage() {
           투자 대비 수익률을 계산하여 광고 효과를 측정하세요
         </p>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 상품명 또는 비즈니스 정보
               </label>
               <div className="flex gap-2">
@@ -233,12 +282,12 @@ export default function ROICalculatorPage() {
                     setProductName(e.target.value);
                   }}
                   placeholder="예: 스마트폰 케이스, 온라인 강의 등"
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                  className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
                 <button
                   onClick={handleAIEstimate}
                   disabled={isLoading || !productName.trim()}
-                  className="px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium whitespace-nowrap shadow-md hover:shadow-lg"
+                  className="px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium whitespace-nowrap shadow-sm hover:shadow text-sm sm:text-base"
                   title="AI로 ROI 정보 자동 입력"
                 >
                   {isLoading ? "AI 분석 중..." : "🤖 AI 추정"}
@@ -247,7 +296,7 @@ export default function ROICalculatorPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 투자금 (광고비) (원)
               </label>
               <input
@@ -259,12 +308,12 @@ export default function ROICalculatorPage() {
                   setInvestment(value);
                 }}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 매출 (원)
               </label>
               <input
@@ -276,12 +325,12 @@ export default function ROICalculatorPage() {
                   setRevenue(value);
                 }}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 비용 (원)
               </label>
               <input
@@ -293,13 +342,13 @@ export default function ROICalculatorPage() {
                   setCost(value);
                 }}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <button
               onClick={handleCalculate}
-              className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-sm hover:shadow text-sm sm:text-base"
             >
               계산하기
             </button>
@@ -307,7 +356,7 @@ export default function ROICalculatorPage() {
 
           {(investment > 0 || revenue > 0 || cost > 0) && (
             <div className="mt-8 space-y-4">
-              <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-md">
+              <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-sm">
                 <h3 className="text-sm sm:text-base font-semibold text-emerald-800 dark:text-emerald-200 mb-2 sm:mb-3">
                   계산 결과
                 </h3>
@@ -316,7 +365,7 @@ export default function ROICalculatorPage() {
                     <span className="text-gray-700 dark:text-gray-300">
                       순이익:
                     </span>
-                    <span className="font-semibold text-foreground">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {netProfit.toLocaleString("ko-KR")} 원
                     </span>
                   </div>
@@ -326,7 +375,7 @@ export default function ROICalculatorPage() {
                         ROI:
                       </InfoTooltip>
                     </span>
-                    <span className="font-semibold text-foreground">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {roi.toFixed(2)}%
                     </span>
                   </div>
@@ -336,7 +385,7 @@ export default function ROICalculatorPage() {
                         ROAS:
                       </InfoTooltip>
                     </span>
-                    <span className="font-semibold text-foreground">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {roas.toFixed(2)}배
                     </span>
                   </div>
@@ -348,7 +397,7 @@ export default function ROICalculatorPage() {
                 <button
                   onClick={handleAIAnalysis}
                   disabled={isAnalyzing}
-                  className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                  className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow text-sm sm:text-base"
                 >
                   {isAnalyzing ? (
                     <>
@@ -368,7 +417,7 @@ export default function ROICalculatorPage() {
                   <div className="flex justify-end">
                     <button
                       onClick={handleDownloadAnalysis}
-                      className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base"
+                      className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-sm hover:shadow text-sm sm:text-base"
                       title="AI 분석 결과 다운로드"
                     >
                       <svg
@@ -389,7 +438,7 @@ export default function ROICalculatorPage() {
                   </div>
 
                   {/* 시각화 차트 */}
-                  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-700 shadow-md dark:shadow-gray-900/50">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-gray-900/30">
                     <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-gray-900 dark:text-gray-100">
                       📊 데이터 시각화
                     </h3>
@@ -398,10 +447,10 @@ export default function ROICalculatorPage() {
                       {/* 수익 구조 막대 차트 */}
                       {chartData.length > 0 && (
                         <div>
-                          <h4 className="text-lg font-semibold mb-3 text-foreground">
+                          <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                             수익 구조 분석
                           </h4>
-                          <ResponsiveContainer width="100%" height={300}>
+                          <ResponsiveContainer width="100%" height={chartHeight}>
                             <BarChart data={chartData}>
                               <CartesianGrid
                                 strokeDasharray="3 3"
@@ -410,11 +459,14 @@ export default function ROICalculatorPage() {
                               />
                               <XAxis
                                 dataKey="name"
-                                tick={{ fill: "currentColor", fontSize: 12 }}
+                                tick={{ fill: "currentColor", fontSize: chartFontSize }}
                                 stroke="currentColor"
+                                angle={isMobile ? -45 : 0}
+                                textAnchor={isMobile ? 'end' : 'middle'}
+                                height={isMobile ? 60 : 30}
                               />
                               <YAxis
-                                tick={{ fill: "currentColor", fontSize: 12 }}
+                                tick={{ fill: "currentColor", fontSize: chartFontSize }}
                                 stroke="currentColor"
                                 tickFormatter={(value) =>
                                   `${(value / 1000).toFixed(0)}k`
@@ -422,9 +474,10 @@ export default function ROICalculatorPage() {
                               />
                               <Tooltip
                                 contentStyle={{
-                                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                                  border: "1px solid #ccc",
+                                  backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                  border: isDarkMode ? '1px solid #4b5563' : '1px solid #ccc',
                                   borderRadius: "8px",
+                                  color: isDarkMode ? '#f3f4f6' : '#111827'
                                 }}
                                 formatter={(value: number) =>
                                   `${value.toLocaleString("ko-KR")}원`
@@ -438,7 +491,9 @@ export default function ROICalculatorPage() {
                                   />
                                 ))}
                               </Bar>
-                              <Legend />
+                              <Legend 
+                                wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                              />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
@@ -447,10 +502,10 @@ export default function ROICalculatorPage() {
                       {/* ROI 비교 파이 차트 */}
                       {roi > 0 && (
                         <div>
-                          <h4 className="text-lg font-semibold mb-3 text-foreground">
+                          <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                             ROI 비교
                           </h4>
-                          <ResponsiveContainer width="100%" height={300}>
+                          <ResponsiveContainer width="100%" height={chartHeight}>
                             <PieChart>
                               <Pie
                                 data={roiComparisonData}
@@ -473,15 +528,18 @@ export default function ROICalculatorPage() {
                               </Pie>
                               <Tooltip
                                 contentStyle={{
-                                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                                  border: "1px solid #ccc",
+                                  backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                  border: isDarkMode ? '1px solid #4b5563' : '1px solid #ccc',
                                   borderRadius: "8px",
+                                  color: isDarkMode ? '#f3f4f6' : '#111827'
                                 }}
                                 formatter={(value: number) =>
                                   `${value.toFixed(2)}%`
                                 }
                               />
-                              <Legend />
+                              <Legend 
+                                wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                              />
                             </PieChart>
                           </ResponsiveContainer>
                         </div>
@@ -490,7 +548,7 @@ export default function ROICalculatorPage() {
                   </div>
 
                   {/* AI 텍스트 분석 결과 */}
-                  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-700 shadow-md dark:shadow-gray-900/50">
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600 shadow-sm">
                     <div
                       className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
                       dangerouslySetInnerHTML={{
@@ -504,7 +562,7 @@ export default function ROICalculatorPage() {
           )}
         </div>
 
-        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
           <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-gray-100">
             계산 공식 안내
           </h2>
