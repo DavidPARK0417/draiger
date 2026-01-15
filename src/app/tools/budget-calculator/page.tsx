@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -29,6 +29,55 @@ export default function BudgetCalculatorPage() {
   // AI 분석 상태
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
+  
+  // 차트 반응형 및 다크모드 상태
+  const [chartHeight, setChartHeight] = useState(300);
+  const [chartFontSize, setChartFontSize] = useState(12);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // 화면 크기에 따라 차트 높이 및 폰트 크기 조정
+  useEffect(() => {
+    const updateChartSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setChartHeight(200); // 모바일
+        setChartFontSize(10);
+        setIsMobile(true);
+      } else if (width < 1024) {
+        setChartHeight(250); // 태블릿
+        setChartFontSize(11);
+        setIsMobile(false);
+      } else {
+        setChartHeight(300); // 데스크탑
+        setChartFontSize(12);
+        setIsMobile(false);
+      }
+    };
+
+    // 다크모드 감지 함수
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+
+    updateChartSize();
+    checkDarkMode();
+
+    // 리사이즈 이벤트 리스너
+    window.addEventListener('resize', updateChartSize);
+    
+    // 다크모드 변경 감지를 위한 MutationObserver
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateChartSize);
+      observer.disconnect();
+    };
+  }, []);
 
   // 실시간 계산 값들
   const expectedRevenue = targetConversions * sellingPrice;
@@ -223,22 +272,22 @@ export default function BudgetCalculatorPage() {
   ].filter(item => item.value > 0);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 text-foreground">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           광고 수익성 분석 도구
         </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
           판매가와 원가를 입력하면 광고비를 제외한 최종 순이익과 광고 효율(ROAS)을 자동으로 계산해드려요
         </p>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 상품명 또는 목표
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={productName}
@@ -247,12 +296,12 @@ export default function BudgetCalculatorPage() {
                     setProductName(e.target.value);
                   }}
                   placeholder="예: 스마트폰 케이스, 온라인 강의 등"
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                  className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
                 <button
                   onClick={handleAIEstimate}
                   disabled={isLoading || !productName.trim()}
-                  className="px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium whitespace-nowrap shadow-md hover:shadow-lg"
+                  className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium whitespace-nowrap shadow-sm hover:shadow text-sm sm:text-base"
                   title="AI로 광고 예산 정보 자동 입력"
                 >
                   {isLoading ? 'AI 분석 중...' : '🤖 AI 추정'}
@@ -261,7 +310,7 @@ export default function BudgetCalculatorPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 <InfoTooltip text="상품을 고객에게 판매하는 가격이에요. 예를 들어 상품을 10,000원에 판다면 판매가는 10,000원이에요.">
                   상품 판매가 (원)
                 </InfoTooltip>
@@ -275,12 +324,12 @@ export default function BudgetCalculatorPage() {
                   setSellingPrice(value);
                 }}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 <InfoTooltip text="상품을 만들거나 구매하는데 드는 비용이에요. 배송비도 포함해서 입력하세요. 예를 들어 상품 원가가 5,000원이고 배송비가 1,000원이면 총 6,000원을 입력하세요.">
                   상품 원가 (개당 배송비 포함, 원)
                 </InfoTooltip>
@@ -294,12 +343,12 @@ export default function BudgetCalculatorPage() {
                   setCost(value);
                 }}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 <InfoTooltip text="이번 광고로 몇 명의 고객을 얻고 싶은지 목표 수예요. 예를 들어 10명의 고객을 얻고 싶다면 목표 전환수는 10이에요.">
                   목표 전환수
                 </InfoTooltip>
@@ -313,12 +362,12 @@ export default function BudgetCalculatorPage() {
                   setTargetConversions(value);
                 }}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 <InfoTooltip text="광고를 클릭한 사람 1명당 내야 하는 비용이에요. 예를 들어 광고비 10,000원으로 100번 클릭을 받았다면 CPC는 100원이에요.">
                   예상 클릭당 비용 (CPC, 원)
                 </InfoTooltip>
@@ -332,12 +381,12 @@ export default function BudgetCalculatorPage() {
                   setCpc(value);
                 }}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 <InfoTooltip text="광고를 본 사람 중에서 실제로 구매한 사람의 비율이에요. 예를 들어 100명이 봤는데 5명이 샀다면 전환율은 5%예요.">
                   예상 전환율 (%)
                 </InfoTooltip>
@@ -352,13 +401,13 @@ export default function BudgetCalculatorPage() {
                   setConversionRate(value);
                 }}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <button
               onClick={handleCalculate}
-              className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-sm hover:shadow text-sm sm:text-base"
             >
               계산하기
             </button>
@@ -368,10 +417,10 @@ export default function BudgetCalculatorPage() {
             <div className="mt-8 space-y-4">
               {/* 최종 순이익 강조 표시 */}
               {(sellingPrice > 0 && targetConversions > 0 && cpc > 0 && conversionRate > 0) && (
-                <div className={`p-6 sm:p-8 rounded-2xl border-2 shadow-lg ${
+                <div className={`p-6 sm:p-8 rounded-2xl border shadow-sm ${
                   finalProfit >= 0 
-                    ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700' 
-                    : 'bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700'
+                    ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' 
+                    : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
                 }`}>
                   <div className="text-center">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
@@ -385,7 +434,7 @@ export default function BudgetCalculatorPage() {
                       {finalProfit >= 0 ? '+' : ''}{finalProfit.toLocaleString('ko-KR')} 원
                     </p>
                     {finalProfit < 0 && (
-                      <div className="mt-4 p-4 bg-red-100 dark:bg-red-900/50 rounded-xl border border-red-300 dark:border-red-700">
+                      <div className="mt-4 p-4 bg-red-100 dark:bg-red-900/30 rounded-xl border border-red-200 dark:border-red-800 shadow-sm">
                         <p className="text-red-800 dark:text-red-200 font-semibold text-sm sm:text-base">
                           ⚠️ 현재 구조로는 손해가 발생할 수 있어요
                         </p>
@@ -399,32 +448,32 @@ export default function BudgetCalculatorPage() {
               )}
 
               {/* 상세 계산 결과 */}
-              <div className="p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
+              <div className="p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   📊 상세 계산 결과
                 </h3>
                 <div className="space-y-3 text-sm sm:text-base">
                   <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                     <span className="text-gray-700 dark:text-gray-300">예상 매출:</span>
-                    <span className="font-semibold text-foreground">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {expectedRevenue > 0 ? expectedRevenue.toLocaleString('ko-KR') : '-'} 원
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                     <span className="text-gray-700 dark:text-gray-300">필요한 클릭수:</span>
-                    <span className="font-semibold text-foreground">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {requiredClicks > 0 ? Math.ceil(requiredClicks).toLocaleString('ko-KR') : '-'} 회
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                     <span className="text-gray-700 dark:text-gray-300">필요 광고비:</span>
-                    <span className="font-semibold text-foreground">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {requiredBudget > 0 ? Math.ceil(requiredBudget).toLocaleString('ko-KR') : '-'} 원
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                     <span className="text-gray-700 dark:text-gray-300">총 원가:</span>
-                    <span className="font-semibold text-foreground">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {totalCost > 0 ? totalCost.toLocaleString('ko-KR') : '-'} 원
                     </span>
                   </div>
@@ -450,7 +499,7 @@ export default function BudgetCalculatorPage() {
                 <button
                   onClick={handleAIAnalysis}
                   disabled={isAnalyzing}
-                  className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                  className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow text-sm sm:text-base"
                 >
                   {isAnalyzing ? (
                     <>
@@ -472,7 +521,7 @@ export default function BudgetCalculatorPage() {
                   <div className="flex justify-end">
                     <button
                       onClick={handleDownloadAnalysis}
-                      className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base"
+                      className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-sm hover:shadow text-sm sm:text-base"
                       title="AI 분석 결과 다운로드"
                     >
                       <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -483,8 +532,8 @@ export default function BudgetCalculatorPage() {
                   </div>
                   
                   {/* 시각화 차트 */}
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-purple-200 dark:border-purple-700">
-                    <h3 className="text-xl font-semibold mb-4 text-foreground">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-gray-900/30">
+                    <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-gray-900 dark:text-gray-100">
                       📊 데이터 시각화
                     </h3>
                     
@@ -492,23 +541,31 @@ export default function BudgetCalculatorPage() {
                       {/* 예산 구조 막대 차트 */}
                       {budgetBreakdownData.length > 0 && (
                         <div>
-                          <h4 className="text-lg font-semibold mb-3 text-foreground">
+                          <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                             예산 구조 분석
                           </h4>
-                          <ResponsiveContainer width="100%" height={300}>
+                          <ResponsiveContainer width="100%" height={chartHeight}>
                             <BarChart data={budgetBreakdownData}>
                               <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.2} />
-                              <XAxis dataKey="name" tick={{ fill: 'currentColor', fontSize: 12 }} stroke="currentColor" />
+                              <XAxis 
+                                dataKey="name" 
+                                tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
+                                stroke="currentColor"
+                                angle={isMobile ? -45 : 0}
+                                textAnchor={isMobile ? 'end' : 'middle'}
+                                height={isMobile ? 60 : 30}
+                              />
                               <YAxis 
-                                tick={{ fill: 'currentColor', fontSize: 12 }} 
+                                tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
                                 stroke="currentColor"
                                 tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                               />
                               <Tooltip 
                                 contentStyle={{ 
-                                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                  border: '1px solid #ccc',
-                                  borderRadius: '8px'
+                                  backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                  border: isDarkMode ? '1px solid #4b5563' : '1px solid #ccc',
+                                  borderRadius: '8px',
+                                  color: isDarkMode ? '#f3f4f6' : '#111827'
                                 }}
                                 formatter={(value: number) => `${value.toLocaleString('ko-KR')}원`}
                               />
@@ -517,7 +574,9 @@ export default function BudgetCalculatorPage() {
                                   <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                               </Bar>
-                              <Legend />
+                              <Legend 
+                                wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                              />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
@@ -526,10 +585,10 @@ export default function BudgetCalculatorPage() {
                       {/* 전환 흐름 파이 차트 */}
                       {conversionFlowData.length > 0 && (
                         <div>
-                          <h4 className="text-lg font-semibold mb-3 text-foreground">
+                          <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                             전환 흐름 분석
                           </h4>
-                          <ResponsiveContainer width="100%" height={300}>
+                          <ResponsiveContainer width="100%" height={chartHeight}>
                             <PieChart>
                               <Pie
                                 data={conversionFlowData}
@@ -547,13 +606,16 @@ export default function BudgetCalculatorPage() {
                               </Pie>
                               <Tooltip 
                                 contentStyle={{ 
-                                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                  border: '1px solid #ccc',
-                                  borderRadius: '8px'
+                                  backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                  border: isDarkMode ? '1px solid #4b5563' : '1px solid #ccc',
+                                  borderRadius: '8px',
+                                  color: isDarkMode ? '#f3f4f6' : '#111827'
                                 }}
                                 formatter={(value: number) => `${value.toLocaleString('ko-KR')}`}
                               />
-                              <Legend />
+                              <Legend 
+                                wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                              />
                             </PieChart>
                           </ResponsiveContainer>
                         </div>
@@ -562,23 +624,31 @@ export default function BudgetCalculatorPage() {
                       {/* 비용 분석 막대 차트 */}
                       {costAnalysisData.length > 0 && (
                         <div>
-                          <h4 className="text-lg font-semibold mb-3 text-foreground">
+                          <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                             비용 분석
                           </h4>
-                          <ResponsiveContainer width="100%" height={300}>
+                          <ResponsiveContainer width="100%" height={chartHeight}>
                             <BarChart data={costAnalysisData}>
                               <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.2} />
-                              <XAxis dataKey="name" tick={{ fill: 'currentColor', fontSize: 12 }} stroke="currentColor" />
+                              <XAxis 
+                                dataKey="name" 
+                                tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
+                                stroke="currentColor"
+                                angle={isMobile ? -45 : 0}
+                                textAnchor={isMobile ? 'end' : 'middle'}
+                                height={isMobile ? 60 : 30}
+                              />
                               <YAxis 
-                                tick={{ fill: 'currentColor', fontSize: 12 }} 
+                                tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
                                 stroke="currentColor"
                                 tickFormatter={(value) => `${value.toLocaleString('ko-KR')}원`}
                               />
                               <Tooltip 
                                 contentStyle={{ 
-                                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                  border: '1px solid #ccc',
-                                  borderRadius: '8px'
+                                  backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                  border: isDarkMode ? '1px solid #4b5563' : '1px solid #ccc',
+                                  borderRadius: '8px',
+                                  color: isDarkMode ? '#f3f4f6' : '#111827'
                                 }}
                                 formatter={(value: number) => `${value.toLocaleString('ko-KR')}원`}
                               />
@@ -587,7 +657,9 @@ export default function BudgetCalculatorPage() {
                                   <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                               </Bar>
-                              <Legend />
+                              <Legend 
+                                wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                              />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
@@ -596,7 +668,7 @@ export default function BudgetCalculatorPage() {
                   </div>
 
                   {/* AI 텍스트 분석 결과 */}
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-purple-200 dark:border-purple-700">
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600 shadow-sm">
                     <div 
                       className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
                       dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis) }}
@@ -608,8 +680,8 @@ export default function BudgetCalculatorPage() {
           )}
         </div>
 
-        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
-          <h2 className="text-xl font-semibold mb-3 text-foreground">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-gray-100">
             계산 공식 안내
           </h2>
           <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
@@ -632,7 +704,7 @@ export default function BudgetCalculatorPage() {
               <strong>광고 효율 (ROAS)</strong> = (예상 매출 ÷ 필요 광고비) × 100
             </li>
           </ul>
-          <div className="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-800">
+          <div className="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-sm">
             <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-200">
               💡 <strong>ROAS 해석:</strong> 100% 이상이면 광고가 수익을 내고 있다는 뜻이에요. 200% 이상이면 매우 효율적인 광고예요!
             </p>
