@@ -160,6 +160,23 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Google Analytics (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-YKRVFJM5V1"
+          strategy="afterInteractive"
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-YKRVFJM5V1');
+            `,
+          }}
+        />
         <ThemeProvider>
           <PWAServiceWorker />
           {/* 전체 페이지 레이아웃: Header, Main, Footer 구조 */}
