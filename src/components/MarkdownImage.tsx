@@ -175,6 +175,7 @@ export default function MarkdownImage({ src, alt, ...props }: MarkdownImageProps
         </div>
       ) : (
         <div className="relative w-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             key={`${proxySrc}-${retryCount}`}
             src={proxySrc}

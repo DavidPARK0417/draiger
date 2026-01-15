@@ -11,6 +11,16 @@ interface AdFitProps {
   onFail?: (element: HTMLElement) => void;
 }
 
+// Window 객체에 kakao 속성 추가를 위한 타입 확장
+interface WindowWithKakao extends Window {
+  kakao?: {
+    ads: {
+      display: () => void;
+    };
+  };
+  [key: string]: unknown;
+}
+
 /**
  * 카카오 애드핏 광고 컴포넌트
  * 
@@ -54,7 +64,8 @@ export default function AdFit({
       callbackNameRef.current = callbackName;
 
       // 전역 함수로 등록
-      (window as any)[callbackName] = (element: HTMLElement) => {
+      const windowWithKakao = window as WindowWithKakao;
+      windowWithKakao[callbackName] = (element: HTMLElement) => {
         console.log("[AdFit] 광고 로드 실패 - NO-AD 콜백 실행", {
           unitId,
           element,
@@ -65,17 +76,19 @@ export default function AdFit({
 
     return () => {
       // 컴포넌트 언마운트 시 전역 함수 정리
-      if (callbackNameRef.current && (window as any)[callbackNameRef.current]) {
-        delete (window as any)[callbackNameRef.current];
+      const windowWithKakao = window as WindowWithKakao;
+      if (callbackNameRef.current && windowWithKakao[callbackNameRef.current]) {
+        delete windowWithKakao[callbackNameRef.current];
       }
     };
   }, [onFail, unitId]);
 
   useEffect(() => {
     // 광고 스크립트가 로드된 후 실행
-    if (typeof window !== "undefined" && (window as any).kakao) {
+    const windowWithKakao = window as WindowWithKakao;
+    if (typeof window !== "undefined" && windowWithKakao.kakao) {
       try {
-        (window as any).kakao.ads.display();
+        windowWithKakao.kakao.ads.display();
         console.log("[AdFit] 광고 표시 시도", { unitId, width, height });
       } catch (error) {
         console.error("[AdFit] 광고 표시 오류:", error);
@@ -90,7 +103,7 @@ export default function AdFit({
   return (
     <div className={`adfit-container ${className}`}>
       <ins
-        ref={adElementRef as any}
+        ref={adElementRef as React.LegacyRef<HTMLElement>}
         className="kakao_ad_area"
         style={{ display: "none", width: "100%" }}
         data-ad-unit={unitId}
@@ -106,9 +119,10 @@ export default function AdFit({
         strategy="lazyOnload"
         onLoad={() => {
           // 스크립트 로드 완료 후 광고 표시
-          if (typeof window !== "undefined" && (window as any).kakao) {
+          const windowWithKakao = window as WindowWithKakao;
+          if (typeof window !== "undefined" && windowWithKakao.kakao) {
             try {
-              (window as any).kakao.ads.display();
+              windowWithKakao.kakao.ads.display();
               console.log("[AdFit] 스크립트 로드 완료 - 광고 표시", {
                 unitId,
                 width,
