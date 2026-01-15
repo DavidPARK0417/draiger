@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -52,6 +52,53 @@ export default function AdPerformancePage() {
   const [loadingProductId, setLoadingProductId] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [chartHeight, setChartHeight] = useState(300);
+  const [chartFontSize, setChartFontSize] = useState(12);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // 화면 크기에 따라 차트 높이 및 폰트 크기 조정
+  useEffect(() => {
+    const updateChartSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setChartHeight(200); // 모바일
+        setChartFontSize(10);
+        setIsMobile(true);
+      } else if (width < 1024) {
+        setChartHeight(250); // 태블릿
+        setChartFontSize(11);
+        setIsMobile(false);
+      } else {
+        setChartHeight(300); // 데스크탑
+        setChartFontSize(12);
+        setIsMobile(false);
+      }
+    };
+
+    // 다크모드 감지 함수
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+
+    updateChartSize();
+    checkDarkMode();
+
+    // 리사이즈 이벤트 리스너
+    window.addEventListener('resize', updateChartSize);
+    
+    // 다크모드 변경 감지를 위한 MutationObserver
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateChartSize);
+      observer.disconnect();
+    };
+  }, []);
 
   // 계산 함수
   const calculateMetrics = (product: Product): CalculatedResult => {
@@ -290,7 +337,7 @@ export default function AdPerformancePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           광고 성과 계산 도구
@@ -299,166 +346,315 @@ export default function AdPerformancePage() {
           여러 상품의 광고 성과를 비교하고 최적의 상품을 찾아보세요
         </p>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8 overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-gray-300 dark:border-gray-700">
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">상품명</th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">판매가</th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
-                  <InfoTooltip text="상품 1개를 팔았을 때 실제로 남는 돈이에요. (판매가 - 원가)로 계산해요.">
-                    개당 순이익
-                  </InfoTooltip>
-                </th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">광고비</th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
-                  <InfoTooltip text="광고를 보고 실제로 구매한 사람 수예요. 예를 들어 100명이 봤는데 5명이 샀다면 전환수는 5예요.">
-                    전환수
-                  </InfoTooltip>
-                </th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">매출</th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
-                  <InfoTooltip text="광고비 1원당 벌어들인 매출액이에요. 예를 들어 ROAS가 3배면 광고비 1원에 매출 3원을 벌었다는 뜻이에요.">
-                    ROAS
-                  </InfoTooltip>
-                </th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
-                  <InfoTooltip text="투자한 광고비 대비 얼마나 이익을 냈는지 보여주는 지표예요. 100%면 광고비만큼 이익을 냈다는 뜻이에요.">
-                    ROI (%)
-                  </InfoTooltip>
-                </th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">순이익</th>
-                <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">삭제</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product) => {
-                const result = calculatedResults.get(product.id);
-                const isBest = bestProductId === product.id && isCalculated;
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8 overflow-x-auto">
+          {/* 데스크탑 테이블 뷰 */}
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="w-full border-collapse min-w-[1000px]">
+              <thead>
+                <tr className="border-b border-gray-300 dark:border-gray-700">
+                  <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">상품명</th>
+                  <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">판매가</th>
+                  <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
+                    <InfoTooltip text="상품 1개를 팔았을 때 실제로 남는 돈이에요. (판매가 - 원가)로 계산해요.">
+                      개당 순이익
+                    </InfoTooltip>
+                  </th>
+                  <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">광고비</th>
+                  <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
+                    <InfoTooltip text="광고를 보고 실제로 구매한 사람 수예요. 예를 들어 100명이 봤는데 5명이 샀다면 전환수는 5예요.">
+                      전환수
+                    </InfoTooltip>
+                  </th>
+                  <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">매출</th>
+                  <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
+                    <InfoTooltip text="광고비 1원당 벌어들인 매출액이에요. 예를 들어 ROAS가 3배면 광고비 1원에 매출 3원을 벌었다는 뜻이에요.">
+                      ROAS
+                    </InfoTooltip>
+                  </th>
+                  <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">
+                    <InfoTooltip text="투자한 광고비 대비 얼마나 이익을 냈는지 보여주는 지표예요. 100%면 광고비만큼 이익을 냈다는 뜻이에요.">
+                      ROI (%)
+                    </InfoTooltip>
+                  </th>
+                  <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">순이익</th>
+                  <th className="text-left p-3 font-semibold text-sm text-gray-900 dark:text-gray-100">삭제</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((product) => {
+                  const result = calculatedResults.get(product.id);
+                  const isBest = bestProductId === product.id && isCalculated;
 
-                return (
-                  <tr
-                    key={product.id}
-                    className={`border-b border-gray-200 dark:border-gray-800 transition-colors ${
-                      isBest
-                        ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-400 dark:border-yellow-600'
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                    }`}
-                  >
-                    <td className="p-3">
+                  return (
+                    <tr
+                      key={product.id}
+                      className={`border-b border-gray-200 dark:border-gray-800 transition-colors ${
+                        isBest
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-400 dark:border-yellow-600'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                      }`}
+                    >
+                      <td className="p-3">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={product.name}
+                            onChange={(e) => handleNameChange(product.id, e.target.value)}
+                            placeholder="상품명 입력"
+                            className="flex-1 px-2 py-1 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                          />
+                          <button
+                            onClick={() => handleAIEstimate(product.id)}
+                            disabled={loadingProductId === product.id || !product.name.trim()}
+                            className="px-3 py-1 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs whitespace-nowrap transition-all duration-300 shadow-sm hover:shadow"
+                            title="AI로 상품 정보 자동 입력"
+                          >
+                            {loadingProductId === product.id ? 'AI 분석 중...' : '🤖 AI 추정'}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="number"
+                          value={product.price || ''}
+                          onChange={(e) =>
+                            handleInputChange(product.id, 'price', e.target.value)
+                          }
+                          placeholder="0"
+                          className="w-full px-2 py-1 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="number"
+                          value={product.profitPerUnit || ''}
+                          onChange={(e) =>
+                            handleInputChange(
+                              product.id,
+                              'profitPerUnit',
+                              e.target.value
+                            )
+                          }
+                          placeholder="0"
+                          className="w-full px-2 py-1 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="number"
+                          value={product.adCost || ''}
+                          onChange={(e) =>
+                            handleInputChange(product.id, 'adCost', e.target.value)
+                          }
+                          placeholder="0"
+                          className="w-full px-2 py-1 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        />
+                      </td>
+                      <td className="p-3">
+                        <input
+                          type="number"
+                          value={product.conversions || ''}
+                          onChange={(e) =>
+                            handleInputChange(
+                              product.id,
+                              'conversions',
+                              e.target.value
+                            )
+                          }
+                          placeholder="0"
+                          className="w-full px-2 py-1 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        />
+                      </td>
+                      <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
+                        {result
+                          ? result.revenue.toLocaleString('ko-KR')
+                          : '-'}
+                      </td>
+                      <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
+                        {result ? `${(result.roas * 100).toFixed(2)}%` : '-'}
+                      </td>
+                      <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
+                        {result
+                          ? `${result.roi.toFixed(2)}%`
+                          : '-'}
+                      </td>
+                      <td className="p-3 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        {result
+                          ? result.netProfit.toLocaleString('ko-KR')
+                          : '-'}
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => handleDeleteRow(product.id)}
+                          disabled={products.length === 1}
+                          className="px-3 py-1 bg-red-500 dark:bg-red-600 text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm transition-all duration-300 shadow-sm hover:shadow"
+                        >
+                          삭제
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 모바일/태블릿 카드 뷰 */}
+          <div className="lg:hidden space-y-4">
+            {products.map((product) => {
+              const result = calculatedResults.get(product.id);
+              const isBest = bestProductId === product.id && isCalculated;
+
+              return (
+                <div
+                  key={product.id}
+                  className={`bg-white dark:bg-gray-800 rounded-xl p-4 border transition-all duration-300 shadow-sm ${
+                    isBest
+                      ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20'
+                      : 'border-gray-200 dark:border-gray-700'
+                  }`}
+                >
+                  <div className="space-y-3">
+                    {/* 상품명 및 AI 추정 */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">상품명</label>
                       <div className="flex gap-2">
                         <input
                           type="text"
                           value={product.name}
                           onChange={(e) => handleNameChange(product.id, e.target.value)}
                           placeholder="상품명 입력"
-                          className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
+                          className="flex-1 px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                         />
                         <button
                           onClick={() => handleAIEstimate(product.id)}
                           disabled={loadingProductId === product.id || !product.name.trim()}
-                          className="px-3 py-1 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg"
+                          className="px-3 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg"
                           title="AI로 상품 정보 자동 입력"
                         >
-                          {loadingProductId === product.id ? 'AI 분석 중...' : '🤖 AI 추정'}
+                          {loadingProductId === product.id ? 'AI 분석 중...' : '🤖 AI'}
                         </button>
                       </div>
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="number"
-                        value={product.price || ''}
-                        onChange={(e) =>
-                          handleInputChange(product.id, 'price', e.target.value)
-                        }
-                        placeholder="0"
-                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
-                      />
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="number"
-                        value={product.profitPerUnit || ''}
-                        onChange={(e) =>
-                          handleInputChange(
-                            product.id,
-                            'profitPerUnit',
-                            e.target.value
-                          )
-                        }
-                        placeholder="0"
-                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
-                      />
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="number"
-                        value={product.adCost || ''}
-                        onChange={(e) =>
-                          handleInputChange(product.id, 'adCost', e.target.value)
-                        }
-                        placeholder="0"
-                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
-                      />
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="number"
-                        value={product.conversions || ''}
-                        onChange={(e) =>
-                          handleInputChange(
-                            product.id,
-                            'conversions',
-                            e.target.value
-                          )
-                        }
-                        placeholder="0"
-                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
-                      />
-                    </td>
-                    <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
-                      {result
-                        ? result.revenue.toLocaleString('ko-KR')
-                        : '-'}
-                    </td>
-                    <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
-                      {result ? `${(result.roas * 100).toFixed(2)}%` : '-'}
-                    </td>
-                    <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
-                      {result
-                        ? `${result.roi.toFixed(2)}%`
-                        : '-'}
-                    </td>
-                    <td className="p-3 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                      {result
-                        ? result.netProfit.toLocaleString('ko-KR')
-                        : '-'}
-                    </td>
-                    <td className="p-3">
+                    </div>
+
+                    {/* 입력 필드 그리드 */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">판매가</label>
+                        <input
+                          type="number"
+                          value={product.price || ''}
+                          onChange={(e) => handleInputChange(product.id, 'price', e.target.value)}
+                          placeholder="0"
+                          className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                          <InfoTooltip text="상품 1개를 팔았을 때 실제로 남는 돈이에요. (판매가 - 원가)로 계산해요.">
+                            개당 순이익
+                          </InfoTooltip>
+                        </label>
+                        <input
+                          type="number"
+                          value={product.profitPerUnit || ''}
+                          onChange={(e) => handleInputChange(product.id, 'profitPerUnit', e.target.value)}
+                          placeholder="0"
+                          className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">광고비</label>
+                        <input
+                          type="number"
+                          value={product.adCost || ''}
+                          onChange={(e) => handleInputChange(product.id, 'adCost', e.target.value)}
+                          placeholder="0"
+                          className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                          <InfoTooltip text="광고를 보고 실제로 구매한 사람 수예요. 예를 들어 100명이 봤는데 5명이 샀다면 전환수는 5예요.">
+                            전환수
+                          </InfoTooltip>
+                        </label>
+                        <input
+                          type="number"
+                          value={product.conversions || ''}
+                          onChange={(e) => handleInputChange(product.id, 'conversions', e.target.value)}
+                          placeholder="0"
+                          className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        />
+                      </div>
+                    </div>
+
+                    {/* 계산 결과 */}
+                    {result && (
+                      <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">매출:</span>
+                            <span className="ml-2 font-semibold text-gray-900 dark:text-gray-100">
+                              {result.revenue.toLocaleString('ko-KR')}원
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">
+                              <InfoTooltip text="광고비 1원당 벌어들인 매출액이에요. 예를 들어 ROAS가 3배면 광고비 1원에 매출 3원을 벌었다는 뜻이에요.">
+                                ROAS:
+                              </InfoTooltip>
+                            </span>
+                            <span className="ml-2 font-semibold text-gray-900 dark:text-gray-100">
+                              {(result.roas * 100).toFixed(2)}%
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">
+                              <InfoTooltip text="투자한 광고비 대비 얼마나 이익을 냈는지 보여주는 지표예요. 100%면 광고비만큼 이익을 냈다는 뜻이에요.">
+                                ROI:
+                              </InfoTooltip>
+                            </span>
+                            <span className="ml-2 font-semibold text-gray-900 dark:text-gray-100">
+                              {result.roi.toFixed(2)}%
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">순이익:</span>
+                            <span className="ml-2 font-semibold text-emerald-600 dark:text-emerald-400">
+                              {result.netProfit.toLocaleString('ko-KR')}원
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 삭제 버튼 */}
+                    <div className="pt-2">
                       <button
                         onClick={() => handleDeleteRow(product.id)}
                         disabled={products.length === 1}
-                        className="px-3 py-1 bg-red-500 dark:bg-red-600 text-white rounded-xl hover:bg-red-600 dark:hover:bg-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm transition-all duration-300 shadow-md hover:shadow-lg"
+                        className="w-full px-4 py-2.5 bg-red-500 dark:bg-red-600 text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium transition-all duration-300 shadow-sm hover:shadow"
                       >
                         삭제
                       </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-          <div className="mt-6 flex gap-3 flex-wrap">
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleAddRow}
-              className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 font-medium shadow-sm hover:shadow text-sm sm:text-base border border-gray-200 dark:border-gray-600"
             >
               행 추가
             </button>
             <button
               onClick={handleCalculate}
-              className="px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-sm hover:shadow text-sm sm:text-base"
             >
               계산하기
             </button>
@@ -466,7 +662,7 @@ export default function AdPerformancePage() {
               <button
                 onClick={handleAIAnalysis}
                 disabled={isAnalyzing}
-                className="px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                className="w-full sm:w-auto px-4 py-2.5 sm:py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base"
               >
                 {isAnalyzing ? (
                   <>
@@ -483,14 +679,14 @@ export default function AdPerformancePage() {
           </div>
 
           {isCalculated && bestProductId && (
-            <div className="mt-6 p-4 sm:p-6 bg-amber-100 dark:bg-amber-900/30 border-l-4 border-amber-400 dark:border-amber-600 rounded-xl shadow-md">
-              <p className="text-sm sm:text-base font-semibold text-amber-800 dark:text-amber-200">
+            <div className="mt-6 p-4 sm:p-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+              <p className="text-sm sm:text-base font-semibold text-amber-900 dark:text-amber-200">
                 🏆 최고 순이익 상품:{' '}
                 <span className="text-base sm:text-lg">
                   {products.find((p) => p.id === bestProductId)?.name}
                 </span>
               </p>
-              <p className="text-xs sm:text-sm text-amber-700 dark:text-amber-300 mt-1">
+              <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300 mt-1">
                 순이익:{' '}
                 {calculatedResults
                   .get(bestProductId)
@@ -502,11 +698,11 @@ export default function AdPerformancePage() {
         </div>
 
         {isCalculated && bestProductId && (
-          <div className="mt-6 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl p-6 sm:p-8 border border-emerald-200 dark:border-emerald-800 shadow-md dark:shadow-gray-900/50">
-            <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-emerald-900 dark:text-emerald-100">
+          <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-gray-900/30">
+            <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
               📊 결과 해석
             </h2>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-700">
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600">
               <p className="text-base sm:text-lg leading-relaxed text-gray-800 dark:text-gray-200">
                 <strong className="text-emerald-600 dark:text-emerald-400">
                   {products.find((p) => p.id === bestProductId)?.name}
@@ -528,7 +724,7 @@ export default function AdPerformancePage() {
               </p>
               {calculatedResults.get(bestProductId) && (
                 <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                     <div>
                       <span className="text-gray-600 dark:text-gray-400">매출:</span>
                       <span className="ml-2 font-semibold text-gray-800 dark:text-gray-200">
@@ -556,14 +752,14 @@ export default function AdPerformancePage() {
         )}
 
         {aiAnalysis && (
-          <div className="mt-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-2xl p-6 sm:p-8 border border-emerald-200 dark:border-emerald-800 shadow-md dark:shadow-gray-900/50">
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
+          <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-gray-900/30">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
                 🤖 AI 종합 분석 결과
               </h2>
               <button
                 onClick={handleDownloadAnalysis}
-                className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base"
+                className="w-full sm:w-auto px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow text-sm sm:text-base"
                 title="AI 분석 결과 다운로드"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -574,21 +770,21 @@ export default function AdPerformancePage() {
             </div>
             
             {/* 비교 분석 시각화 섹션 */}
-            <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-700">
+            <div className="mb-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600">
               <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
                 📊 상품별 성과 비교
               </h3>
               
               {/* CSS 기반 비교 표 */}
               <div className="overflow-x-auto mb-6">
-                <table className="w-full border-collapse text-sm">
+                <table className="w-full border-collapse text-xs sm:text-sm min-w-[500px]">
                   <thead>
                     <tr className="border-b border-gray-300 dark:border-gray-700">
-                      <th className="text-left p-3 font-semibold text-gray-900 dark:text-gray-100">상품명</th>
-                      <th className="text-right p-3 font-semibold text-gray-900 dark:text-gray-100">순이익</th>
-                      <th className="text-right p-3 font-semibold text-gray-900 dark:text-gray-100">ROI</th>
-                      <th className="text-right p-3 font-semibold text-gray-900 dark:text-gray-100">ROAS</th>
-                      <th className="text-right p-3 font-semibold text-gray-900 dark:text-gray-100">매출</th>
+                      <th className="text-left p-2 sm:p-3 font-semibold text-gray-900 dark:text-gray-100">상품명</th>
+                      <th className="text-right p-2 sm:p-3 font-semibold text-gray-900 dark:text-gray-100">순이익</th>
+                      <th className="text-right p-2 sm:p-3 font-semibold text-gray-900 dark:text-gray-100">ROI</th>
+                      <th className="text-right p-2 sm:p-3 font-semibold text-gray-900 dark:text-gray-100">ROAS</th>
+                      <th className="text-right p-2 sm:p-3 font-semibold text-gray-900 dark:text-gray-100">매출</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -604,20 +800,20 @@ export default function AdPerformancePage() {
                             isBest ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''
                           }`}
                         >
-                          <td className="p-3 font-medium text-gray-900 dark:text-gray-100">
+                          <td className="p-2 sm:p-3 font-medium text-gray-900 dark:text-gray-100">
                             {product.name}
-                            {isBest && <span className="ml-2 text-yellow-600 dark:text-yellow-400">🏆</span>}
+                            {isBest && <span className="ml-1 sm:ml-2 text-yellow-600 dark:text-yellow-400">🏆</span>}
                           </td>
-                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">
+                          <td className="p-2 sm:p-3 text-right text-gray-900 dark:text-gray-100">
                             {result.netProfit.toLocaleString('ko-KR')}원
                           </td>
-                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">
+                          <td className="p-2 sm:p-3 text-right text-gray-900 dark:text-gray-100">
                             {result.roi.toFixed(2)}%
                           </td>
-                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">
+                          <td className="p-2 sm:p-3 text-right text-gray-900 dark:text-gray-100">
                             {result.roas.toFixed(2)}배
                           </td>
-                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">
+                          <td className="p-2 sm:p-3 text-right text-gray-900 dark:text-gray-100">
                             {result.revenue.toLocaleString('ko-KR')}원
                           </td>
                         </tr>
@@ -745,7 +941,7 @@ export default function AdPerformancePage() {
                         <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                           순이익 및 ROI 비교
                         </h4>
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={chartHeight}>
                           <BarChart data={chartData}>
                             <CartesianGrid 
                               strokeDasharray="3 3" 
@@ -754,25 +950,29 @@ export default function AdPerformancePage() {
                             />
                             <XAxis 
                               dataKey="name" 
-                              tick={{ fill: 'currentColor', fontSize: 12 }}
+                              tick={{ fill: 'currentColor', fontSize: chartFontSize }}
                               stroke="currentColor"
+                              angle={isMobile ? -45 : 0}
+                              textAnchor={isMobile ? 'end' : 'middle'}
+                              height={isMobile ? 60 : 30}
                             />
                             <YAxis 
                               yAxisId="left"
-                              tick={{ fill: 'currentColor', fontSize: 12 }}
+                              tick={{ fill: 'currentColor', fontSize: chartFontSize }}
                               stroke="currentColor"
                             />
                             <YAxis 
                               yAxisId="right" 
                               orientation="right"
-                              tick={{ fill: 'currentColor', fontSize: 12 }}
+                              tick={{ fill: 'currentColor', fontSize: chartFontSize }}
                               stroke="currentColor"
                             />
                             <Tooltip 
                               contentStyle={{ 
-                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                border: '1px solid #ccc',
-                                borderRadius: '8px'
+                                backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                border: isDarkMode ? '1px solid #4b5563' : '1px solid #ccc',
+                                borderRadius: '8px',
+                                color: isDarkMode ? '#f3f4f6' : '#111827'
                               }}
                               formatter={(value: number, name: string) => {
                                 if (name === '순이익' || name === '매출' || name === '광고비') {
@@ -801,7 +1001,9 @@ export default function AdPerformancePage() {
                               name="ROI (%)"
                               radius={[8, 8, 0, 0]}
                             />
-                            <Legend />
+                            <Legend 
+                              wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                            />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -811,7 +1013,7 @@ export default function AdPerformancePage() {
                         <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                           매출 및 광고비 추이
                         </h4>
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={chartHeight}>
                           <LineChart data={chartData}>
                             <CartesianGrid 
                               strokeDasharray="3 3" 
@@ -820,23 +1022,29 @@ export default function AdPerformancePage() {
                             />
                             <XAxis 
                               dataKey="name" 
-                              tick={{ fill: 'currentColor', fontSize: 12 }}
+                              tick={{ fill: 'currentColor', fontSize: chartFontSize }}
                               stroke="currentColor"
+                              angle={isMobile ? -45 : 0}
+                              textAnchor={isMobile ? 'end' : 'middle'}
+                              height={isMobile ? 60 : 30}
                             />
                             <YAxis 
-                              tick={{ fill: 'currentColor', fontSize: 12 }}
+                              tick={{ fill: 'currentColor', fontSize: chartFontSize }}
                               stroke="currentColor"
                               tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                             />
                             <Tooltip 
                               contentStyle={{ 
-                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                border: '1px solid #ccc',
-                                borderRadius: '8px'
+                                backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                border: isDarkMode ? '1px solid #4b5563' : '1px solid #ccc',
+                                borderRadius: '8px',
+                                color: isDarkMode ? '#f3f4f6' : '#111827'
                               }}
                               formatter={(value: number) => `${value.toLocaleString('ko-KR')}원`}
                             />
-                            <Legend />
+                            <Legend 
+                              wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                            />
                             <Line 
                               type="monotone" 
                               dataKey="매출" 
@@ -862,7 +1070,7 @@ export default function AdPerformancePage() {
                         <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                           순이익 비율 분포
                         </h4>
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={chartHeight}>
                           <PieChart>
                             <Pie
                               data={chartData}
@@ -883,13 +1091,16 @@ export default function AdPerformancePage() {
                             </Pie>
                             <Tooltip 
                               contentStyle={{ 
-                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                border: '1px solid #ccc',
-                                borderRadius: '8px'
+                                backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                border: isDarkMode ? '1px solid #4b5563' : '1px solid #ccc',
+                                borderRadius: '8px',
+                                color: isDarkMode ? '#f3f4f6' : '#111827'
                               }}
                               formatter={(value: number) => `${value.toLocaleString('ko-KR')}원`}
                             />
-                            <Legend />
+                            <Legend 
+                              wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                            />
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
@@ -900,7 +1111,7 @@ export default function AdPerformancePage() {
             </div>
 
             {/* AI 텍스트 분석 결과 */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-purple-200 dark:border-purple-700">
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
               <div 
                 className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis) }}
@@ -909,7 +1120,7 @@ export default function AdPerformancePage() {
           </div>
         )}
 
-        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
           <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-gray-100">
             계산 공식 안내
           </h2>
