@@ -7,6 +7,7 @@ import GrainOverlay from "@/components/GrainOverlay";
 import TextToSpeech from "@/components/TextToSpeech";
 import FormattedDate from "@/components/FormattedDate";
 import MarkdownImage from "@/components/MarkdownImage";
+import AdFit from "@/components/AdFit";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -142,6 +143,16 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
                 {post.metaDescription}
               </p>
             </header>
+
+            {/* 카카오 애드핏 광고 */}
+            <div className="mb-8 sm:mb-12 flex justify-center">
+              <AdFit
+                unitId="DAN-3zxEkFXjkDNH2T9G"
+                width={300}
+                height={250}
+                className="w-full max-w-[300px]"
+              />
+            </div>
 
             {/* 음성 읽기 컴포넌트 */}
             <TextToSpeech 
