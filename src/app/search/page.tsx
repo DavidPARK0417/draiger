@@ -176,7 +176,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   console.log("검색 결과:", allResults.length, "개");
 
   // 타입별 필터링
-  let typeFilteredResults =
+  const typeFilteredResults =
     searchType === "all"
       ? allResults
       : searchType === "insight"
