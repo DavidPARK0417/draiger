@@ -38,6 +38,13 @@ export default function ConversionCalculatorPage() {
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
   const [aiError, setAiError] = useState<string>('');
+  
+  // 차트 반응형 및 다크모드 상태
+  const [chartHeight, setChartHeight] = useState(300);
+  const [smallChartHeight, setSmallChartHeight] = useState(200);
+  const [chartFontSize, setChartFontSize] = useState(12);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // AI로 전환율 정보 추정
   const handleAIEstimate = async () => {
@@ -174,6 +181,52 @@ export default function ConversionCalculatorPage() {
     console.log('AI 분석 결과 다운로드 완료:', filename);
   };
 
+  // 화면 크기에 따라 차트 높이 및 폰트 크기 조정
+  useEffect(() => {
+    const updateChartSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setChartHeight(200); // 모바일
+        setSmallChartHeight(150);
+        setChartFontSize(10);
+        setIsMobile(true);
+      } else if (width < 1024) {
+        setChartHeight(250); // 태블릿
+        setSmallChartHeight(180);
+        setChartFontSize(11);
+        setIsMobile(false);
+      } else {
+        setChartHeight(300); // 데스크탑
+        setSmallChartHeight(200);
+        setChartFontSize(12);
+        setIsMobile(false);
+      }
+    };
+
+    // 다크모드 감지 함수
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+
+    updateChartSize();
+    checkDarkMode();
+
+    // 리사이즈 이벤트 리스너
+    window.addEventListener('resize', updateChartSize);
+    
+    // 다크모드 변경 감지를 위한 MutationObserver
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateChartSize);
+      observer.disconnect();
+    };
+  }, []);
+
   // 실시간 계산
   useEffect(() => {
     console.log('=== CRO 계산 시작 ===');
@@ -267,22 +320,22 @@ export default function ConversionCalculatorPage() {
 
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 text-foreground">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           CRO 전환율 최적화 계산기
         </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
           전환율 개선에 따른 월간/연간 예상 매출 증가액과 추가 확보 전환수를 실시간으로 계산하세요
         </p>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 상품명 또는 비즈니스 정보
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={productName}
@@ -291,12 +344,12 @@ export default function ConversionCalculatorPage() {
                     setProductName(e.target.value);
                   }}
                   placeholder="예: 스마트폰 케이스, 온라인 강의 등"
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                  className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
                 <button
                   onClick={handleAIEstimate}
                   disabled={isLoadingEstimate || !productName.trim()}
-                  className="px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium whitespace-nowrap shadow-md hover:shadow-lg"
+                  className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium whitespace-nowrap shadow-sm hover:shadow text-sm sm:text-base"
                   title="AI로 전환율 정보 자동 입력"
                 >
                   {isLoadingEstimate ? 'AI 분석 중...' : '🤖 AI 추정'}
@@ -305,7 +358,7 @@ export default function ConversionCalculatorPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 월간 방문자 수
               </label>
               <input
@@ -317,12 +370,12 @@ export default function ConversionCalculatorPage() {
                   setMonthlyVisitors(value);
                 }}
                 placeholder="예: 10000"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 현재 전환율 (%)
               </label>
               <input
@@ -340,7 +393,7 @@ export default function ConversionCalculatorPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 개선된 전환율 (%)
               </label>
               <input
@@ -358,7 +411,7 @@ export default function ConversionCalculatorPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 평균 주문 금액 (원)
               </label>
               <input
@@ -378,15 +431,15 @@ export default function ConversionCalculatorPage() {
           {hasValidInputs && (
             <div className="mt-8 space-y-6">
               {/* 데이터 요약 표 */}
-              <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
+              <div className="p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   📊 데이터 요약 비교표
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-200 dark:border-gray-700">
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">항목</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-gray-100">항목</th>
                         <th className="text-right py-3 px-4 font-semibold text-red-600 dark:text-red-400">현재</th>
                         <th className="text-right py-3 px-4 font-semibold text-green-600 dark:text-green-400">개선</th>
                         <th className="text-right py-3 px-4 font-semibold text-blue-600 dark:text-blue-400">차이</th>
@@ -395,7 +448,7 @@ export default function ConversionCalculatorPage() {
                     <tbody>
                       {summaryTableData.map((row, index) => (
                         <tr key={index} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                          <td className="py-3 px-4 text-foreground">{row.항목}</td>
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{row.항목}</td>
                           <td className="py-3 px-4 text-right text-gray-700 dark:text-gray-300">{row.현재}</td>
                           <td className="py-3 px-4 text-right text-gray-700 dark:text-gray-300">{row.개선}</td>
                           <td className="py-3 px-4 text-right font-semibold text-blue-600 dark:text-blue-400">{row.차이}</td>
@@ -407,22 +460,37 @@ export default function ConversionCalculatorPage() {
               </div>
 
               {/* 차트 섹션 */}
-              <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800 shadow-sm">
                 <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-6">
                   📈 시각화 차트
                 </h3>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                   {/* 전환율 비교 막대 차트 */}
-                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
-                    <h4 className="text-sm font-semibold mb-3 text-foreground">전환율 비교</h4>
-                    <ResponsiveContainer width="100%" height={200}>
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                    <h4 className="text-sm font-semibold mb-3 text-gray-900 dark:text-gray-100">전환율 비교</h4>
+                    <ResponsiveContainer width="100%" height={smallChartHeight}>
                       <BarChart data={conversionRateData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.2} />
-                        <XAxis dataKey="name" tick={{ fill: 'currentColor', fontSize: 12 }} stroke="currentColor" />
-                        <YAxis tick={{ fill: 'currentColor', fontSize: 12 }} stroke="currentColor" />
+                        <XAxis 
+                          dataKey="name" 
+                          tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
+                          stroke="currentColor"
+                          angle={isMobile ? -45 : 0}
+                          textAnchor={isMobile ? 'end' : 'middle'}
+                          height={isMobile ? 60 : 30}
+                        />
+                        <YAxis 
+                          tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
+                          stroke="currentColor"
+                        />
                         <Tooltip 
-                          contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e5e7eb' }}
+                          contentStyle={{ 
+                            backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                            border: isDarkMode ? '1px solid #4b5563' : '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            color: isDarkMode ? '#f3f4f6' : '#111827'
+                          }}
                           formatter={(value: number) => `${value.toFixed(2)}%`}
                         />
                         <Bar dataKey="value" radius={[8, 8, 0, 0]}>
@@ -435,9 +503,9 @@ export default function ConversionCalculatorPage() {
                   </div>
 
                   {/* 전환수 비교 파이 차트 */}
-                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
-                    <h4 className="text-sm font-semibold mb-3 text-foreground">전환수 비교</h4>
-                    <ResponsiveContainer width="100%" height={200}>
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                    <h4 className="text-sm font-semibold mb-3 text-gray-900 dark:text-gray-100">전환수 비교</h4>
+                    <ResponsiveContainer width="100%" height={smallChartHeight}>
                       <PieChart>
                         <Pie
                           data={conversionCountData}
@@ -454,7 +522,12 @@ export default function ConversionCalculatorPage() {
                           ))}
                         </Pie>
                         <Tooltip 
-                          contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e5e7eb' }}
+                          contentStyle={{ 
+                            backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                            border: isDarkMode ? '1px solid #4b5563' : '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            color: isDarkMode ? '#f3f4f6' : '#111827'
+                          }}
                           formatter={(value: number) => `${value.toFixed(0)}건`}
                         />
                       </PieChart>
@@ -463,52 +536,73 @@ export default function ConversionCalculatorPage() {
                 </div>
 
                 {/* 매출 비교 막대 차트 */}
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-6">
-                  <h4 className="text-sm font-semibold mb-3 text-foreground">매출 비교 (월간/연간)</h4>
-                  <ResponsiveContainer width="100%" height={300}>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-6 shadow-sm">
+                  <h4 className="text-sm font-semibold mb-3 text-gray-900 dark:text-gray-100">매출 비교 (월간/연간)</h4>
+                  <ResponsiveContainer width="100%" height={chartHeight}>
                     <BarChart data={revenueComparisonData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.2} />
-                      <XAxis dataKey="name" tick={{ fill: 'currentColor', fontSize: 12 }} stroke="currentColor" />
+                      <XAxis 
+                        dataKey="name" 
+                        tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
+                        stroke="currentColor"
+                        angle={isMobile ? -45 : 0}
+                        textAnchor={isMobile ? 'end' : 'middle'}
+                        height={isMobile ? 60 : 30}
+                      />
                       <YAxis 
-                        tick={{ fill: 'currentColor', fontSize: 12 }} 
+                        tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
                         stroke="currentColor"
                         tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`}
                       />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e5e7eb' }}
+                        contentStyle={{ 
+                          backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                          border: isDarkMode ? '1px solid #4b5563' : '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          color: isDarkMode ? '#f3f4f6' : '#111827'
+                        }}
                         formatter={(value: number) => `${value.toLocaleString('ko-KR')}원`}
                       />
                       <Bar dataKey="현재" fill="#ef4444" radius={[8, 8, 0, 0]} />
                       <Bar dataKey="개선" fill="#10b981" radius={[8, 8, 0, 0]} />
-                      <Legend />
+                      <Legend 
+                        wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
 
                 {/* 월별 매출 예측 라인 차트 */}
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
-                  <h4 className="text-sm font-semibold mb-3 text-foreground">월별 매출 예측 (12개월)</h4>
-                  <ResponsiveContainer width="100%" height={300}>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                  <h4 className="text-sm font-semibold mb-3 text-gray-900 dark:text-gray-100">월별 매출 예측 (12개월)</h4>
+                  <ResponsiveContainer width="100%" height={chartHeight}>
                     <LineChart data={monthlyRevenueData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.2} />
                       <XAxis 
                         dataKey="month" 
-                        tick={{ fill: 'currentColor', fontSize: 11 }} 
+                        tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
                         stroke="currentColor"
-                        angle={-45}
+                        angle={isMobile ? -45 : -45}
                         textAnchor="end"
-                        height={80}
+                        height={isMobile ? 80 : 80}
                       />
                       <YAxis 
-                        tick={{ fill: 'currentColor', fontSize: 12 }} 
+                        tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
                         stroke="currentColor"
                         tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`}
                       />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e5e7eb' }}
+                        contentStyle={{ 
+                          backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                          border: isDarkMode ? '1px solid #4b5563' : '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          color: isDarkMode ? '#f3f4f6' : '#111827'
+                        }}
                         formatter={(value: number) => `${value.toLocaleString('ko-KR')}원`}
                       />
-                      <Legend />
+                      <Legend 
+                        wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                      />
                       <Line type="monotone" dataKey="현재" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} />
                       <Line type="monotone" dataKey="개선" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} />
                     </LineChart>
@@ -517,7 +611,7 @@ export default function ConversionCalculatorPage() {
               </div>
 
               {/* 계산 결과 카드 */}
-              <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800 shadow-sm">
                 <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-4">
                   계산 결과
                 </h3>
@@ -527,11 +621,11 @@ export default function ConversionCalculatorPage() {
                       <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
                         추가 확보 전환수 (월간)
                       </div>
-                      <div className="text-2xl font-bold text-foreground">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                         {additionalConversions.toFixed(0)}건
                       </div>
                     </div>
-                    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg">
+                    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
                       <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
                         전환율 개선률
                       </div>
@@ -547,7 +641,7 @@ export default function ConversionCalculatorPage() {
                         <span className="text-gray-700 dark:text-gray-300 font-medium">
                           월간 예상 매출 증가액
                         </span>
-                        <span className="text-xl font-bold text-foreground">
+                        <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
                           {monthlyRevenueIncrease.toLocaleString('ko-KR')} 원
                         </span>
                       </div>
@@ -581,7 +675,7 @@ export default function ConversionCalculatorPage() {
                   <button
                     onClick={handleAIAnalysis}
                     disabled={isAnalyzing}
-                    className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                    className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm hover:shadow text-sm sm:text-base"
                   >
                     {isAnalyzing ? (
                       <>
@@ -610,7 +704,7 @@ export default function ConversionCalculatorPage() {
         {aiAnalysis && (
           <div className="mt-6 space-y-6">
             {/* AI 분석 텍스트 결과 */}
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 border border-emerald-200 dark:border-emerald-800">
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl shadow-sm dark:shadow-gray-900/30 p-4 sm:p-6 lg:p-8 border border-emerald-200 dark:border-emerald-800">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -622,7 +716,7 @@ export default function ConversionCalculatorPage() {
                 </div>
                 <button
                   onClick={handleDownloadAnalysis}
-                  className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base"
+                  className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-sm hover:shadow text-sm sm:text-base"
                   title="AI 분석 결과 다운로드"
                 >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -641,7 +735,7 @@ export default function ConversionCalculatorPage() {
 
         {/* AI 분석 오류 */}
         {aiError && (
-          <div className="mt-6 bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800">
+          <div className="mt-6 bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800 shadow-sm">
             <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -652,13 +746,13 @@ export default function ConversionCalculatorPage() {
         )}
 
         {hasValidInputs && (
-          <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 sm:p-6">
-            <h2 className="text-xl font-semibold mb-4 text-foreground">
+          <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+            <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
               결과 해석 가이드
             </h2>
             <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
               <div>
-                <h3 className="font-semibold mb-2 text-foreground">📊 전환율 개선 효과 요약</h3>
+                <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">📊 전환율 개선 효과 요약</h3>
                 <p className="mb-2">
                   현재 전환율 <strong>{currentConversionRate}%</strong>에서 <strong>{improvedConversionRate}%</strong>로 개선하면,
                   월간 <strong>{additionalConversions.toFixed(0)}건</strong>의 추가 전환이 예상됩니다.
@@ -670,7 +764,7 @@ export default function ConversionCalculatorPage() {
               </div>
 
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="font-semibold mb-2 text-foreground">🧪 A/B 테스트 권장사항</h3>
+                <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">🧪 A/B 테스트 권장사항</h3>
                 <ul className="list-disc list-inside space-y-1 ml-2">
                   <li>랜딩 페이지 디자인, CTA 버튼 위치/색상, 제품 설명 등을 테스트해보세요</li>
                   <li>최소 2주 이상의 테스트 기간을 설정하여 통계적 유의성을 확보하세요</li>
@@ -680,7 +774,7 @@ export default function ConversionCalculatorPage() {
               </div>
 
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="font-semibold mb-2 text-foreground">💼 비즈니스 임팩트</h3>
+                <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">💼 비즈니스 임팩트</h3>
                 <p className="mb-2">
                   전환율 개선은 마케팅 비용을 증가시키지 않고도 매출을 늘릴 수 있는 가장 효율적인 방법 중 하나입니다.
                 </p>
@@ -692,7 +786,7 @@ export default function ConversionCalculatorPage() {
               </div>
 
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="font-semibold mb-2 text-foreground">🚀 다음 단계 제안</h3>
+                <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">🚀 다음 단계 제안</h3>
                 <ol className="list-decimal list-inside space-y-1 ml-2">
                   <li>웹사이트 분석 도구(Google Analytics 등)로 현재 전환율을 정확히 측정하세요</li>
                   <li>전환율이 낮은 페이지를 식별하고 개선 포인트를 찾아보세요</li>
@@ -705,8 +799,8 @@ export default function ConversionCalculatorPage() {
           </div>
         )}
 
-        <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 sm:p-6">
-          <h2 className="text-xl font-semibold mb-3 text-foreground">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-gray-100">
             계산 공식 안내
           </h2>
           <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
