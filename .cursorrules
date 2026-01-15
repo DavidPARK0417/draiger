@@ -186,9 +186,9 @@ fix(orders): 주문 상세 페이지 로딩 오류 수정
 <div className="
   bg-white dark:bg-gray-800
   text-gray-900 dark:text-gray-100
-  border border-gray-200 dark:border-gray-700
-  shadow-md dark:shadow-gray-900/50
-  rounded-2xl
+  border border-gray-100 dark:border-gray-700
+  shadow-sm dark:shadow-gray-900/30
+  rounded-lg
   p-6
 ">
   카드 내용
@@ -197,9 +197,10 @@ fix(orders): 주문 상세 페이지 로딩 오류 수정
 // 버튼 예시
 <button className="
   bg-emerald-500 hover:bg-emerald-600
-  dark:bg-emerald-600 dark:hover:bg-emerald-700
+  dark:bg-emerald-600 dark:hover:bg-emerald-500
   text-white
-  px-4 py-2.5 rounded-xl
+  px-4 py-2.5 rounded-lg
+  shadow-sm hover:shadow-md
   transition-all duration-300
 ">
   확인
@@ -234,10 +235,10 @@ fix(orders): 주문 상세 페이지 로딩 오류 수정
 | 주요 텍스트 | `text-gray-900` | `dark:text-gray-100` |
 | 본문 텍스트 | `text-gray-600` | `dark:text-gray-400` |
 | 보조 텍스트 | `text-gray-400` | `dark:text-gray-500` |
-| 테두리 | `border-gray-200` | `dark:border-gray-700` |
+| 테두리 | `border-gray-100` (카드), `border-gray-200` (일반) | `dark:border-gray-700` |
 | 입력 필드 배경 | `bg-white` | `dark:bg-gray-800` |
 | 입력 필드 테두리 | `border-gray-300` | `dark:border-gray-600` |
-| 그림자 | `shadow-md` | `dark:shadow-gray-900/50` |
+| 그림자 | `shadow-sm` | `dark:shadow-gray-900/30` |
 
 ### Primary 색상 다크모드 적용
 
@@ -345,20 +346,21 @@ export function ProductCard({ product }) {
       // 다크모드 텍스트
       text-gray-900 dark:text-gray-100
       
-      // 다크모드 테두리
-      border border-gray-200 dark:border-gray-700
+      // 다크모드 테두리 
+      border border-gray-100 dark:border-gray-700
       
-      // 다크모드 그림자
-      shadow-md dark:shadow-gray-900/50
+      // 다크모드 그림자 
+      shadow-sm dark:shadow-gray-900/30
       
       // 반응형 패딩
       p-4 sm:p-6 lg:p-8
       
-      // 반응형 모서리
-      rounded-xl sm:rounded-2xl
+      // 모서리 
+      rounded-lg
       
       // 호버 효과 (다크모드 포함)
-      hover:shadow-xl dark:hover:shadow-gray-900/70
+      hover:shadow-md dark:hover:shadow-gray-900/50
+      hover:-translate-y-1
       transition-all duration-300
     ">
       <h3 className="
@@ -382,7 +384,8 @@ export function ProductCard({ product }) {
         text-white
         px-4 py-2.5
         sm:px-6 sm:py-3
-        rounded-xl
+        rounded-lg
+        shadow-sm hover:shadow-md
         transition-all duration-300
       ">
         구매하기
@@ -442,6 +445,53 @@ export function ProductCard({ product }) {
 - 디자인 시스템 명세서: `docs/design-handoff_D/00-guides/DESIGN_SYSTEM.md`
 - 디자인 적용 계획: `docs/디자인-적용-계획.md`
 - 디자인 토큰: `docs/design-handoff_D/01-design-tokens/`
+
+---
+
+## 🎯 CRITICAL: 디자인 시스템 스타일 적용 (2026년 1월 개선사항)
+
+**모든 새로운 페이지와 컴포넌트는 반드시 디자인 시스템 스타일을 따라야 합니다.**
+
+### 핵심 변경사항
+
+#### 1. 페이지 배경
+- ✅ **사용**: `bg-gray-50 dark:bg-gray-900`
+- ❌ **금지**: `bg-[#F8F9FA]`, `bg-background`, `bg-white` (페이지 배경으로)
+
+#### 2. 카드/컨테이너
+- ✅ **모서리**: `rounded-lg` (8px) - **`rounded-2xl` 사용 금지**
+- ✅ **테두리**: `border border-gray-100 dark:border-gray-700` - **필수**
+- ✅ **그림자**: `shadow-sm dark:shadow-gray-900/30` - **`shadow-md` 사용 금지**
+- ✅ **호버 그림자**: `hover:shadow-md dark:hover:shadow-gray-900/50`
+
+#### 3. 버튼
+- ✅ **모서리**: `rounded-lg` (8px) - **`rounded-xl` 사용 금지**
+- ✅ **그림자**: `shadow-sm hover:shadow-md` - **`shadow-md hover:shadow-lg` 사용 금지**
+- ✅ **다크모드**: Primary 버튼은 `dark:bg-emerald-600 dark:hover:bg-emerald-500`
+
+#### 4. 탭 버튼
+- ✅ **모서리**: `rounded-t-lg` - **`rounded-t-xl` 사용 금지**
+- ✅ **그림자**: 활성 상태에만 `shadow-sm` 추가
+
+#### 5. 업로드 영역
+- ✅ **모서리**: `rounded-lg` - **`rounded-xl` 사용 금지**
+- ✅ **호버 배경**: `dark:hover:bg-gray-800/50` (투명도 조정)
+
+#### 6. 모달
+- ✅ **모서리**: `rounded-lg` - **`rounded-2xl` 사용 금지**
+- ✅ **그림자**: `shadow-lg` (모달은 약간 더 강한 그림자 허용)
+- ✅ **테두리**: `border border-gray-100 dark:border-gray-700`
+
+### 디자인 시스템 스타일 체크리스트
+
+새로운 페이지를 만들 때 반드시 확인:
+- [ ] 페이지 배경: `bg-gray-50 dark:bg-gray-900` 사용
+- [ ] 카드: `rounded-lg`, `border border-gray-100`, `shadow-sm` 사용
+- [ ] 버튼: `rounded-lg`, `shadow-sm` 사용
+- [ ] 탭 버튼: `rounded-t-lg` 사용
+- [ ] 업로드 영역: `rounded-lg` 사용
+- [ ] 모달: `rounded-lg` 사용
+- [ ] 모든 요소에 다크모드 변형 적용
 
 ---
 
@@ -547,9 +597,10 @@ export function ProductCard({ product }) {
 // Primary 버튼
 <button className="
   bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700
+  dark:bg-emerald-600 dark:hover:bg-emerald-500
   text-white font-medium
-  px-4 py-2.5 rounded-xl
-  shadow-md hover:shadow-lg active:shadow
+  px-4 py-2.5 rounded-lg
+  shadow-sm hover:shadow-md active:shadow
   transition-all duration-300
   hover:-translate-y-0.5 active:scale-98
 ">
@@ -559,9 +610,10 @@ export function ProductCard({ product }) {
 // Secondary 버튼
 <button className="
   bg-gray-100 hover:bg-gray-200
-  text-gray-700 font-medium
-  px-4 py-2.5 rounded-xl
-  border border-gray-300
+  dark:bg-gray-700 dark:hover:bg-gray-600
+  text-gray-700 dark:text-gray-200 font-medium
+  px-4 py-2.5 rounded-lg
+  border border-gray-200 dark:border-gray-600
   transition-colors duration-300
 ">
   취소
@@ -569,10 +621,10 @@ export function ProductCard({ product }) {
 
 // Ghost 버튼
 <button className="
-  bg-transparent hover:bg-emerald-50
-  text-emerald-500 font-medium
-  px-4 py-2.5 rounded-xl
-  border border-gray-300
+  bg-transparent hover:bg-emerald-50 dark:hover:bg-emerald-900/20
+  text-emerald-500 dark:text-emerald-400 font-medium
+  px-4 py-2.5 rounded-lg
+  border border-gray-300 dark:border-gray-600
   transition-colors duration-300
 ">
   더보기
@@ -581,48 +633,60 @@ export function ProductCard({ product }) {
 // Danger 버튼
 <button className="
   bg-red-500 hover:bg-red-600
+  dark:bg-red-600 dark:hover:bg-red-500
   text-white font-medium
-  px-4 py-2.5 rounded-xl
-  shadow-md hover:shadow-lg
+  px-4 py-2.5 rounded-lg
+  shadow-sm hover:shadow-md
   transition-all duration-300
 ">
   삭제
 </button>**버튼 규칙:**
-- 모서리: `rounded-xl` (12px) 사용
+- 모서리: `rounded-lg` (8px) 사용 
 - 트랜지션: `transition-all duration-300` 필수
-- 호버 효과: `hover:-translate-y-0.5` 또는 `hover:shadow-lg`
+- 그림자: `shadow-sm hover:shadow-md` (미묘한 그림자)
+- 호버 효과: `hover:-translate-y-0.5` 또는 `hover:shadow-md`
 - 액티브 효과: `active:scale-98`
+- 다크모드: Primary 버튼은 `dark:bg-emerald-600 dark:hover:bg-emerald-500`
 
 ### 카드 (Card)
 
 **모든 카드는 다음 스타일을 따라야 합니다:**
 
 ✅ CORRECT:
-// 기본 카드
+// 기본 카드 
 <div className="
-  bg-white rounded-2xl
-  shadow-md hover:shadow-xl
+  bg-white dark:bg-gray-800
+  border border-gray-100 dark:border-gray-700
+  rounded-lg
+  shadow-sm dark:shadow-gray-900/30
+  hover:shadow-md dark:hover:shadow-gray-900/50
   p-6
   transition-all duration-300 hover:-translate-y-1
 ">
-  <h3 className="text-lg font-semibold mb-2">카드 제목</h3>
-  <p className="text-gray-600">카드 내용</p>
+  <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">카드 제목</h3>
+  <p className="text-gray-600 dark:text-gray-400">카드 내용</p>
 </div>
 
 // 3D 효과 카드 (특별한 경우)
 <div className="
-  bg-white rounded-3xl
+  bg-white dark:bg-gray-800
+  border border-gray-100 dark:border-gray-700
+  rounded-lg
   shadow-[0_20px_50px_rgba(16,185,129,0.15)]
+  dark:shadow-[0_20px_50px_rgba(16,185,129,0.1)]
   hover:shadow-[0_20px_50px_rgba(16,185,129,0.2)]
+  dark:hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)]
   p-6
   transition-all duration-300 hover:-translate-y-2
 ">
   프리미엄 카드
 </div>**카드 규칙:**
-- 모서리: `rounded-2xl` (16px) 또는 `rounded-3xl` (24px)
+- 모서리: `rounded-lg` (8px) 사용 
+- 테두리: `border border-gray-100 dark:border-gray-700` 필수
 - 패딩: `p-6` (24px) 기본
-- 그림자: `shadow-md` 기본, 호버 시 `shadow-xl`
+- 그림자: `shadow-sm dark:shadow-gray-900/30` 기본, 호버 시 `shadow-md dark:hover:shadow-gray-900/50`
 - 호버 효과: `hover:-translate-y-1` 필수
+- 다크모드: 배경 `dark:bg-gray-800`, 텍스트 `dark:text-gray-100`
 
 ### 입력 필드 (Input)
 
@@ -663,16 +727,96 @@ export function ProductCard({ product }) {
 ✅ CORRECT:
 <div className="space-y-4">
   <div className="space-y-2">
-    <label className="text-sm font-medium text-gray-900">
+    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
       라벨
     </label>
-    <input className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" />
-    <p className="text-xs text-gray-500">도움말 텍스트</p>
+    <input className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+    <p className="text-xs text-gray-500 dark:text-gray-400">도움말 텍스트</p>
   </div>
 </div>**폼 규칙:**
-- 라벨: `text-sm font-medium`
+- 라벨: `text-sm font-medium text-gray-900 dark:text-gray-100`
 - 필드 간격: `gap-4` (16px)
 - 섹션 간격: `gap-8` (32px)
+
+### 탭 버튼 (Tab Button)
+
+**모든 탭 버튼은 다음 스타일을 따라야 합니다:**
+
+✅ CORRECT:
+// 탭 메뉴
+<div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+  <button className={`
+    px-4 py-2.5 font-medium rounded-t-lg transition-all duration-300
+    ${activeTab === 'tab1'
+      ? 'bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm'
+      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+    }
+  `}>
+    탭 1
+  </button>
+</div>**탭 버튼 규칙:**
+- 모서리: `rounded-t-lg` 
+- 활성 상태: `bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm`
+- 비활성 상태: `bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300`
+- 호버: `hover:bg-gray-200 dark:hover:bg-gray-600`
+
+### 업로드 영역 (Upload Area)
+
+**모든 업로드 영역은 다음 스타일을 따라야 합니다:**
+
+✅ CORRECT:
+<div className="
+  border-2 border-dashed
+  border-gray-300 dark:border-gray-600
+  rounded-lg
+  p-8
+  text-center
+  cursor-pointer
+  transition-all duration-300
+  hover:border-emerald-500 dark:hover:border-emerald-400
+  hover:bg-emerald-50 dark:hover:bg-gray-800/50
+">
+  <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
+  <p className="text-sm text-gray-600 dark:text-gray-300">
+    파일을 드래그하거나 클릭하여 업로드
+  </p>
+</div>**업로드 영역 규칙:**
+- 모서리: `rounded-lg` 
+- 테두리: `border-2 border-dashed border-gray-300 dark:border-gray-600`
+- 호버: `hover:border-emerald-500 dark:hover:border-emerald-400`
+- 배경: `hover:bg-emerald-50 dark:hover:bg-gray-800/50`
+
+### 모달 (Modal)
+
+**모든 모달은 다음 스타일을 따라야 합니다:**
+
+✅ CORRECT:
+// 모달 오버레이
+<div className="
+  fixed inset-0 z-50
+  flex items-center justify-center
+  bg-black/50 dark:bg-black/70
+  backdrop-blur-sm
+  p-4
+">
+  {/* 모달 컨텐츠 */}
+  <div className="
+    relative
+    bg-white dark:bg-gray-800
+    rounded-lg
+    p-6 sm:p-8
+    max-w-md w-full
+    shadow-lg
+    border border-gray-100 dark:border-gray-700
+  ">
+    {/* 모달 내용 */}
+  </div>
+</div>**모달 규칙:**
+- 모서리: `rounded-lg` 
+- 배경: `bg-white dark:bg-gray-800`
+- 테두리: `border border-gray-100 dark:border-gray-700`
+- 그림자: `shadow-lg` (모달은 약간 더 강한 그림자)
+- 오버레이: `bg-black/50 dark:bg-black/70 backdrop-blur-sm`
 
 ---
 
@@ -703,11 +847,11 @@ export function ProductCard({ product }) {
 **그림자와 효과는 다음 규칙을 따라야 합니다:**
 
 ✅ CORRECT:
-// 기본 카드 그림자
-<div className="shadow-md">기본 카드</div>
+// 기본 카드 그림자 
+<div className="shadow-sm dark:shadow-gray-900/30">기본 카드</div>
 
 // 호버 카드 그림자
-<div className="shadow-md hover:shadow-xl">호버 효과</div>
+<div className="shadow-sm dark:shadow-gray-900/30 hover:shadow-md dark:hover:shadow-gray-900/50">호버 효과</div>
 
 // 3D 효과 (특별한 경우)
 <div className="shadow-[0_20px_50px_rgba(16,185,129,0.15)]">
@@ -727,19 +871,21 @@ export function ProductCard({ product }) {
 **모든 인터랙티브 요소는 다음 효과를 포함해야 합니다:**
 
 ✅ CORRECT:
-// 버튼 호버
+// 버튼 호버 
 <button className="
   hover:bg-emerald-600
-  hover:shadow-lg
+  dark:hover:bg-emerald-500
+  hover:shadow-md
   hover:-translate-y-0.5
   transition-all duration-300
 ">
   버튼
 </button>
 
-// 카드 호버
+// 카드 호버 
 <div className="
-  hover:shadow-xl
+  hover:shadow-md
+  dark:hover:shadow-gray-900/50
   hover:-translate-y-1
   transition-all duration-300
 ">
@@ -829,8 +975,10 @@ export function ProductCard({ product }) {
 ">
   {/* 카드들 */}
 </div>**레이아웃 규칙:**
-- 페이지 배경: `bg-gray-50` 또는 `bg-[#F8F9FA]`
-- 카드 배경: `bg-white`
+- 페이지 배경: **반드시** `bg-gray-50 dark:bg-gray-900` 사용 
+  - ❌ 금지: `bg-[#F8F9FA]`, `bg-background`, `bg-white` (페이지 배경으로)
+- 카드 배경: `bg-white dark:bg-gray-800`
+- 카드 테두리: `border border-gray-100 dark:border-gray-700` (필수)
 - 컨테이너 최대 너비: `max-w-4xl` 또는 `max-w-6xl`
 - 중앙 정렬: `mx-auto`
 
@@ -892,7 +1040,10 @@ import { Home, Search, User, Settings } from 'lucide-react';
 ❌ 금지:
 - Blue 색상을 Primary로 사용 (`bg-blue-500`, `text-blue-500` 등)
 - Geist 폰트 사용 (Pretendard로 변경 완료)
-- `rounded-lg` 대신 `rounded-xl` 또는 `rounded-2xl` 사용
+- `bg-[#F8F9FA]` 사용 (반드시 `bg-gray-50 dark:bg-gray-900` 사용)
+- `rounded-xl`, `rounded-2xl` 사용 (카드/버튼은 `rounded-lg` 사용)
+- `shadow-md` 사용 (반드시 `shadow-sm` 사용, 다크모드 `dark:shadow-gray-900/30`)
+- 테두리 없는 카드 (반드시 `border border-gray-100 dark:border-gray-700` 추가)
 - 트랜지션 없이 호버 효과 사용
 - 모바일 First가 아닌 Desktop First 접근
 - 일관성 없는 간격 사용 (4px 단위 준수)
@@ -905,13 +1056,18 @@ import { Home, Search, User, Settings } from 'lucide-react';
 
 - [ ] Primary 색상으로 Emerald Green (#10B981) 사용했는가?
 - [ ] Pretendard Variable 폰트를 사용했는가?
-- [ ] 버튼에 `rounded-xl`과 트랜지션 효과를 적용했는가?
-- [ ] 카드에 `rounded-2xl`과 호버 효과를 적용했는가?
-- [ ] 입력 필드에 포커스 링 (`focus:ring-emerald-500`)을 적용했는가?
+- [ ] 페이지 배경에 `bg-gray-50 dark:bg-gray-900`를 적용했는가? (`bg-[#F8F9FA]` 사용 금지)
+- [ ] 버튼에 `rounded-lg`와 `shadow-sm`을 적용했는가? 
+- [ ] 카드에 `rounded-lg`, `border border-gray-100 dark:border-gray-700`, `shadow-sm dark:shadow-gray-900/30`을 적용했는가? 
+- [ ] 입력 필드에 포커스 링 (`focus:ring-emerald-500 dark:focus:ring-emerald-400`)을 적용했는가?
+- [ ] 탭 버튼에 `rounded-t-lg`와 디자인 시스템 스타일을 적용했는가?
+- [ ] 업로드 영역에 `rounded-lg`를 적용했는가?
+- [ ] 모달에 `rounded-lg`와 적절한 테두리를 적용했는가?
 - [ ] Mobile First 방식으로 반응형을 구현했는가?
 - [ ] 모든 인터랙티브 요소에 트랜지션을 추가했는가?
 - [ ] 간격을 4px 단위로 일관되게 사용했는가?
-- [ ] 그림자 효과를 적절히 사용했는가?
+- [ ] 그림자 효과를 디자인 시스템 스타일 (`shadow-sm`)로 적용했는가?
+- [ ] 다크모드에서 모든 요소가 올바르게 표시되는가?
 - [ ] 접근성을 고려했는가? (색상 대비, 키보드 네비게이션 등)
 
 ---
