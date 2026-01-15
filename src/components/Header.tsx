@@ -6,6 +6,18 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { Menu, X, Search } from "lucide-react";
 
+// Google Analytics gtag 타입 정의
+declare global {
+  interface Window {
+    gtag?: (
+      command: 'event' | 'config' | 'js' | 'set',
+      targetId: string | Date,
+      config?: Record<string, string | number | boolean>
+    ) => void;
+    dataLayer?: unknown[];
+  }
+}
+
 const marketingTools = [
   { name: "광고 성과 계산", href: "/tools/ad-performance" },
   { name: "ROI 계산기", href: "/tools/roi-calculator" },
@@ -383,8 +395,8 @@ export default function Header() {
                   setIsBlogOpen(!isBlogOpen);
                   
                   // Google Analytics 이벤트 전송
-                  if (typeof window !== 'undefined' && (window as any).gtag) {
-                    (window as any).gtag('event', 'view_insights', {
+                  if (typeof window !== 'undefined' && window.gtag) {
+                    window.gtag('event', 'view_insights', {
                       event_category: 'navigation',
                       event_label: '인사이트 버튼 클릭',
                     });
@@ -810,8 +822,8 @@ export default function Header() {
                   setIsBlogOpen(!isBlogOpen);
                   
                   // Google Analytics 이벤트 전송
-                  if (typeof window !== 'undefined' && (window as any).gtag) {
-                    (window as any).gtag('event', 'view_insights', {
+                  if (typeof window !== 'undefined' && window.gtag) {
+                    window.gtag('event', 'view_insights', {
                       event_category: 'navigation',
                       event_label: '인사이트 버튼 클릭 (모바일)',
                     });
