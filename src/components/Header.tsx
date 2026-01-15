@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, Search, Heart } from "lucide-react";
 
 // Google Analytics gtag 타입 정의
 declare global {
@@ -50,7 +50,13 @@ const blogCategories = [
   { name: "기타", href: "/insight/category/" + encodeURIComponent("기타") },
 ];
 
-const navigation = [{ name: "문의하기", href: "/contact" }];
+const navigation = [
+  {
+    name: "후원하기",
+    href: "/support",
+    icon: Heart,
+  },
+];
 
 export default function Header() {
   const pathname = usePathname();
@@ -686,6 +692,7 @@ export default function Header() {
             {/* 일반 네비게이션 메뉴 */}
             {navigation.map((item) => {
               const isActive = pathname === item.href;
+              const IconComponent = item.icon;
               return (
                 <Link
                   key={item.name}
@@ -693,6 +700,7 @@ export default function Header() {
                   className={`
                     px-3 py-2 rounded-xl text-sm font-medium whitespace-nowrap 
                     transition-all duration-300
+                    flex items-center gap-1.5
                     ${
                       isActive
                         ? "bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
@@ -700,6 +708,7 @@ export default function Header() {
                     }
                   `}
                 >
+                  {IconComponent && <IconComponent size={16} />}
                   {item.name}
                 </Link>
               );
@@ -1060,6 +1069,7 @@ export default function Header() {
             {/* 일반 네비게이션 메뉴 */}
             {navigation.map((item) => {
               const isActive = pathname === item.href;
+              const IconComponent = item.icon;
               return (
                 <Link
                   key={item.name}
@@ -1071,6 +1081,7 @@ export default function Header() {
                   className={`
                     block px-4 py-3 rounded-xl text-base font-medium
                     transition-all duration-300
+                    flex items-center gap-2
                     ${
                       isActive
                         ? "bg-emerald-500 text-white shadow-md"
@@ -1078,6 +1089,7 @@ export default function Header() {
                     }
                   `}
                 >
+                  {IconComponent && <IconComponent size={18} />}
                   {item.name}
                 </Link>
               );
