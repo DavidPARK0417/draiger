@@ -70,11 +70,11 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* 성공 모달 */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-800">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6 border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900/30 rounded-full">
               <svg
                 className="w-8 h-8 text-green-600 dark:text-green-400"
@@ -90,7 +90,7 @@ export default function ContactPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-center mb-2 text-foreground">
+            <h2 className="text-2xl font-bold text-center mb-2 text-gray-900 dark:text-gray-100">
               문의가 전송되었습니다!
             </h2>
             <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
@@ -100,7 +100,7 @@ export default function ContactPage() {
             </p>
             <button
               onClick={() => setShowSuccessModal(false)}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+              className="w-full bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold py-3 px-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
             >
               확인
             </button>
@@ -109,8 +109,8 @@ export default function ContactPage() {
       )}
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8 border border-gray-200 dark:border-gray-800">
-          <h1 className="text-3xl font-bold mb-2 text-foreground">문의하기</h1>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-900/30 p-8 border border-gray-100 dark:border-gray-700">
+          <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">문의하기</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
             마케팅 도구의 오류나 문제점, 추가하고 싶은 기능이 있다면 언제든지
             문의해주세요.
@@ -135,7 +135,7 @@ export default function ContactPage() {
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium mb-2 text-foreground"
+                className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100"
               >
                 이름 <span className="text-red-500">*</span>
               </label>
@@ -146,7 +146,7 @@ export default function ContactPage() {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-emerald-500 dark:focus:border-emerald-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 placeholder="홍길동"
               />
             </div>
@@ -154,7 +154,7 @@ export default function ContactPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium mb-2 text-foreground"
+                className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100"
               >
                 이메일 <span className="text-red-500">*</span>
               </label>
@@ -165,7 +165,7 @@ export default function ContactPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-emerald-500 dark:focus:border-emerald-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 placeholder="example@email.com"
               />
             </div>
@@ -173,7 +173,7 @@ export default function ContactPage() {
             <div>
               <label
                 htmlFor="subject"
-                className="block text-sm font-medium mb-2 text-foreground"
+                className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100"
               >
                 제목 <span className="text-red-500">*</span>
               </label>
@@ -184,7 +184,7 @@ export default function ContactPage() {
                 required
                 value={formData.subject}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-emerald-500 dark:focus:border-emerald-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 placeholder="문의 제목을 입력해주세요"
               />
             </div>
@@ -192,7 +192,7 @@ export default function ContactPage() {
             <div>
               <label
                 htmlFor="message"
-                className="block text-sm font-medium mb-2 text-foreground"
+                className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100"
               >
                 문의 내용 <span className="text-red-500">*</span>
               </label>
@@ -203,7 +203,7 @@ export default function ContactPage() {
                 rows={8}
                 value={formData.message}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-foreground resize-none"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-emerald-500 dark:focus:border-emerald-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"
                 placeholder="문의 내용을 자세히 입력해주세요..."
               />
             </div>
@@ -211,7 +211,7 @@ export default function ContactPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+              className="w-full bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
             >
               {isSubmitting ? "전송 중..." : "문의 보내기"}
             </button>

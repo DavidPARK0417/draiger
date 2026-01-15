@@ -156,11 +156,11 @@ export default function SupportPage() {
                     group
                     block
                     bg-white dark:bg-gray-800
-                    border-2 border-gray-200 dark:border-gray-700
-                    rounded-2xl
+                    border border-gray-100 dark:border-gray-700
+                    rounded-lg
                     p-6 sm:p-8
-                    shadow-md hover:shadow-xl
-                    dark:shadow-gray-900/50 dark:hover:shadow-gray-900/70
+                    shadow-sm hover:shadow-md
+                    dark:shadow-gray-900/30 dark:hover:shadow-gray-900/50
                     transition-all duration-300
                     hover:-translate-y-1
                     active:scale-98
@@ -175,7 +175,7 @@ export default function SupportPage() {
                     ${option.bgColor}
                     ${option.borderColor}
                     border-2
-                    rounded-2xl
+                    rounded-lg
                     flex items-center justify-center
                     mb-4 sm:mb-6
                     transition-all duration-300
@@ -212,7 +212,7 @@ export default function SupportPage() {
                   {/* QR코드 미리보기 */}
                   {option.qrImage && (
                     <div className="mb-4 sm:mb-6 flex justify-center">
-                      <div className="relative w-32 h-32 sm:w-40 sm:h-40 bg-white dark:bg-gray-700 rounded-xl p-1 border-2 border-gray-200 dark:border-gray-600 overflow-hidden">
+                      <div className="relative w-32 h-32 sm:w-40 sm:h-40 bg-white dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600 overflow-hidden">
                         <Image
                           src={option.qrImage}
                           alt="Toss QR코드"
@@ -232,8 +232,8 @@ export default function SupportPage() {
                     text-white
                     font-semibold
                     px-4 py-2.5
-                    rounded-xl
-                    shadow-md hover:shadow-lg
+                    rounded-lg
+                    shadow-sm hover:shadow-md
                     transition-all duration-300
                     group-hover:-translate-y-0.5
                     w-full justify-center
@@ -257,11 +257,11 @@ export default function SupportPage() {
                   group
                   block
                   bg-white dark:bg-gray-800
-                  border-2 border-gray-200 dark:border-gray-700
-                  rounded-2xl
+                  border border-gray-100 dark:border-gray-700
+                  rounded-lg
                   p-6 sm:p-8
-                  shadow-md hover:shadow-xl
-                  dark:shadow-gray-900/50 dark:hover:shadow-gray-900/70
+                  shadow-sm hover:shadow-md
+                  dark:shadow-gray-900/30 dark:hover:shadow-gray-900/50
                   transition-all duration-300
                   hover:-translate-y-1
                   active:scale-98
@@ -293,7 +293,7 @@ export default function SupportPage() {
                   ${option.bgColor}
                   ${option.borderColor}
                   border-2
-                  rounded-2xl
+                  rounded-lg
                   flex items-center justify-center
                   mb-4 sm:mb-6
                   transition-all duration-300
@@ -335,8 +335,8 @@ export default function SupportPage() {
                   text-white
                   font-semibold
                   px-4 py-2.5
-                  rounded-xl
-                  shadow-md hover:shadow-lg
+                  rounded-lg
+                  shadow-sm hover:shadow-md
                   transition-all duration-300
                   group-hover:-translate-y-0.5
                 `}
@@ -369,10 +369,10 @@ export default function SupportPage() {
               className="
                 relative
                 bg-white dark:bg-gray-800
-                rounded-2xl
+                rounded-lg
                 p-6 sm:p-8
                 max-w-md w-full
-                shadow-2xl
+                shadow-xl
               "
               onClick={(e) => e.stopPropagation()}
             >
@@ -382,7 +382,7 @@ export default function SupportPage() {
                 className="
                   absolute top-4 right-4
                   p-2
-                  rounded-xl
+                  rounded-lg
                   bg-gray-100 dark:bg-gray-700
                   hover:bg-gray-200 dark:hover:bg-gray-600
                   transition-colors duration-200
@@ -396,7 +396,7 @@ export default function SupportPage() {
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Toss 송금 QR코드
                 </h3>
-                <div className="relative w-full aspect-square max-w-xs mx-auto bg-white dark:bg-gray-700 rounded-xl p-2 border-2 border-gray-200 dark:border-gray-600 overflow-hidden">
+                <div className="relative w-full aspect-square max-w-xs mx-auto bg-white dark:bg-gray-700 rounded-lg p-2 border border-gray-200 dark:border-gray-600 overflow-hidden">
                   <Image
                     src="/Toss_QR.jpg"
                     alt="Toss 송금 QR코드"
@@ -420,9 +420,10 @@ export default function SupportPage() {
           text-center
           p-6 sm:p-8
           bg-white dark:bg-gray-800
-          border border-gray-200 dark:border-gray-700
-          rounded-2xl
-          shadow-md
+          border border-gray-100 dark:border-gray-700
+          rounded-lg
+          shadow-sm
+          dark:shadow-gray-900/30
         "
         >
           <Heart

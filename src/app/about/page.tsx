@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
         {/* 헤더 */}
         <div className="mb-8 sm:mb-12">
@@ -59,8 +59,9 @@ export default function AboutPage() {
         {/* 메인 컨텐츠 */}
         <div className="
           bg-white dark:bg-gray-800
-          rounded-2xl
-          shadow-md dark:shadow-gray-900/50
+          rounded-lg
+          shadow-sm dark:shadow-gray-900/30
+          border border-gray-100 dark:border-gray-700
           p-6 sm:p-8 lg:p-12
           space-y-6 sm:space-y-8
         ">
@@ -183,8 +184,8 @@ export default function AboutPage() {
             ">
               <div className="
                 bg-gray-50 dark:bg-gray-700/50
-                p-5 rounded-xl
-                border border-gray-200 dark:border-gray-700
+                p-5 rounded-lg
+                border border-gray-100 dark:border-gray-700
               ">
                 <h3 className="
                   text-base sm:text-lg
@@ -220,8 +221,8 @@ export default function AboutPage() {
 
               <div className="
                 bg-gray-50 dark:bg-gray-700/50
-                p-5 rounded-xl
-                border border-gray-200 dark:border-gray-700
+                p-5 rounded-lg
+                border border-gray-100 dark:border-gray-700
               ">
                 <h3 className="
                   text-base sm:text-lg
@@ -256,8 +257,8 @@ export default function AboutPage() {
 
               <div className="
                 bg-gray-50 dark:bg-gray-700/50
-                p-5 rounded-xl
-                border border-gray-200 dark:border-gray-700
+                p-5 rounded-lg
+                border border-gray-100 dark:border-gray-700
               ">
                 <h3 className="
                   text-base sm:text-lg
@@ -357,8 +358,8 @@ export default function AboutPage() {
                 dark:bg-emerald-600 dark:hover:bg-emerald-500
                 text-white
                 font-semibold
-                rounded-xl
-                shadow-md hover:shadow-lg
+                rounded-lg
+                shadow-sm hover:shadow-md
                 transition-all duration-300
                 hover:-translate-y-0.5
                 active:scale-98

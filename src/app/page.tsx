@@ -107,7 +107,7 @@ export default async function Home() {
         <main className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           {!hasAnyPosts ? (
             <div className="text-center py-20">
-              <p className="text-gray-600 dark:text-white/50 text-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
                 게시글이 없습니다.
               </p>
             </div>

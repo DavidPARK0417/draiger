@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
         {/* 헤더 */}
         <div className="mb-8 sm:mb-12">
@@ -45,8 +45,9 @@ export default function TermsPage() {
         {/* 메인 컨텐츠 */}
         <div className="
           bg-white dark:bg-gray-800
-          rounded-2xl
-          shadow-md dark:shadow-gray-900/50
+          rounded-lg
+          shadow-sm dark:shadow-gray-900/30
+          border border-gray-100 dark:border-gray-700
           p-6 sm:p-8 lg:p-12
           space-y-8 sm:space-y-10
         ">
