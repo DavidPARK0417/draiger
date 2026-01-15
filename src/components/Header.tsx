@@ -828,6 +828,9 @@ export default function Header() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  // 다른 메뉴들 닫기
+                  setIsMarketingToolsOpen(false);
+                  setIsUsefulToolsOpen(false);
                   setIsBlogOpen(!isBlogOpen);
                   
                   // Google Analytics 이벤트 전송
@@ -923,6 +926,9 @@ export default function Header() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  // 다른 메뉴들 닫기
+                  setIsBlogOpen(false);
+                  setIsUsefulToolsOpen(false);
                   console.log(
                     "모바일 마케팅도구 버튼 클릭, 현재 상태:",
                     isMarketingToolsOpen
@@ -997,6 +1003,9 @@ export default function Header() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  // 다른 메뉴들 닫기
+                  setIsBlogOpen(false);
+                  setIsMarketingToolsOpen(false);
                   console.log(
                     "모바일 유용한도구 버튼 클릭, 현재 상태:",
                     isUsefulToolsOpen
