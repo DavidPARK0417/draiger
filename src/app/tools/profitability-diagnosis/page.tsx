@@ -27,6 +27,12 @@ export default function ProfitabilityDiagnosisPage() {
   // AI 분석 상태
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [aiAnalysis, setAiAnalysis] = useState<string>("");
+  
+  // 차트 반응형 및 다크모드 상태
+  const [chartHeight, setChartHeight] = useState(300);
+  const [chartFontSize, setChartFontSize] = useState(12);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // 1단계: 목표 CPA 상태
   const [sellingPrice, setSellingPrice] = useState<number>(0);
@@ -52,10 +58,53 @@ export default function ProfitabilityDiagnosisPage() {
       : "text-red-600 dark:text-red-400";
   const healthBgColor =
     ratio >= 3
-      ? "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800"
+      ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
       : ratio >= 1
-      ? "bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800"
-      : "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800";
+      ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
+      : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800";
+
+  // 화면 크기에 따라 차트 높이 및 폰트 크기 조정
+  useEffect(() => {
+    const updateChartSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setChartHeight(200); // 모바일
+        setChartFontSize(10);
+        setIsMobile(true);
+      } else if (width < 1024) {
+        setChartHeight(250); // 태블릿
+        setChartFontSize(11);
+        setIsMobile(false);
+      } else {
+        setChartHeight(300); // 데스크탑
+        setChartFontSize(12);
+        setIsMobile(false);
+      }
+    };
+
+    // 다크모드 감지 함수
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+
+    updateChartSize();
+    checkDarkMode();
+
+    // 리사이즈 이벤트 리스너
+    window.addEventListener('resize', updateChartSize);
+    
+    // 다크모드 변경 감지를 위한 MutationObserver
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateChartSize);
+      observer.disconnect();
+    };
+  }, []);
 
   // LTV 계산 후 자동으로 3단계에 반영
   useEffect(() => {
@@ -351,20 +400,20 @@ export default function ProfitabilityDiagnosisPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 text-foreground">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           마케팅 수익성 진단 도구
         </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-8">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-8">
           3단계로 구성된 수익성 진단 도구로 광고 예산을 최적화하세요
         </p>
 
         <div className="space-y-8">
           {/* 공통 상품명 입력 */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 상품명
               </label>
               <input
@@ -375,15 +424,15 @@ export default function ProfitabilityDiagnosisPage() {
                   setProductName(e.target.value);
                 }}
                 placeholder="예: 스마트폰 케이스, 온라인 강의 등"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
           </div>
 
           {/* 1단계: 목표 CPA 계산기 */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
             <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-2xl font-bold text-foreground">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                 1단계: 목표{" "}
                 <InfoTooltip text="고객 1명을 얻기 위해 쓸 수 있는 최대 광고비예요. 예를 들어 상품을 10,000원에 팔고 원가가 6,000원이면, 최대 4,000원까지 광고비를 써도 손해가 없어요.">
                   CPA
@@ -399,13 +448,13 @@ export default function ProfitabilityDiagnosisPage() {
             <div className="space-y-6">
               <div>
                 <div className="flex gap-2 items-end mb-2">
-                  <label className="block text-sm font-medium text-foreground flex-1">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 flex-1">
                     판매가 (원)
                   </label>
                   <button
                     onClick={handleAIEstimateStep1}
                     disabled={isLoadingStep1 || !productName.trim()}
-                    className="px-3 py-1.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 text-xs whitespace-nowrap shadow-md hover:shadow-lg"
+                    className="px-3 py-1.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 text-xs whitespace-nowrap shadow-sm hover:shadow"
                     title="AI로 1단계 정보 자동 입력"
                   >
                     {isLoadingStep1 ? "AI 분석 중..." : "🤖 AI 추정"}
@@ -420,12 +469,12 @@ export default function ProfitabilityDiagnosisPage() {
                     setSellingPrice(value);
                   }}
                   placeholder="0"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2 text-foreground">
+                <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                   원가 (원)
                 </label>
                 <input
@@ -437,13 +486,13 @@ export default function ProfitabilityDiagnosisPage() {
                     setCost(value);
                   }}
                   placeholder="0"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
               </div>
 
               <button
                 onClick={handleCalculateCPA}
-                className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-sm hover:shadow text-sm sm:text-base"
               >
                 계산하기
               </button>
@@ -451,7 +500,7 @@ export default function ProfitabilityDiagnosisPage() {
 
             {(sellingPrice > 0 || cost > 0) && (
               <div className="mt-8 space-y-4">
-                <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-md">
+                <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-sm">
                   <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                     계산 결과
                   </h3>
@@ -460,7 +509,7 @@ export default function ProfitabilityDiagnosisPage() {
                       <span className="text-gray-700 dark:text-gray-300">
                         1회 전환당 최대 광고비 (CPA):
                       </span>
-                      <span className="font-semibold text-foreground">
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">
                         {targetCPA.toLocaleString("ko-KR")} 원
                       </span>
                     </div>
@@ -469,8 +518,8 @@ export default function ProfitabilityDiagnosisPage() {
               </div>
             )}
 
-            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
-              <h3 className="text-lg font-semibold mb-3 text-foreground">
+            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+              <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                 계산 공식 안내
               </h3>
               <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
@@ -486,7 +535,7 @@ export default function ProfitabilityDiagnosisPage() {
           </div>
 
           {/* 2단계: LTV 계산기 */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
             <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-foreground">
                 2단계:{" "}
@@ -503,13 +552,13 @@ export default function ProfitabilityDiagnosisPage() {
             <div className="space-y-6">
               <div>
                 <div className="flex gap-2 items-end mb-2">
-                  <label className="block text-sm font-medium text-foreground flex-1">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 flex-1">
                     주문액 (원)
                   </label>
                   <button
                     onClick={handleAIEstimateStep2}
                     disabled={isLoadingStep2 || !productName.trim()}
-                    className="px-3 py-1.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 text-xs whitespace-nowrap shadow-md hover:shadow-lg"
+                    className="px-3 py-1.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 text-xs whitespace-nowrap shadow-sm hover:shadow"
                     title="AI로 2단계 정보 자동 입력"
                   >
                     {isLoadingStep2 ? "AI 분석 중..." : "🤖 AI 추정"}
@@ -524,7 +573,7 @@ export default function ProfitabilityDiagnosisPage() {
                     setOrderAmount(value);
                   }}
                   placeholder="0"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   평균 주문 금액을 입력하세요
@@ -532,7 +581,7 @@ export default function ProfitabilityDiagnosisPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2 text-foreground">
+                <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                   구매 빈도 (회)
                 </label>
                 <input
@@ -544,7 +593,7 @@ export default function ProfitabilityDiagnosisPage() {
                     setPurchaseFrequency(value);
                   }}
                   placeholder="0"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   고객당 평균 구매 횟수를 입력하세요 (예: 3회)
@@ -553,7 +602,7 @@ export default function ProfitabilityDiagnosisPage() {
 
               <button
                 onClick={handleCalculateLTV}
-                className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-sm hover:shadow text-sm sm:text-base"
               >
                 계산하기
               </button>
@@ -561,7 +610,7 @@ export default function ProfitabilityDiagnosisPage() {
 
             {(orderAmount > 0 || purchaseFrequency > 0) && (
               <div className="mt-8 space-y-4">
-                <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-md">
+                <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-sm">
                   <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                     계산 결과
                   </h3>
@@ -570,7 +619,7 @@ export default function ProfitabilityDiagnosisPage() {
                       <span className="text-gray-700 dark:text-gray-300">
                         고객 생애 가치 (LTV):
                       </span>
-                      <span className="font-semibold text-foreground">
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">
                         {ltv.toLocaleString("ko-KR")} 원
                       </span>
                     </div>
@@ -579,8 +628,8 @@ export default function ProfitabilityDiagnosisPage() {
               </div>
             )}
 
-            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
-              <h3 className="text-lg font-semibold mb-3 text-foreground">
+            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+              <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                 계산 공식 안내
               </h3>
               <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
@@ -596,7 +645,7 @@ export default function ProfitabilityDiagnosisPage() {
           </div>
 
           {/* 3단계: LTV:CAC 비율 계산기 */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
             <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-foreground">
                 3단계:{" "}
@@ -617,7 +666,7 @@ export default function ProfitabilityDiagnosisPage() {
 
             <div className="space-y-6">
               {ltv > 0 && (
-                <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-800">
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 shadow-sm">
                   <p className="text-sm text-green-800 dark:text-green-200">
                     💡 2단계에서 계산된 LTV 값이 자동으로 입력되었습니다:{" "}
                     {ltv.toLocaleString("ko-KR")} 원
@@ -627,13 +676,13 @@ export default function ProfitabilityDiagnosisPage() {
 
               <div>
                 <div className="flex gap-2 items-end mb-2">
-                  <label className="block text-sm font-medium text-foreground flex-1">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 flex-1">
                     LTV (원)
                   </label>
                   <button
                     onClick={handleAIEstimateStep3}
                     disabled={isLoadingStep3 || !productName.trim()}
-                    className="px-3 py-1.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 text-xs whitespace-nowrap shadow-md hover:shadow-lg"
+                    className="px-3 py-1.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 text-xs whitespace-nowrap shadow-sm hover:shadow"
                     title="AI로 3단계 정보 자동 입력"
                   >
                     {isLoadingStep3 ? "AI 분석 중..." : "🤖 AI 추정"}
@@ -648,7 +697,7 @@ export default function ProfitabilityDiagnosisPage() {
                     setLtvForRatio(value);
                   }}
                   placeholder={ltv > 0 ? ltv.toString() : "0"}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   한 고객이 평생 동안 우리에게 지불할 총 금액을 입력하세요
@@ -657,7 +706,7 @@ export default function ProfitabilityDiagnosisPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2 text-foreground">
+                <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                   CAC (원)
                 </label>
                 <input
@@ -669,7 +718,7 @@ export default function ProfitabilityDiagnosisPage() {
                     setCac(value);
                   }}
                   placeholder="0"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   고객 1명을 얻기 위해 실제로 쓴 광고비를 입력하세요
@@ -678,7 +727,7 @@ export default function ProfitabilityDiagnosisPage() {
 
               <button
                 onClick={handleCalculateRatio}
-                className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-sm hover:shadow text-sm sm:text-base"
               >
                 계산하기
               </button>
@@ -686,7 +735,7 @@ export default function ProfitabilityDiagnosisPage() {
 
             {(ltvForRatio > 0 || cac > 0) && (
               <div className="mt-8 space-y-4">
-                <div className={`p-4 ${healthBgColor} rounded-lg border`}>
+                <div className={`p-4 ${healthBgColor} rounded-lg border shadow-sm`}>
                   <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                     계산 결과
                   </h3>
@@ -695,7 +744,7 @@ export default function ProfitabilityDiagnosisPage() {
                       <span className="text-gray-700 dark:text-gray-300">
                         LTV:CAC 비율:
                       </span>
-                      <span className="font-semibold text-foreground">
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">
                         {ratio.toFixed(2)}:1
                       </span>
                     </div>
@@ -712,8 +761,8 @@ export default function ProfitabilityDiagnosisPage() {
               </div>
             )}
 
-            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
-              <h3 className="text-lg font-semibold mb-3 text-foreground">
+            <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+              <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                 계산 공식 안내
               </h3>
               <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
@@ -740,8 +789,8 @@ export default function ProfitabilityDiagnosisPage() {
 
           {/* AI 종합 분석 섹션 */}
           {(targetCPA > 0 || ltv > 0 || ratio > 0) && (
-            <div className="mt-8 bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 sm:p-8">
-              <h2 className="text-2xl font-bold mb-4 text-foreground">
+            <div className="mt-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
                 AI 종합 분석
               </h2>
 
@@ -750,7 +799,7 @@ export default function ProfitabilityDiagnosisPage() {
                 <button
                   onClick={handleAIAnalysis}
                   disabled={isAnalyzing}
-                  className="w-full px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+                  className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow text-sm sm:text-base"
                 >
                   {isAnalyzing ? (
                     <>
@@ -770,7 +819,7 @@ export default function ProfitabilityDiagnosisPage() {
                   <div className="flex justify-end">
                     <button
                       onClick={handleDownloadAnalysis}
-                      className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base"
+                      className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-sm hover:shadow text-sm sm:text-base"
                       title="AI 분석 결과 다운로드"
                     >
                       <svg
@@ -791,8 +840,8 @@ export default function ProfitabilityDiagnosisPage() {
                   </div>
 
                   {/* 시각화 차트 */}
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-purple-200 dark:border-purple-700">
-                    <h3 className="text-xl font-semibold mb-4 text-foreground">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-gray-900/30">
+                    <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-gray-900 dark:text-gray-100">
                       📊 데이터 시각화
                     </h3>
 
@@ -800,10 +849,10 @@ export default function ProfitabilityDiagnosisPage() {
                       {/* 수익성 지표 막대 차트 */}
                       {profitabilityData.length > 0 && (
                         <div>
-                          <h4 className="text-lg font-semibold mb-3 text-foreground">
+                          <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                             수익성 지표 비교
                           </h4>
-                          <ResponsiveContainer width="100%" height={300}>
+                          <ResponsiveContainer width="100%" height={chartHeight}>
                             <BarChart data={profitabilityData}>
                               <CartesianGrid
                                 strokeDasharray="3 3"
@@ -812,11 +861,14 @@ export default function ProfitabilityDiagnosisPage() {
                               />
                               <XAxis
                                 dataKey="name"
-                                tick={{ fill: "currentColor", fontSize: 12 }}
+                                tick={{ fill: "currentColor", fontSize: chartFontSize }}
                                 stroke="currentColor"
+                                angle={isMobile ? -45 : 0}
+                                textAnchor={isMobile ? "end" : "middle"}
+                                height={isMobile ? 60 : 30}
                               />
                               <YAxis
-                                tick={{ fill: "currentColor", fontSize: 12 }}
+                                tick={{ fill: "currentColor", fontSize: chartFontSize }}
                                 stroke="currentColor"
                                 tickFormatter={(value) =>
                                   `${(value / 1000).toFixed(0)}k`
@@ -824,9 +876,10 @@ export default function ProfitabilityDiagnosisPage() {
                               />
                               <Tooltip
                                 contentStyle={{
-                                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                                  border: "1px solid #ccc",
+                                  backgroundColor: isDarkMode ? "rgba(31, 41, 55, 0.95)" : "rgba(255, 255, 255, 0.95)",
+                                  border: isDarkMode ? "1px solid #4b5563" : "1px solid #ccc",
                                   borderRadius: "8px",
+                                  color: isDarkMode ? "#f3f4f6" : "#111827"
                                 }}
                                 formatter={(value: number) =>
                                   `${value.toLocaleString("ko-KR")}원`
@@ -840,7 +893,9 @@ export default function ProfitabilityDiagnosisPage() {
                                   />
                                 ))}
                               </Bar>
-                              <Legend />
+                              <Legend 
+                                wrapperStyle={{ color: isDarkMode ? "#f3f4f6" : "#111827" }}
+                              />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
@@ -849,10 +904,10 @@ export default function ProfitabilityDiagnosisPage() {
                       {/* LTV:CAC 비율 파이 차트 */}
                       {ratioData.length > 0 && (
                         <div>
-                          <h4 className="text-lg font-semibold mb-3 text-foreground">
+                          <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                             LTV:CAC 비율 분석
                           </h4>
-                          <ResponsiveContainer width="100%" height={300}>
+                          <ResponsiveContainer width="100%" height={chartHeight}>
                             <PieChart>
                               <Pie
                                 data={ratioData}
@@ -875,15 +930,18 @@ export default function ProfitabilityDiagnosisPage() {
                               </Pie>
                               <Tooltip
                                 contentStyle={{
-                                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                                  border: "1px solid #ccc",
+                                  backgroundColor: isDarkMode ? "rgba(31, 41, 55, 0.95)" : "rgba(255, 255, 255, 0.95)",
+                                  border: isDarkMode ? "1px solid #4b5563" : "1px solid #ccc",
                                   borderRadius: "8px",
+                                  color: isDarkMode ? "#f3f4f6" : "#111827"
                                 }}
                                 formatter={(value: number) =>
                                   `${value.toFixed(2)}:1`
                                 }
                               />
-                              <Legend />
+                              <Legend 
+                                wrapperStyle={{ color: isDarkMode ? "#f3f4f6" : "#111827" }}
+                              />
                             </PieChart>
                           </ResponsiveContainer>
                         </div>
@@ -892,7 +950,7 @@ export default function ProfitabilityDiagnosisPage() {
                   </div>
 
                   {/* AI 텍스트 분석 결과 */}
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-purple-200 dark:border-purple-700">
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600 shadow-sm">
                     <div
                       className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
                       dangerouslySetInnerHTML={{
