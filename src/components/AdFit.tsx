@@ -64,7 +64,7 @@ export default function AdFit({
       callbackNameRef.current = callbackName;
 
       // 전역 함수로 등록
-      const windowWithKakao = window as WindowWithKakao;
+      const windowWithKakao = window as unknown as WindowWithKakao;
       windowWithKakao[callbackName] = (element: HTMLElement) => {
         console.log("[AdFit] 광고 로드 실패 - NO-AD 콜백 실행", {
           unitId,
@@ -76,7 +76,7 @@ export default function AdFit({
 
     return () => {
       // 컴포넌트 언마운트 시 전역 함수 정리
-      const windowWithKakao = window as WindowWithKakao;
+      const windowWithKakao = window as unknown as WindowWithKakao;
       if (callbackNameRef.current && windowWithKakao[callbackNameRef.current]) {
         delete windowWithKakao[callbackNameRef.current];
       }
@@ -85,7 +85,7 @@ export default function AdFit({
 
   useEffect(() => {
     // 광고 스크립트가 로드된 후 실행
-    const windowWithKakao = window as WindowWithKakao;
+    const windowWithKakao = window as unknown as WindowWithKakao;
     if (typeof window !== "undefined" && windowWithKakao.kakao) {
       try {
         windowWithKakao.kakao.ads.display();
@@ -119,7 +119,7 @@ export default function AdFit({
         strategy="lazyOnload"
         onLoad={() => {
           // 스크립트 로드 완료 후 광고 표시
-          const windowWithKakao = window as WindowWithKakao;
+          const windowWithKakao = window as unknown as WindowWithKakao;
           if (typeof window !== "undefined" && windowWithKakao.kakao) {
             try {
               windowWithKakao.kakao.ads.display();
