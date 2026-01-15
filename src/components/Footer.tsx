@@ -17,24 +17,24 @@ export default function Footer() {
       border-t border-gray-200 dark:border-gray-700
       mt-auto
     ">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-4 sm:pt-3 sm:pb-6 lg:py-10">
         <div className="
           flex flex-col
           lg:flex-row
           justify-between
           items-start lg:items-center
-          gap-6 lg:gap-12
+          gap-4 sm:gap-5 lg:gap-12
         ">
           {/* 왼쪽: 로고 + 설명 + 저작권 */}
           <div className="
             flex flex-col
-            sm:flex-row
+            lg:flex-row
             gap-3 sm:gap-4 lg:gap-6
             items-start
             flex-1
             max-w-2xl
           ">
-            {/* 로고 */}
+            {/* 로고 (노트북 이상에서만 표시) */}
             <Link
               href="/"
               className="
@@ -42,32 +42,25 @@ export default function Footer() {
                 transition-all duration-300
                 hover:opacity-80
                 active:scale-95
+                hidden lg:block
               "
             >
-              {/* 모바일 모드 (640px 미만): DRAIGER.jpeg 사용 */}
-              <Image
-                src="/DRAIGER.jpeg"
-                alt="DRAIGER"
-                width={427}
-                height={149}
-                className="block sm:hidden h-10 w-auto object-contain"
-                priority
-              />
-              {/* 태블릿/노트북/데스크탑 모드 (640px 이상): DRAIGER_width.jpeg 사용 */}
+              {/* 노트북/데스크탑 모드 (1024px 이상): DRAIGER_width.jpeg 사용 */}
               <Image
                 src="/DRAIGER_width.jpeg"
                 alt="DRAIGER"
                 width={180}
                 height={50}
-                className="hidden sm:block h-12 lg:h-16 w-auto object-contain"
+                className="h-12 lg:h-16 w-auto object-contain"
                 priority
               />
             </Link>
 
-            {/* 설명 텍스트 + 저작권 */}
+            {/* 설명 텍스트 + 저작권 (노트북 이상에서만 표시) */}
             <div className="
               space-y-2
               flex-1
+              hidden lg:block
             ">
               <p className="
                 text-xs sm:text-sm
@@ -116,6 +109,20 @@ export default function Footer() {
               </Link>
             ))}
           </div>
+        </div>
+        
+        {/* 저작권 정보 (모바일/태블릿에서만 푸터 하단에 표시) */}
+        <div className="
+          lg:hidden
+          mt-4 sm:mt-5
+          pt-3 sm:pt-4
+          border-t border-gray-200 dark:border-gray-700
+          text-center
+          text-xs sm:text-sm
+          text-gray-500 dark:text-gray-500
+          font-light
+        ">
+          © 2026 Draiger : 데일리 툴킷. All rights reserved.
         </div>
       </div>
     </footer>
