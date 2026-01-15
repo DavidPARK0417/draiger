@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -26,6 +26,55 @@ export default function BreakEvenPointPage() {
   // AI 분석 상태
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
+  
+  // 차트 반응형 및 다크모드 상태
+  const [chartHeight, setChartHeight] = useState(300);
+  const [chartFontSize, setChartFontSize] = useState(12);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // 화면 크기에 따라 차트 높이 및 폰트 크기 조정
+  useEffect(() => {
+    const updateChartSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setChartHeight(200); // 모바일
+        setChartFontSize(10);
+        setIsMobile(true);
+      } else if (width < 1024) {
+        setChartHeight(250); // 태블릿
+        setChartFontSize(11);
+        setIsMobile(false);
+      } else {
+        setChartHeight(300); // 데스크탑
+        setChartFontSize(12);
+        setIsMobile(false);
+      }
+    };
+
+    // 다크모드 감지 함수
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+
+    updateChartSize();
+    checkDarkMode();
+
+    // 리사이즈 이벤트 리스너
+    window.addEventListener('resize', updateChartSize);
+    
+    // 다크모드 변경 감지를 위한 MutationObserver
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateChartSize);
+      observer.disconnect();
+    };
+  }, []);
 
   const handleCalculate = () => {
     console.log('=== 손익분기점 계산 ===');
@@ -208,7 +257,7 @@ export default function BreakEvenPointPage() {
   ].filter(item => item.value > 0);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           손익분기점 계산기
@@ -217,13 +266,13 @@ export default function BreakEvenPointPage() {
           고정비와 변동비를 기반으로 손익분기점을 계산하여 최소 판매 목표를 설정하세요
         </p>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-6 sm:p-8 lg:p-10">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 상품명
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={productName}
@@ -232,12 +281,12 @@ export default function BreakEvenPointPage() {
                     setProductName(e.target.value);
                   }}
                   placeholder="예: 스마트폰 케이스, 온라인 강의 등"
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                  className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
                 <button
                   onClick={handleAIEstimate}
                   disabled={isLoading || !productName.trim()}
-                  className="px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium whitespace-nowrap shadow-md hover:shadow-lg"
+                  className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium whitespace-nowrap shadow-sm hover:shadow text-sm sm:text-base"
                   title="AI로 손익분기점 정보 자동 입력"
                 >
                   {isLoading ? 'AI 분석 중...' : '🤖 AI 추정'}
@@ -246,7 +295,7 @@ export default function BreakEvenPointPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 총 고정비 (월세, 인건비 등) (원)
               </label>
               <input
@@ -258,12 +307,12 @@ export default function BreakEvenPointPage() {
                   setFixedCost(value);
                 }}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 제품 1개당 변동비 (원가 등) (원)
               </label>
               <input
@@ -275,12 +324,12 @@ export default function BreakEvenPointPage() {
                   setVariableCost(value);
                 }}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">
+              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                 제품 1개당 판매가 (원)
               </label>
               <input
@@ -292,13 +341,13 @@ export default function BreakEvenPointPage() {
                   setSellingPrice(value);
                 }}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-foreground"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <button
               onClick={handleCalculate}
-              className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium shadow-sm hover:shadow text-sm sm:text-base"
             >
               계산하기
             </button>
@@ -307,7 +356,7 @@ export default function BreakEvenPointPage() {
           {(fixedCost > 0 || variableCost > 0 || sellingPrice > 0) && (
             <div className="mt-8 space-y-4">
               {contributionMargin <= 0 && sellingPrice > 0 && variableCost > 0 ? (
-                <div className="p-4 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800">
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 shadow-sm">
                   <h3 className="text-sm font-semibold text-red-800 dark:text-red-200 mb-2">
                     경고
                   </h3>
@@ -318,7 +367,7 @@ export default function BreakEvenPointPage() {
                 </div>
               ) : breakEvenQuantity > 0 ? (
                 <>
-                  <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border-l-4 border-emerald-400 dark:border-emerald-600 shadow-md">
+                  <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-sm">
                     <h3 className="text-lg sm:text-xl font-semibold text-emerald-800 dark:text-emerald-200 mb-3 sm:mb-4">
                       목표 달성 메시지
                     </h3>
@@ -331,26 +380,26 @@ export default function BreakEvenPointPage() {
                     </p>
                   </div>
 
-                  <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-md">
+                  <div className="p-4 sm:p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-sm">
                     <h3 className="text-sm sm:text-base font-semibold text-emerald-800 dark:text-emerald-200 mb-2 sm:mb-3">
                       계산 결과
                     </h3>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-700 dark:text-gray-300">단위당 기여이익:</span>
-                        <span className="font-semibold text-foreground">
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">
                           {contributionMargin.toLocaleString('ko-KR')} 원
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-700 dark:text-gray-300">손익분기점 수량:</span>
-                        <span className="font-semibold text-foreground">
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">
                           {breakEvenQuantity.toFixed(2)} 개
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-700 dark:text-gray-300">손익분기점 매출:</span>
-                        <span className="font-semibold text-foreground">
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">
                           {breakEvenRevenue.toLocaleString('ko-KR')} 원
                         </span>
                       </div>
@@ -363,7 +412,7 @@ export default function BreakEvenPointPage() {
                       <button
                         onClick={handleAIAnalysis}
                         disabled={isAnalyzing}
-                        className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                        className="w-full px-6 py-3 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow text-sm sm:text-base"
                       >
                         {isAnalyzing ? (
                           <>
@@ -386,7 +435,7 @@ export default function BreakEvenPointPage() {
                       <div className="flex justify-end">
                         <button
                           onClick={handleDownloadAnalysis}
-                          className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-xl hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base"
+                          className="px-4 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-all duration-300 font-medium flex items-center gap-2 shadow-sm hover:shadow text-sm sm:text-base"
                           title="AI 분석 결과 다운로드"
                         >
                           <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -397,7 +446,7 @@ export default function BreakEvenPointPage() {
                       </div>
                       
                       {/* 시각화 차트 */}
-                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-700 shadow-md dark:shadow-gray-900/50">
+                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-gray-900/30">
                         <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-gray-900 dark:text-gray-100">
                           📊 데이터 시각화
                         </h3>
@@ -406,23 +455,31 @@ export default function BreakEvenPointPage() {
                           {/* 비용 구조 막대 차트 */}
                           {costStructureData.length > 0 && (
                             <div>
-                              <h4 className="text-lg font-semibold mb-3 text-foreground">
+                              <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                                 비용 구조 분석
                               </h4>
-                              <ResponsiveContainer width="100%" height={300}>
+                              <ResponsiveContainer width="100%" height={chartHeight}>
                                 <BarChart data={costStructureData}>
                                   <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.2} />
-                                  <XAxis dataKey="name" tick={{ fill: 'currentColor', fontSize: 12 }} stroke="currentColor" />
+                                  <XAxis 
+                                    dataKey="name" 
+                                    tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
+                                    stroke="currentColor"
+                                    angle={isMobile ? -45 : 0}
+                                    textAnchor={isMobile ? 'end' : 'middle'}
+                                    height={isMobile ? 60 : 30}
+                                  />
                                   <YAxis 
-                                    tick={{ fill: 'currentColor', fontSize: 12 }} 
+                                    tick={{ fill: 'currentColor', fontSize: chartFontSize }} 
                                     stroke="currentColor"
                                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                                   />
                                   <Tooltip 
                                     contentStyle={{ 
-                                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                      border: '1px solid #ccc',
-                                      borderRadius: '8px'
+                                      backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                      border: isDarkMode ? '1px solid #4b5563' : '1px solid #ccc',
+                                      borderRadius: '8px',
+                                      color: isDarkMode ? '#f3f4f6' : '#111827'
                                     }}
                                     formatter={(value: number) => `${value.toLocaleString('ko-KR')}원`}
                                   />
@@ -431,7 +488,9 @@ export default function BreakEvenPointPage() {
                                       <Cell key={`cell-${index}`} fill={entry.fill} />
                                     ))}
                                   </Bar>
-                                  <Legend />
+                                  <Legend 
+                                    wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                                  />
                                 </BarChart>
                               </ResponsiveContainer>
                             </div>
@@ -440,10 +499,10 @@ export default function BreakEvenPointPage() {
                           {/* 손익분기점 파이 차트 */}
                           {breakEvenAnalysisData.length > 0 && (
                             <div>
-                              <h4 className="text-lg font-semibold mb-3 text-foreground">
+                              <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
                                 손익분기점 분석
                               </h4>
-                              <ResponsiveContainer width="100%" height={300}>
+                              <ResponsiveContainer width="100%" height={chartHeight}>
                                 <PieChart>
                                   <Pie
                                     data={breakEvenAnalysisData}
@@ -461,13 +520,16 @@ export default function BreakEvenPointPage() {
                                   </Pie>
                                   <Tooltip 
                                     contentStyle={{ 
-                                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                      border: '1px solid #ccc',
-                                      borderRadius: '8px'
+                                      backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                      border: isDarkMode ? '1px solid #4b5563' : '1px solid #ccc',
+                                      borderRadius: '8px',
+                                      color: isDarkMode ? '#f3f4f6' : '#111827'
                                     }}
                                     formatter={(value: number) => `${value.toLocaleString('ko-KR')}개`}
                                   />
-                                  <Legend />
+                                  <Legend 
+                                    wrapperStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                                  />
                                 </PieChart>
                               </ResponsiveContainer>
                             </div>
@@ -476,7 +538,7 @@ export default function BreakEvenPointPage() {
                       </div>
 
                       {/* AI 텍스트 분석 결과 */}
-                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-700 shadow-md dark:shadow-gray-900/50">
+                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600 shadow-sm">
                         <div 
                           className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
                           dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis) }}
@@ -490,7 +552,7 @@ export default function BreakEvenPointPage() {
           )}
         </div>
 
-        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:p-8">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
           <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-gray-100">
             계산 공식 안내
           </h2>
@@ -505,7 +567,7 @@ export default function BreakEvenPointPage() {
               <strong>손익분기점 매출</strong> = 손익분기점 수량 × 판매가
             </li>
           </ul>
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-gray-700 dark:text-gray-300">
               <strong>손익분기점이란?</strong> 순이익이 0원이 되는 판매 수량입니다. 
               이 수량을 넘어서야 비로소 이익이 발생하기 시작합니다.
