@@ -451,6 +451,7 @@ export async function getPublishedPosts(): Promise<Post[]> {
             published: page.properties.Published?.checkbox || false,
             blogPost: blogPostContent,
             category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+            date: page.properties.date?.date?.start || undefined,
             featuredImage,
           };
         })

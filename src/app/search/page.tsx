@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getPublishedPosts, Post } from "@/lib/notion";
 import { Search } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import DateRangeFilter from "@/components/DateRangeFilter";
 
 const marketingTools = [
   { name: "광고 성과 계산", href: "/tools/ad-performance" },
@@ -26,7 +27,7 @@ const usefulTools = [
 ];
 
 interface SearchPageProps {
-  searchParams: Promise<{ q?: string; type?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; type?: string; page?: string; fromDate?: string; toDate?: string }>;
 }
 
 interface SearchResult {
@@ -35,6 +36,7 @@ interface SearchResult {
   description?: string;
   href: string;
   category?: string;
+  date?: string; // 게시일 (YYYY-MM-DD 형식)
 }
 
 // 검색 함수
@@ -85,6 +87,7 @@ function searchContent(query: string, posts: Post[]): SearchResult[] {
       description: post.metaDescription,
       href: `/insight/${post.slug}`,
       category: post.category,
+      date: post.date, // 게시일 추가
     }));
 
   results.push(...insightResults);
@@ -111,10 +114,51 @@ function searchContent(query: string, posts: Post[]): SearchResult[] {
   return results;
 }
 
+// 기간 필터링 함수 (인사이트 글만 필터링)
+function filterByDateRange(
+  results: SearchResult[],
+  fromDate?: string,
+  toDate?: string
+): SearchResult[] {
+  if (!fromDate && !toDate) {
+    return results; // 필터가 없으면 전체 반환
+  }
+
+  return results.filter((result) => {
+    // 도구는 날짜 필터링 제외
+    if (result.type === "tool") {
+      return true;
+    }
+
+    // 인사이트 글만 날짜 필터링
+    if (result.type === "insight" && result.date) {
+      const postDate = result.date.split("T")[0]; // YYYY-MM-DD 형식으로 변환
+
+      // 시작일 필터
+      if (fromDate && postDate < fromDate) {
+        return false;
+      }
+
+      // 종료일 필터
+      if (toDate && postDate > toDate) {
+        return false;
+      }
+
+      return true;
+    }
+
+    // 날짜 정보가 없는 인사이트 글은 필터링에서 제외 (또는 포함)
+    // 여기서는 날짜가 없으면 필터링에서 제외
+    return !fromDate && !toDate;
+  });
+}
+
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const query = params.q || "";
   const searchType = params.type || "all"; // all, insight, tool
+  const fromDate = params.fromDate || "";
+  const toDate = params.toDate || "";
   const currentPage = parseInt(params.page || "1", 10) || 1;
   const pageSize = 10; // 페이지당 결과 수
 
@@ -132,12 +176,21 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   console.log("검색 결과:", allResults.length, "개");
 
   // 타입별 필터링
-  const filteredResults =
+  let typeFilteredResults =
     searchType === "all"
       ? allResults
       : searchType === "insight"
       ? allResults.filter((r) => r.type === "insight")
       : allResults.filter((r) => r.type === "tool");
+
+  // 기간 필터링 (인사이트 글만)
+  const filteredResults = filterByDateRange(
+    typeFilteredResults,
+    fromDate || undefined,
+    toDate || undefined
+  );
+  
+  console.log("기간 필터링 후 결과:", filteredResults.length, "개");
 
   // 페이지네이션 계산
   const totalResults = filteredResults.length;
@@ -154,10 +207,26 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const allInsightResults = filteredResults.filter((r) => r.type === "insight");
   const allToolResults = filteredResults.filter((r) => r.type === "tool");
 
-  // 페이지네이션 URL 생성
-  const baseSearchUrl = `/search?q=${encodeURIComponent(query)}${
-    searchType !== "all" ? `&type=${searchType}` : ""
-  }`;
+  // URL 생성 헬퍼 함수
+  const buildSearchUrl = (options?: { type?: string; page?: number; fromDate?: string; toDate?: string }) => {
+    const urlParams = new URLSearchParams();
+    if (query) urlParams.set("q", query);
+    
+    const type = options?.type !== undefined ? options.type : searchType;
+    if (type !== "all") urlParams.set("type", type);
+    
+    const dateFrom = options?.fromDate !== undefined ? options.fromDate : fromDate;
+    const dateTo = options?.toDate !== undefined ? options.toDate : toDate;
+    if (dateFrom) urlParams.set("fromDate", dateFrom);
+    if (dateTo) urlParams.set("toDate", dateTo);
+    
+    const page = options?.page;
+    if (page && page > 1) urlParams.set("page", page.toString());
+    
+    return `/search?${urlParams.toString()}`;
+  };
+
+  const baseSearchUrl = buildSearchUrl();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8">
@@ -180,50 +249,55 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
         {/* 검색 타입 필터 */}
         {query && (
-          <div className="mb-6 flex gap-2 flex-wrap">
-            <Link
-              href={`/search?q=${encodeURIComponent(query)}&type=all`}
-              className={`
-                px-4 py-2 rounded-xl text-sm font-medium
-                transition-all duration-300
-                ${
-                  searchType === "all"
-                    ? "bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-700"
-                }
-              `}
-            >
-              전체 ({totalResults})
-            </Link>
-            <Link
-              href={`/search?q=${encodeURIComponent(query)}&type=insight`}
-              className={`
-                px-4 py-2 rounded-xl text-sm font-medium
-                transition-all duration-300
-                ${
-                  searchType === "insight"
-                    ? "bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-700"
-                }
-              `}
-            >
-              인사이트 ({allInsightResults.length})
-            </Link>
-            <Link
-              href={`/search?q=${encodeURIComponent(query)}&type=tool`}
-              className={`
-                px-4 py-2 rounded-xl text-sm font-medium
-                transition-all duration-300
-                ${
-                  searchType === "tool"
-                    ? "bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-700"
-                }
-              `}
-            >
-              도구 ({allToolResults.length})
-            </Link>
-          </div>
+          <>
+            <div className="mb-6 flex gap-2 flex-wrap">
+              <Link
+                href={buildSearchUrl({ type: "all" })}
+                className={`
+                  px-4 py-2 rounded-xl text-sm font-medium
+                  transition-all duration-300
+                  ${
+                    searchType === "all"
+                      ? "bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-700"
+                  }
+                `}
+              >
+                전체 ({totalResults})
+              </Link>
+              <Link
+                href={buildSearchUrl({ type: "insight" })}
+                className={`
+                  px-4 py-2 rounded-xl text-sm font-medium
+                  transition-all duration-300
+                  ${
+                    searchType === "insight"
+                      ? "bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-700"
+                  }
+                `}
+              >
+                인사이트 ({allInsightResults.length})
+              </Link>
+              <Link
+                href={buildSearchUrl({ type: "tool" })}
+                className={`
+                  px-4 py-2 rounded-xl text-sm font-medium
+                  transition-all duration-300
+                  ${
+                    searchType === "tool"
+                      ? "bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-700"
+                  }
+                `}
+              >
+                도구 ({allToolResults.length})
+              </Link>
+            </div>
+
+            {/* 기간 필터 */}
+            <DateRangeFilter baseUrl="/search" />
+          </>
         )}
 
         {/* 검색 결과 */}
@@ -286,11 +360,22 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                               {result.description}
                             </p>
                           )}
-                          {result.category && (
-                            <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400">
-                              {result.category}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {result.category && (
+                              <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400">
+                                {result.category}
+                              </span>
+                            )}
+                            {result.date && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {new Date(result.date).toLocaleDateString('ko-KR', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </span>
+                            )}
+                          </div>
                         </Link>
                       ))}
                     </div>
