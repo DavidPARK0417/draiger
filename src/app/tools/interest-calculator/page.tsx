@@ -436,7 +436,7 @@ export default function InterestCalculatorPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           이자 계산기
@@ -449,20 +449,20 @@ export default function InterestCalculatorPage() {
         <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab('loan')}
-            className={`px-4 py-2.5 font-medium rounded-t-xl transition-all duration-300 ${
+            className={`px-4 py-2.5 font-medium rounded-t-lg transition-all duration-300 ${
               activeTab === 'loan'
-                ? 'bg-emerald-500 dark:bg-emerald-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                ? 'bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
             대출이자 계산기
           </button>
           <button
             onClick={() => setActiveTab('savings')}
-            className={`px-4 py-2.5 font-medium rounded-t-xl transition-all duration-300 ${
+            className={`px-4 py-2.5 font-medium rounded-t-lg transition-all duration-300 ${
               activeTab === 'savings'
-                ? 'bg-emerald-500 dark:bg-emerald-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                ? 'bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
             예적금 예상 수령액 계산기

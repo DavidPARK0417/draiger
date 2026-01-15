@@ -980,7 +980,7 @@ export default function AlarmClockPage() {
   }, [timer]);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         {/* 헤더 */}
         <div className="text-center mb-8 sm:mb-12 lg:mb-16">
@@ -1281,9 +1281,9 @@ export default function AlarmClockPage() {
                 <button
                   onClick={() => setTimerMode('stopwatch')}
                   className={`
-                    flex-1 px-4 py-2 rounded-xl font-medium transition-all duration-300
+                    flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-300
                     ${timerMode === 'stopwatch'
-                      ? 'bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
+                      ? 'bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }
                   `}
@@ -1293,9 +1293,9 @@ export default function AlarmClockPage() {
                 <button
                   onClick={() => setTimerMode('timer')}
                   className={`
-                    flex-1 px-4 py-2 rounded-xl font-medium transition-all duration-300
+                    flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-300
                     ${timerMode === 'timer'
-                      ? 'bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
+                      ? 'bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }
                   `}

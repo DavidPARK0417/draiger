@@ -282,13 +282,13 @@ export default function FilePreviewPage() {
               className="
                 border-2 border-dashed
                 border-gray-300 dark:border-gray-600
-                rounded-xl
+                rounded-lg
                 p-8 sm:p-12
                 text-center
                 cursor-pointer
                 transition-all duration-300
                 hover:border-emerald-500 dark:hover:border-emerald-400
-                hover:bg-emerald-50 dark:hover:bg-gray-800
+                hover:bg-emerald-50 dark:hover:bg-gray-800/50
               "
               onClick={() => fileInputRef.current?.click()}
             >

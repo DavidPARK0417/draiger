@@ -506,7 +506,7 @@ export default function ImageResizePage() {
   }, [imageFiles, handleCompressSingle]);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         {/* 헤더 */}
         <div className="text-center mb-8 sm:mb-12 lg:mb-16">
@@ -536,12 +536,12 @@ export default function ImageResizePage() {
             <button
               onClick={() => setActiveTab("resize")}
               className={`
-                px-4 sm:px-6 py-2.5 font-medium rounded-t-xl transition-all duration-300
+                px-4 sm:px-6 py-2.5 font-medium rounded-t-lg transition-all duration-300
                 flex items-center gap-2
                 ${
                   activeTab === "resize"
-                    ? "bg-emerald-500 dark:bg-emerald-600 text-white shadow-md"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    ? "bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }
               `}
             >
@@ -551,12 +551,12 @@ export default function ImageResizePage() {
             <button
               onClick={() => setActiveTab("compress")}
               className={`
-                px-4 sm:px-6 py-2.5 font-medium rounded-t-xl transition-all duration-300
+                px-4 sm:px-6 py-2.5 font-medium rounded-t-lg transition-all duration-300
                 flex items-center gap-2
                 ${
                   activeTab === "compress"
-                    ? "bg-emerald-500 dark:bg-emerald-600 text-white shadow-md"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    ? "bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }
               `}
             >
@@ -580,13 +580,13 @@ export default function ImageResizePage() {
                 className="
                   border-2 border-dashed
                   border-gray-300 dark:border-gray-600
-                  rounded-xl
+                  rounded-lg
                   p-8
                   text-center
                   cursor-pointer
                   transition-all duration-300
                   hover:border-emerald-500 dark:hover:border-emerald-400
-                  hover:bg-emerald-50 dark:hover:bg-gray-800
+                  hover:bg-emerald-50 dark:hover:bg-gray-800/50
                 "
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -1045,7 +1045,7 @@ export default function ImageResizePage() {
                         )}
 
                         {/* 액션 버튼 */}
-                        <div className="flex gap-2 mt-3">
+                        <div className="flex flex-col sm:flex-row gap-2 mt-3">
                           {!imageFile.processedUrl &&
                             !imageFile.isProcessing && (
                               <Button
@@ -1061,6 +1061,7 @@ export default function ImageResizePage() {
                                   !width &&
                                   !height
                                 }
+                                className="w-full sm:w-auto"
                               >
                                 처리하기
                               </Button>
@@ -1070,6 +1071,7 @@ export default function ImageResizePage() {
                               size="sm"
                               variant="secondary"
                               onClick={() => handleDownloadSingle(imageFile)}
+                              className="w-full sm:w-auto"
                             >
                               <DownloadIcon className="w-4 h-4 mr-1" />
                               다운로드
