@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import AdFit from "./AdFit";
 
 export default function Footer() {
   const footerLinks = [
@@ -17,6 +18,24 @@ export default function Footer() {
       border-t border-gray-200 dark:border-gray-700
       mt-auto
     ">
+      {/* 광고 영역 (Footer 상단) */}
+      <div className="
+        bg-gray-50 dark:bg-gray-900
+        border-b border-gray-100 dark:border-gray-700
+        py-6 sm:py-8
+      ">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center">
+            <AdFit
+              unitId="DAN-gzhM4ZoHUUTxO6Kg"
+              width={250}
+              height={250}
+              className="rounded-lg"
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-4 sm:pt-3 sm:pb-6 lg:py-10">
         <div className="
           flex flex-col
