@@ -8,6 +8,7 @@ import TextToSpeech from "@/components/TextToSpeech";
 import FormattedDate from "@/components/FormattedDate";
 import MarkdownImage from "@/components/MarkdownImage";
 import AdFit from "@/components/AdFit";
+import GiscusComments from "@/components/GiscusComments";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -342,6 +343,9 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
               </div>
             )}
           </article>
+
+          {/* 댓글 섹션 */}
+          <GiscusComments slug={slug} />
 
           <footer className="mt-24 sm:mt-32 pt-12 sm:pt-16 border-t border-gray-200 dark:border-white/10">
             <Link
