@@ -71,6 +71,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false); // Hydration 오류 방지
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [currentPostCategory, setCurrentPostCategory] = useState<string | null>(null);
   const blogDropdownRef = useRef<HTMLDivElement>(null);
   const marketingToolsDropdownRef = useRef<HTMLDivElement>(null);
   const usefulToolsDropdownRef = useRef<HTMLDivElement>(null);
@@ -107,6 +108,41 @@ export default function Header() {
       fetchCategoryCounts();
     }
   }, [mounted]);
+
+  // 인사이트 상세 페이지에서 현재 포스트의 카테고리 가져오기
+  useEffect(() => {
+    const fetchCurrentPostCategory = async () => {
+      // 경로가 /insight/[slug] 형태인지 확인 (category가 아닌 경우)
+      const insightSlugMatch = pathname.match(/^\/insight\/([^\/]+)$/);
+      
+      if (insightSlugMatch && !pathname.startsWith("/insight/category")) {
+        const slug = insightSlugMatch[1];
+        console.log(`[Header] 인사이트 상세 페이지 감지, slug: ${slug}`);
+        
+        try {
+          const response = await fetch(`/api/post-category/${slug}`);
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`[Header] 현재 포스트 카테고리: ${data.category || '없음'}`);
+            setCurrentPostCategory(data.category || null);
+          } else {
+            console.error(`[Header] 포스트 카테고리 조회 실패: ${response.status}`);
+            setCurrentPostCategory(null);
+          }
+        } catch (error) {
+          console.error("[Header] 포스트 카테고리 조회 오류:", error);
+          setCurrentPostCategory(null);
+        }
+      } else {
+        // 인사이트 상세 페이지가 아니면 카테고리 초기화
+        setCurrentPostCategory(null);
+      }
+    };
+
+    if (mounted) {
+      fetchCurrentPostCategory();
+    }
+  }, [pathname, mounted]);
 
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
@@ -471,7 +507,7 @@ export default function Header() {
                       block px-4 py-2.5 text-sm
                       transition-all duration-200
                       ${
-                        pathname === "/insight" || (pathname.startsWith("/insight") && !pathname.startsWith("/insight/category"))
+                        pathname === "/insight" || (pathname.startsWith("/insight") && !pathname.startsWith("/insight/category") && !currentPostCategory)
                           ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold"
                           : "text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-700 hover:text-emerald-600 dark:hover:text-emerald-400"
                       }
@@ -480,7 +516,8 @@ export default function Header() {
                     전체{totalCount > 0 && ` (${totalCount})`}
                   </Link>
                   {blogCategories.map((category) => {
-                    const isActive = pathname === category.href;
+                    // 인사이트 상세 페이지에서 현재 포스트의 카테고리와 일치하는지 확인
+                    const isActive = pathname === category.href || (currentPostCategory && currentPostCategory === category.name);
                     const count = categoryCounts[category.name] || 0;
                     return (
                       <Link
@@ -883,7 +920,7 @@ export default function Header() {
                       block px-4 py-2.5 rounded-lg text-sm
                       transition-all duration-200
                       ${
-                        pathname === "/insight" || (pathname.startsWith("/insight") && !pathname.startsWith("/insight/category"))
+                        pathname === "/insight" || (pathname.startsWith("/insight") && !pathname.startsWith("/insight/category") && !currentPostCategory)
                           ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold"
                           : "text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-800"
                       }
@@ -892,7 +929,8 @@ export default function Header() {
                     전체{totalCount > 0 && ` (${totalCount})`}
                   </Link>
                   {blogCategories.map((category) => {
-                    const isActive = pathname === category.href;
+                    // 인사이트 상세 페이지에서 현재 포스트의 카테고리와 일치하는지 확인
+                    const isActive = pathname === category.href || (currentPostCategory && currentPostCategory === category.name);
                     const count = categoryCounts[category.name] || 0;
                     return (
                       <Link
