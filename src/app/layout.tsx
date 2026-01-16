@@ -208,15 +208,6 @@ export default function RootLayout({
             `,
           }}
         />
-        {/* Kakao AdFit 스크립트 (전역에서 한 번만 로드) */}
-        <Script
-          id="kakao-adfit"
-          type="text/javascript"
-          src="https://t1.daumcdn.net/kas/static/ba.min.js"
-          async
-          charSet="utf-8"
-          strategy="afterInteractive"
-        />
         <ThemeProvider>
           <PWAServiceWorker />
           {/* 전체 페이지 레이아웃: Header, Main, Footer 구조 */}
@@ -235,6 +226,14 @@ export default function RootLayout({
           {/* PWA 설치 프롬프트 */}
           <PWAInstallPrompt />
         </ThemeProvider>
+        {/* Kakao AdFit 스크립트 (공식 문서: </body> 바로 위에 설치, async 속성 필수) */}
+        {/* Next.js에서는 일반 script 태그가 제대로 작동하지 않을 수 있으므로 Script 컴포넌트 사용 */}
+        <Script
+          src="https://t1.daumcdn.net/kas/static/ba.min.js"
+          strategy="lazyOnload"
+          type="text/javascript"
+          charSet="utf-8"
+        />
       </body>
     </html>
   );
