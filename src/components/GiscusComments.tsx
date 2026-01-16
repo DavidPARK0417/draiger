@@ -51,10 +51,14 @@ export default function GiscusComments({ slug }: GiscusCommentsProps) {
     commentsRef.current.appendChild(script);
     isMountedRef.current = true;
 
+    // cleanup 함수에서 사용할 스크립트 참조 저장
+    const scriptElement = script;
+
     return () => {
       // 컴포넌트 언마운트 시 스크립트 제거
-      if (commentsRef.current && script.parentNode) {
-        script.parentNode.removeChild(script);
+      const currentRef = commentsRef.current;
+      if (currentRef && scriptElement.parentNode) {
+        scriptElement.parentNode.removeChild(scriptElement);
       }
       isMountedRef.current = false;
     };

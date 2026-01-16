@@ -16,6 +16,7 @@ interface WindowWithKakao extends Window {
   kakao?: {
     display: (element: HTMLElement) => void;
   };
+  __kakao_adfit_loaded?: boolean;
 }
 
 /**
@@ -82,21 +83,42 @@ export default function AdFit({
 
       // 스크립트가 로드되었는지 확인 (여러 방법 시도)
       const windowWithKakao = window as unknown as WindowWithKakao;
+      const windowRecord = window as unknown as Record<string, unknown>;
 
-      // 방법 1: kakao 객체 확인
-      if (windowWithKakao.kakao || (window as any).kakao) {
-        console.log("[AdFit] kakao 객체 발견", { unitId });
+      // 방법 1: kakao 객체 확인 (여러 방법으로 시도)
+      // 1-1: windowWithKakao.kakao 직접 체크
+      if (windowWithKakao.kakao) {
+        console.log("[AdFit] kakao 객체 발견 (windowWithKakao)", { unitId });
+        return true;
+      }
+
+      // 1-2: windowRecord.kakao 체크
+      if ("kakao" in window && windowRecord.kakao) {
+        console.log("[AdFit] kakao 객체 발견 (windowRecord)", { unitId });
+        return true;
+      }
+
+      // 1-3: 직접 window 객체에서 체크 (타입 단언 사용)
+      const windowAny = window as unknown as {
+        kakao?: { display?: (element: HTMLElement) => void };
+      };
+      if (windowAny.kakao) {
+        console.log("[AdFit] kakao 객체 발견 (direct check)", { unitId });
         return true;
       }
 
       // 방법 2: 스크립트 태그의 완료 상태 확인
       // 스크립트가 완전히 로드되었는지 확인하기 위해 스크립트 태그의 속성 확인
       if (scriptTag.getAttribute("data-loaded") === "true") {
+        console.log("[AdFit] 스크립트 로드 완료 마커 발견", { unitId });
         return true;
       }
 
       // 방법 3: 전역 변수 확인 (카카오 AdFit이 설정하는 다른 전역 변수)
-      if ((window as any).__kakao_adfit_loaded) {
+      if (
+        "__kakao_adfit_loaded" in window &&
+        windowRecord.__kakao_adfit_loaded
+      ) {
         return true;
       }
 
@@ -135,9 +157,17 @@ export default function AdFit({
     }
 
     // 즉시 확인
-    if (checkScript()) {
+    const initialCheck = checkScript();
+    if (initialCheck) {
+      console.log("[AdFit] 스크립트 즉시 확인 성공", { unitId });
       setIsScriptReady(true);
       return;
+    } else {
+      console.log("[AdFit] 스크립트 즉시 확인 실패, 주기적 확인 시작", {
+        unitId,
+        scriptTagExists: !!scriptTag,
+        documentReady: document.readyState,
+      });
     }
 
     // 주기적으로 확인 (최대 10초로 증가)
@@ -155,10 +185,15 @@ export default function AdFit({
           unitId,
           scriptTagExists: !!scriptTag,
           documentReady: document.readyState,
+          hasKakao: !!(window as unknown as { kakao?: unknown }).kakao,
         });
         // 타임아웃이어도 시도해볼 수 있도록 준비 완료로 표시
         // 카카오 AdFit은 자동 스캔을 하므로 kakao 객체가 없어도 작동할 수 있음
-        setIsScriptReady(true);
+        // 스크립트 태그가 존재하면 일단 준비 완료로 표시
+        if (scriptTag) {
+          markScriptAsLoaded();
+          setIsScriptReady(true);
+        }
       }
     }, 100);
 
