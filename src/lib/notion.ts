@@ -1269,6 +1269,37 @@ export async function getPostContent(pageId: string): Promise<string> {
       console.log(`[getPostContent] ⚠️ 이미지 URL 맵이 비어있음: ${imageUrlMap.size}개`);
     }
     
+    // 이미지 다음에 출처 텍스트가 있는 경우, 출처를 이미지의 alt로 이동
+    // 패턴: ![alt](url) 다음에 "출처: ..." 텍스트가 오는 경우 (빈 줄 포함)
+    const imageWithSourcePattern = /(!\[.*?\]\([^\)]+\))(\s*\n\s*)(출처\s*[:：]\s*[^\n]+)/g;
+    let sourceReplacementCount = 0;
+    
+    markdownContent = markdownContent.replace(imageWithSourcePattern, (match, imageMarkdown, whitespace, sourceText) => {
+      // 이미지 마크다운에서 alt와 url 추출
+      const imageMatch = imageMarkdown.match(/!\[(.*?)\]\((.*?)\)/);
+      if (imageMatch) {
+        const currentAlt = imageMatch[1] || '';
+        const imageUrl = imageMatch[2];
+        // 출처 텍스트에서 "출처:" 부분 제거하고 순수 출처만 추출
+        const cleanSource = sourceText.replace(/^출처\s*[:：]\s*/i, '').trim();
+        
+        // 출처를 alt로 설정 (기존 alt가 있으면 유지하고 출처 추가)
+        const newAlt = currentAlt ? `${currentAlt} | 출처: ${cleanSource}` : `출처: ${cleanSource}`;
+        const newImageMarkdown = `![${newAlt}](${imageUrl})`;
+        
+        console.log(`[getPostContent] ✅ 출처를 이미지 alt로 이동: "${cleanSource.substring(0, 50)}..."`);
+        sourceReplacementCount++;
+        
+        // 이미지만 반환 (출처 텍스트와 공백은 제거)
+        return newImageMarkdown;
+      }
+      return match;
+    });
+    
+    if (sourceReplacementCount > 0) {
+      console.log(`[getPostContent] ✅ 출처를 이미지 alt로 이동 완료: ${sourceReplacementCount}개`);
+    }
+    
     // 디버깅: 변환된 마크다운에서 이미지 확인
     const imagePatterns = [
       /!\[.*?\]\([^\)]+\)/g,  // 마크다운 이미지

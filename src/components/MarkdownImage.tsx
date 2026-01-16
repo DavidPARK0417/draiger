@@ -239,7 +239,7 @@ export default function MarkdownImage({ src, alt, ...props }: MarkdownImageProps
       )}
       {alt && (
         <div className="
-          mt-3 sm:mt-4
+          mt-0
           text-xs sm:text-sm
           text-center
           text-gray-500 dark:text-gray-400
