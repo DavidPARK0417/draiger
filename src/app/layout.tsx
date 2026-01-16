@@ -208,6 +208,15 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Kakao AdFit 스크립트 (전역에서 한 번만 로드) */}
+        <Script
+          id="kakao-adfit"
+          type="text/javascript"
+          src="https://t1.daumcdn.net/kas/static/ba.min.js"
+          async
+          charSet="utf-8"
+          strategy="afterInteractive"
+        />
         <ThemeProvider>
           <PWAServiceWorker />
           {/* 전체 페이지 레이아웃: Header, Main, Footer 구조 */}
