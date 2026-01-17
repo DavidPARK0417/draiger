@@ -13,13 +13,13 @@ export const revalidate = 10;
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Journal | DRAIGER',
+  title: 'DRAIGER',
   description: 'A minimal, interactive blog powered by Notion and Next.js.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Journal | DRAIGER',
+    title: 'DRAIGER',
     description: 'A minimal, interactive blog powered by Notion and Next.js.',
     url: '/',
   },
