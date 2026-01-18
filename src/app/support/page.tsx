@@ -35,7 +35,7 @@ export default function SupportPage() {
       
       // 페이지가 포커스를 잃었는지 확인하기 위한 플래그
       let appOpened = false;
-      let fallbackTimer: NodeJS.Timeout;
+      let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
       
       // 페이지가 숨겨지면 앱이 열린 것으로 판단
       const handleVisibilityChange = () => {
