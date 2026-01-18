@@ -26,8 +26,16 @@ export default function SupportPage() {
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
       const isAndroid = /Android/i.test(navigator.userAgent);
       
-      // 카카오톡 송금 딥링크 (QR코드에 포함된 URL로 변경 필요)
-      const kakaoDeepLink = "kakaotalk://send"; // 실제 QR코드 URL로 변경 필요
+      // 카카오페이 QR코드 딥링크
+      // 실제 QR코드를 스캔하여 나온 qr_code 값을 사용해야 합니다
+      // 예시: https://qr.kakaopay.com/Ej776CHXR 페이지의 qr_code=281006011000023056825903
+      const qrCode = "281006011000023056825903"; // 실제 QR코드 값으로 변경 필요
+      
+      // iOS: kakaotalk://kakaopay/money/to/qr?qr_code=QR코드값
+      // Android: intent://kakaopay/money/to/qr?qr_code=QR코드값#Intent;scheme=kakaotalk;package=com.kakao.talk;end;
+      const kakaoDeepLink = isIOS
+        ? `kakaotalk://kakaopay/money/to/qr?qr_code=${qrCode}`
+        : `intent://kakaopay/money/to/qr?qr_code=${qrCode}#Intent;scheme=kakaotalk;package=com.kakao.talk;end;`;
       
       const iosAppStoreUrl = "https://apps.apple.com/kr/app/kakaotalk/id362057947";
       const androidStoreUrl = "https://play.google.com/store/apps/details?id=com.kakao.talk";
@@ -412,43 +420,17 @@ export default function SupportPage() {
 
             // 링크 타입인 경우 (Buy Me a Coffee)
             return (
-              <a
+              <div
                 key={option.name}
-                href={option.href}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="
-                  group
-                  block
                   bg-white dark:bg-gray-800
                   border border-gray-100 dark:border-gray-700
                   rounded-lg
-                  p-6 sm:p-8
+                  pt-6 px-6 pb-6 sm:pt-8 sm:px-8 sm:pb-8
                   shadow-sm hover:shadow-md
                   dark:shadow-gray-900/30 dark:hover:shadow-gray-900/50
                   transition-all duration-300
-                  hover:-translate-y-1
-                  active:scale-98
-                  cursor-pointer
-                  no-underline
                 "
-                onClick={(e) => {
-                  // 위젯 버튼 찾기
-                  const widgetButton = document.querySelector(
-                    "#bmc-wbtn"
-                  ) as HTMLElement;
-
-                  // 위젯이 로드되어 있고 버튼이 있으면 위젯 열기
-                  if (widgetButton && isBmcScriptLoaded) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    widgetButton.click();
-                    console.log("Buy Me a Coffee 위젯 열기");
-                  } else {
-                    // 위젯이 없으면 기본 링크 동작 허용 (a 태그의 기본 동작)
-                    console.log("Buy Me a Coffee 링크로 이동");
-                  }
-                }}
               >
                 {/* 아이콘 */}
                 <div
@@ -461,7 +443,6 @@ export default function SupportPage() {
                   flex items-center justify-center
                   mb-4 sm:mb-6
                   transition-all duration-300
-                  group-hover:scale-110
                 `}
                 >
                   <IconComponent size={32} className={option.textColor} />
@@ -484,35 +465,68 @@ export default function SupportPage() {
                   className="
                   text-sm sm:text-base
                   text-gray-600 dark:text-gray-400
-                  mb-4 sm:mb-6
+                  mb-8 sm:mb-10
                   leading-relaxed
                 "
                 >
                   {option.description}
                 </p>
 
+                {/* QR코드 이미지 */}
+                <div className="mb-8 sm:mb-10 flex justify-center">
+                  <div className="relative w-32 h-32 sm:w-40 sm:h-40 bg-white dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600 overflow-hidden">
+                    <Image
+                      src="/Buymeacoffee_QR.png"
+                      alt="Buy Me a Coffee QR코드"
+                      fill
+                      className="object-cover rounded-lg scale-110"
+                      sizes="(max-width: 640px) 128px, 160px"
+                    />
+                  </div>
+                </div>
+
                 {/* 버튼 */}
-                <div
+                <a
+                  href={option.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    // 위젯 버튼 찾기
+                    const widgetButton = document.querySelector(
+                      "#bmc-wbtn"
+                    ) as HTMLElement;
+
+                    // 위젯이 로드되어 있고 버튼이 있으면 위젯 열기
+                    if (widgetButton && isBmcScriptLoaded) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      widgetButton.click();
+                      console.log("Buy Me a Coffee 위젯 열기");
+                    } else {
+                      // 위젯이 없으면 기본 링크 동작 허용 (a 태그의 기본 동작)
+                      console.log("Buy Me a Coffee 링크로 이동");
+                    }
+                  }}
                   className={`
-                  inline-flex items-center gap-2
-                  ${option.color}
-                  text-white
-                  font-semibold
-                  px-4 py-2.5
-                  rounded-lg
-                  shadow-sm hover:shadow-md
-                  transition-all duration-300
-                  group-hover:-translate-y-0.5
-                `}
+                    w-full
+                    inline-flex items-center justify-center gap-2
+                    ${option.color}
+                    text-white
+                    font-semibold
+                    px-4 py-2.5
+                    rounded-lg
+                    shadow-sm hover:shadow-md
+                    transition-all duration-300
+                    hover:-translate-y-0.5
+                    active:scale-98
+                    no-underline
+                    mb-0
+                  `}
                 >
                   <span>후원하기</span>
                   <ExternalLink size={16} />
-                </div>
-                {/* 추가 안내 텍스트 */}
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-500 text-center">
-                  또는 화면 오른쪽의 플로팅 버튼을 이용하세요
-                </p>
-              </a>
+                </a>
+              </div>
             );
           })}
         </div>
