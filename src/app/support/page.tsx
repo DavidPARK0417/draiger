@@ -22,30 +22,66 @@ export default function SupportPage() {
     
     if (isMobile) {
       // 모바일: 토스 앱 딥링크 시도
-      // iOS: supertoss:// 또는 tosspay://
-      // Android: tosspay://
-      // 실제 QR코드에 포함된 딥링크 URL로 변경 필요
-      const tossDeepLink = "supertoss://send"; // 또는 실제 QR코드에 포함된 딥링크 URL
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      
+      // 실제 QR코드에 포함된 딥링크 URL
+      const tossDeepLink = "supertoss://send?amount=0&bank=IBK%EA%B8%B0%EC%97%85%EC%9D%80%ED%96%89&accountNo=05309442502013&origin=qr";
+      
+      const iosAppStoreUrl = "https://apps.apple.com/kr/app/toss/id839333328";
+      const androidStoreUrl = "https://play.google.com/store/apps/details?id=viva.republica.toss";
       
       console.log("토스 앱 딥링크 실행 시도:", tossDeepLink);
       
-      // 앱 실행 시도
+      // 페이지가 포커스를 잃었는지 확인하기 위한 플래그
+      let appOpened = false;
+      let fallbackTimer: NodeJS.Timeout;
+      
+      // 페이지가 숨겨지면 앱이 열린 것으로 판단
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          appOpened = true;
+          console.log("앱이 열린 것으로 감지됨");
+          if (fallbackTimer) {
+            clearTimeout(fallbackTimer);
+          }
+          document.removeEventListener("visibilitychange", handleVisibilityChange);
+          window.removeEventListener("blur", handleBlur);
+        }
+      };
+      
+      // 창이 포커스를 잃으면 앱이 열린 것으로 판단
+      const handleBlur = () => {
+        appOpened = true;
+        console.log("창 포커스 손실 - 앱이 열린 것으로 감지됨");
+        if (fallbackTimer) {
+          clearTimeout(fallbackTimer);
+        }
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        window.removeEventListener("blur", handleBlur);
+      };
+      
+      // 이벤트 리스너 등록
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+      window.addEventListener("blur", handleBlur);
+      
+      // 딥링크 시도
       window.location.href = tossDeepLink;
       
-      // 앱이 설치되지 않은 경우를 대비한 타임아웃
-      setTimeout(() => {
-        // 앱이 실행되지 않으면 앱스토어로 이동
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        
-        if (isIOS) {
-          console.log("iOS 앱스토어로 이동");
-          window.location.href = "https://apps.apple.com/kr/app/toss/id839333328";
-        } else if (isAndroid) {
-          console.log("Android 플레이스토어로 이동");
-          window.location.href = "https://play.google.com/store/apps/details?id=viva.republica.toss";
+      // 앱이 열리지 않은 경우를 대비한 폴백
+      fallbackTimer = setTimeout(() => {
+        if (!appOpened) {
+          console.log("앱이 열리지 않음 - 앱스토어로 이동");
+          document.removeEventListener("visibilitychange", handleVisibilityChange);
+          window.removeEventListener("blur", handleBlur);
+          
+          if (isIOS) {
+            window.location.href = iosAppStoreUrl;
+          } else if (isAndroid) {
+            window.location.href = androidStoreUrl;
+          }
         }
-      }, 2000);
+      }, 1500); // 1.5초 대기
     } else {
       // PC: 토스 웹 송금 페이지로 이동
       console.log("PC에서 토스 웹 페이지로 이동");
