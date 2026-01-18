@@ -14,6 +14,81 @@ import {
 export default function SupportPage() {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [isBmcScriptLoaded, setIsBmcScriptLoaded] = useState(false);
+  const [activePaymentTab, setActivePaymentTab] = useState<"toss" | "kakao">("kakao");
+
+  // 카카오톡 송금 딥링크로 이동하는 함수
+  const handleKakaoPayment = () => {
+    // 모바일 기기 감지
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // 모바일: 카카오톡 앱 딥링크 시도
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      
+      // 카카오톡 송금 딥링크 (QR코드에 포함된 URL로 변경 필요)
+      const kakaoDeepLink = "kakaotalk://send"; // 실제 QR코드 URL로 변경 필요
+      
+      const iosAppStoreUrl = "https://apps.apple.com/kr/app/kakaotalk/id362057947";
+      const androidStoreUrl = "https://play.google.com/store/apps/details?id=com.kakao.talk";
+      
+      console.log("카카오톡 앱 딥링크 실행 시도:", kakaoDeepLink);
+      
+      // 페이지가 포커스를 잃었는지 확인하기 위한 플래그
+      let appOpened = false;
+      let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+      
+      // 페이지가 숨겨지면 앱이 열린 것으로 판단
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          appOpened = true;
+          console.log("앱이 열린 것으로 감지됨");
+          if (fallbackTimer) {
+            clearTimeout(fallbackTimer);
+          }
+          document.removeEventListener("visibilitychange", handleVisibilityChange);
+          window.removeEventListener("blur", handleBlur);
+        }
+      };
+      
+      // 창이 포커스를 잃으면 앱이 열린 것으로 판단
+      const handleBlur = () => {
+        appOpened = true;
+        console.log("창 포커스 손실 - 앱이 열린 것으로 감지됨");
+        if (fallbackTimer) {
+          clearTimeout(fallbackTimer);
+        }
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        window.removeEventListener("blur", handleBlur);
+      };
+      
+      // 이벤트 리스너 등록
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+      window.addEventListener("blur", handleBlur);
+      
+      // 딥링크 시도
+      window.location.href = kakaoDeepLink;
+      
+      // 앱이 열리지 않은 경우를 대비한 폴백
+      fallbackTimer = setTimeout(() => {
+        if (!appOpened) {
+          console.log("앱이 열리지 않음 - 앱스토어로 이동");
+          document.removeEventListener("visibilitychange", handleVisibilityChange);
+          window.removeEventListener("blur", handleBlur);
+          
+          if (isIOS) {
+            window.location.href = iosAppStoreUrl;
+          } else if (isAndroid) {
+            window.location.href = androidStoreUrl;
+          }
+        }
+      }, 1500); // 1.5초 대기
+    } else {
+      // PC: 카카오톡 웹 페이지로 이동
+      console.log("PC에서 카카오톡 웹 페이지로 이동");
+      window.open("https://www.kakaocorp.com/page/service/service/KakaoTalk", "_blank");
+    }
+  };
 
   // 토스 앱 딥링크로 이동하는 함수
   const handleTossPayment = () => {
@@ -221,14 +296,12 @@ export default function SupportPage() {
             const IconComponent = option.icon;
             const isQrType = option.type === "qr";
 
-            // QR코드 타입인 경우
+            // QR코드 타입인 경우 (탭 형식)
             if (isQrType) {
               return (
                 <div
                   key={option.name}
                   className="
-                    group
-                    block
                     bg-white dark:bg-gray-800
                     border border-gray-100 dark:border-gray-700
                     rounded-lg
@@ -236,72 +309,89 @@ export default function SupportPage() {
                     shadow-sm hover:shadow-md
                     dark:shadow-gray-900/30 dark:hover:shadow-gray-900/50
                     transition-all duration-300
-                    hover:-translate-y-1
-                    active:scale-98
-                    cursor-pointer
                   "
-                  onClick={() => setIsQrModalOpen(true)}
                 >
                   {/* 아이콘 */}
-                  <div
-                    className={`
-                    w-14 h-14 sm:w-16 sm:h-16
-                    ${option.bgColor}
-                    ${option.borderColor}
-                    border-2
-                    rounded-lg
-                    flex items-center justify-center
-                    mb-4 sm:mb-6
-                    transition-all duration-300
-                    group-hover:scale-110
-                  `}
-                  >
-                    <IconComponent size={32} className={option.textColor} />
+                  <div className="mb-4 sm:mb-6">
+                    <div
+                      className={`
+                      w-14 h-14 sm:w-16 sm:h-16
+                      ${option.bgColor}
+                      ${option.borderColor}
+                      border-2
+                      rounded-lg
+                      flex items-center justify-center
+                      transition-all duration-300
+                    `}
+                    >
+                      <IconComponent size={32} className={option.textColor} />
+                    </div>
                   </div>
 
-                  {/* 제목 */}
-                  <h3
-                    className="
-                    text-lg sm:text-xl
-                    font-bold
-                    text-gray-900 dark:text-gray-100
-                    mb-2
-                  "
-                  >
-                    {option.name}
-                  </h3>
+                  {/* 탭 버튼 */}
+                  <div className="flex gap-2 mb-4 sm:mb-6 border-b border-gray-200 dark:border-gray-700">
+                    <button
+                      onClick={() => setActivePaymentTab("kakao")}
+                      className={`
+                        flex-1 px-4 py-2.5 font-medium rounded-t-lg transition-all duration-300
+                        ${
+                          activePaymentTab === "kakao"
+                            ? "bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                        }
+                      `}
+                    >
+                      Kakao 송금
+                    </button>
+                    <button
+                      onClick={() => setActivePaymentTab("toss")}
+                      className={`
+                        flex-1 px-4 py-2.5 font-medium rounded-t-lg transition-all duration-300
+                        ${
+                          activePaymentTab === "toss"
+                            ? "bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                        }
+                      `}
+                    >
+                      Toss 송금
+                    </button>
+                  </div>
 
                   {/* 설명 */}
                   <p
                     className="
-                    text-sm sm:text-base
-                    text-gray-600 dark:text-gray-400
-                    mb-4 sm:mb-6
-                    leading-relaxed
-                  "
+                      text-sm sm:text-base
+                      text-gray-600 dark:text-gray-400
+                      leading-relaxed
+                      mb-4 sm:mb-6
+                      text-center
+                    "
                   >
-                    {option.description}
+                    {activePaymentTab === "toss"
+                      ? "토스 앱으로 빠르고 간편하게 후원하기"
+                      : "카카오페이로 빠르고 간편하게 후원하기"}
                   </p>
 
                   {/* QR코드 미리보기 */}
-                  {option.qrImage && (
-                    <div className="mb-4 sm:mb-6 flex justify-center">
-                      <div className="relative w-32 h-32 sm:w-40 sm:h-40 bg-white dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600 overflow-hidden">
-                        <Image
-                          src={option.qrImage}
-                          alt="Toss QR코드"
-                          fill
-                          className="object-cover rounded-lg scale-110"
-                          sizes="(max-width: 640px) 128px, 160px"
-                        />
-                      </div>
+                  <div className="mb-4 sm:mb-6 flex justify-center">
+                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 bg-white dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600 overflow-hidden">
+                      <Image
+                        src={activePaymentTab === "toss" ? "/Toss_QR.jpg" : "/Kakao_QR.jpg"}
+                        alt={activePaymentTab === "toss" ? "Toss QR코드" : "Kakao QR코드"}
+                        fill
+                        className="object-cover rounded-lg scale-110"
+                        sizes="(max-width: 640px) 128px, 160px"
+                      />
                     </div>
-                  )}
+                  </div>
 
                   {/* 버튼 */}
-                  <div
+                  <button
+                    onClick={() => setIsQrModalOpen(true)}
                     className={`
-                    inline-flex items-center gap-2
+                    w-full
+                    inline-flex items-center justify-center gap-2
                     ${option.color}
                     text-white
                     font-semibold
@@ -309,13 +399,13 @@ export default function SupportPage() {
                     rounded-lg
                     shadow-sm hover:shadow-md
                     transition-all duration-300
-                    group-hover:-translate-y-0.5
-                    w-full justify-center
+                    hover:-translate-y-0.5
+                    active:scale-98
                   `}
                   >
                     <span>QR코드 보기</span>
                     <Maximize2 size={16} />
-                  </div>
+                  </button>
                 </div>
               );
             }
@@ -466,15 +556,45 @@ export default function SupportPage() {
                 <X size={20} className="text-gray-600 dark:text-gray-300" />
               </button>
 
+              {/* 탭 버튼 */}
+              <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => setActivePaymentTab("kakao")}
+                  className={`
+                    flex-1 px-4 py-2.5 font-medium rounded-t-lg transition-all duration-300
+                    ${
+                      activePaymentTab === "kakao"
+                        ? "bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }
+                  `}
+                >
+                  Kakao 송금
+                </button>
+                <button
+                  onClick={() => setActivePaymentTab("toss")}
+                  className={`
+                    flex-1 px-4 py-2.5 font-medium rounded-t-lg transition-all duration-300
+                    ${
+                      activePaymentTab === "toss"
+                        ? "bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }
+                  `}
+                >
+                  Toss 송금
+                </button>
+              </div>
+
               {/* QR코드 이미지 */}
               <div className="text-center">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                  Toss 송금 QR코드
+                  {activePaymentTab === "toss" ? "Toss 송금 QR코드" : "Kakao 송금 QR코드"}
                 </h3>
                 
                 {/* 클릭 가능한 QR코드 영역 */}
                 <button
-                  onClick={handleTossPayment}
+                  onClick={activePaymentTab === "toss" ? handleTossPayment : handleKakaoPayment}
                   className="
                     relative
                     w-full aspect-square max-w-xs mx-auto
@@ -489,11 +609,11 @@ export default function SupportPage() {
                     active:scale-95
                     group
                   "
-                  aria-label="토스 앱으로 송금하기"
+                  aria-label={activePaymentTab === "toss" ? "토스 앱으로 송금하기" : "카카오톡 앱으로 송금하기"}
                 >
                   <Image
-                    src="/Toss_QR.jpg"
-                    alt="Toss 송금 QR코드"
+                    src={activePaymentTab === "toss" ? "/Toss_QR.jpg" : "/Kakao_QR.jpg"}
+                    alt={activePaymentTab === "toss" ? "Toss 송금 QR코드" : "Kakao 송금 QR코드"}
                     fill
                     className="object-cover rounded-lg scale-110 group-hover:scale-105 transition-transform duration-300"
                     sizes="(max-width: 640px) 100vw, 400px"
@@ -522,7 +642,7 @@ export default function SupportPage() {
                         px-3 py-1.5 rounded-lg
                         shadow-sm
                       ">
-                        클릭하여 토스 앱으로 이동
+                        클릭하여 {activePaymentTab === "toss" ? "토스" : "카카오톡"} 앱으로 이동
                       </p>
                     </div>
                   </div>
@@ -530,8 +650,8 @@ export default function SupportPage() {
                 
                 <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
                   {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) 
-                    ? "QR코드를 클릭하거나 스캔하여 송금해주세요"
-                    : "QR코드를 클릭하여 토스 앱으로 이동하거나, 모바일에서 스캔하여 송금해주세요"}
+                    ? `QR코드를 클릭하거나 스캔하여 ${activePaymentTab === "toss" ? "토스" : "카카오톡"}으로 송금해주세요`
+                    : `QR코드를 클릭하여 ${activePaymentTab === "toss" ? "토스" : "카카오톡"} 앱으로 이동하거나, 모바일에서 스캔하여 송금해주세요`}
                 </p>
               </div>
             </div>
