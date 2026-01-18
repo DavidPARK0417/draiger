@@ -15,6 +15,44 @@ export default function SupportPage() {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [isBmcScriptLoaded, setIsBmcScriptLoaded] = useState(false);
 
+  // 토스 앱 딥링크로 이동하는 함수
+  const handleTossPayment = () => {
+    // 모바일 기기 감지
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // 모바일: 토스 앱 딥링크 시도
+      // iOS: supertoss:// 또는 tosspay://
+      // Android: tosspay://
+      // 실제 QR코드에 포함된 딥링크 URL로 변경 필요
+      const tossDeepLink = "supertoss://send"; // 또는 실제 QR코드에 포함된 딥링크 URL
+      
+      console.log("토스 앱 딥링크 실행 시도:", tossDeepLink);
+      
+      // 앱 실행 시도
+      window.location.href = tossDeepLink;
+      
+      // 앱이 설치되지 않은 경우를 대비한 타임아웃
+      setTimeout(() => {
+        // 앱이 실행되지 않으면 앱스토어로 이동
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        
+        if (isIOS) {
+          console.log("iOS 앱스토어로 이동");
+          window.location.href = "https://apps.apple.com/kr/app/toss/id839333328";
+        } else if (isAndroid) {
+          console.log("Android 플레이스토어로 이동");
+          window.location.href = "https://play.google.com/store/apps/details?id=viva.republica.toss";
+        }
+      }, 2000);
+    } else {
+      // PC: 토스 웹 송금 페이지로 이동
+      console.log("PC에서 토스 웹 페이지로 이동");
+      window.open("https://toss.im/", "_blank");
+    }
+  };
+
   // Buy Me a Coffee 위젯 스크립트 직접 삽입
   useEffect(() => {
     // 이미 스크립트가 로드되어 있는지 확인
@@ -373,6 +411,7 @@ export default function SupportPage() {
                 p-6 sm:p-8
                 max-w-md w-full
                 shadow-xl
+                border border-gray-100 dark:border-gray-700
               "
               onClick={(e) => e.stopPropagation()}
             >
@@ -396,17 +435,67 @@ export default function SupportPage() {
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Toss 송금 QR코드
                 </h3>
-                <div className="relative w-full aspect-square max-w-xs mx-auto bg-white dark:bg-gray-700 rounded-lg p-2 border border-gray-200 dark:border-gray-600 overflow-hidden">
+                
+                {/* 클릭 가능한 QR코드 영역 */}
+                <button
+                  onClick={handleTossPayment}
+                  className="
+                    relative
+                    w-full aspect-square max-w-xs mx-auto
+                    bg-white dark:bg-gray-700
+                    rounded-lg p-2
+                    border-2 border-gray-200 dark:border-gray-600
+                    overflow-hidden
+                    cursor-pointer
+                    transition-all duration-300
+                    hover:border-emerald-500 dark:hover:border-emerald-400
+                    hover:shadow-lg dark:hover:shadow-gray-900/50
+                    active:scale-95
+                    group
+                  "
+                  aria-label="토스 앱으로 송금하기"
+                >
                   <Image
                     src="/Toss_QR.jpg"
                     alt="Toss 송금 QR코드"
                     fill
-                    className="object-cover rounded-lg scale-110"
+                    className="object-cover rounded-lg scale-110 group-hover:scale-105 transition-transform duration-300"
                     sizes="(max-width: 640px) 100vw, 400px"
                   />
-                </div>
+                  
+                  {/* 클릭 안내 오버레이 (호버 시 표시) */}
+                  <div className="
+                    absolute inset-0
+                    bg-emerald-500/0 group-hover:bg-emerald-500/10
+                    dark:group-hover:bg-emerald-400/10
+                    rounded-lg
+                    flex items-center justify-center
+                    transition-all duration-300
+                    pointer-events-none
+                  ">
+                    <div className="
+                      opacity-0 group-hover:opacity-100
+                      transition-opacity duration-300
+                      text-center
+                      px-4
+                    ">
+                      <p className="
+                        text-sm font-semibold
+                        text-emerald-600 dark:text-emerald-400
+                        bg-white/90 dark:bg-gray-800/90
+                        px-3 py-1.5 rounded-lg
+                        shadow-sm
+                      ">
+                        클릭하여 토스 앱으로 이동
+                      </p>
+                    </div>
+                  </div>
+                </button>
+                
                 <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                  토스 앱에서 QR코드를 스캔하여 송금해주세요
+                  {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) 
+                    ? "QR코드를 클릭하거나 스캔하여 송금해주세요"
+                    : "QR코드를 클릭하여 토스 앱으로 이동하거나, 모바일에서 스캔하여 송금해주세요"}
                 </p>
               </div>
             </div>
