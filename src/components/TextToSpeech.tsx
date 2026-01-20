@@ -97,7 +97,6 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
       'CFO': '씨에프오',
       'CMO': '씨엠오',
       'COO': '씨오오',
-      'CTO': '씨티오',
       'VP': '브이피',
       'PM': '피엠',
       'HR': '에이치알',
