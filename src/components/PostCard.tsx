@@ -51,6 +51,7 @@ function getProxyImageUrl(imageUrl: string | undefined): string | undefined {
 export default function PostCard({ post, index, isLarge = false }: PostCardProps) {
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
+  const [retryWithOriginal, setRetryWithOriginal] = useState(false);
   
   // 이미지 URL 처리 (외부 이미지인 경우 프록시 사용)
   useEffect(() => {
@@ -58,6 +59,7 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
       const proxyUrl = getProxyImageUrl(post.featuredImage);
       setImageSrc(proxyUrl);
       setImageError(false); // URL이 변경되면 에러 상태 리셋
+      setRetryWithOriginal(false); // 재시도 상태 리셋
     } else {
       setImageSrc(undefined);
     }
@@ -98,12 +100,31 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
                 objectFit: 'cover',
                 objectPosition: 'center',
               }}
-              onError={() => {
-                console.error('[PostCard] 이미지 로드 실패:', {
+              onError={(e) => {
+                const errorInfo = {
                   original: post.featuredImage,
-                  proxy: imageSrc
-                });
-                setImageError(true);
+                  proxy: imageSrc,
+                  error: e?.type || 'unknown',
+                  target: e?.target ? {
+                    src: (e.target as HTMLImageElement)?.src,
+                    naturalWidth: (e.target as HTMLImageElement)?.naturalWidth,
+                    naturalHeight: (e.target as HTMLImageElement)?.naturalHeight,
+                  } : null,
+                };
+                
+                // 프록시 URL로 실패했고 아직 원본으로 재시도하지 않은 경우
+                if (imageSrc?.startsWith('/api/proxy-image') && !retryWithOriginal && post.featuredImage) {
+                  console.warn('[PostCard] 프록시 실패, 원본 URL로 재시도:', {
+                    proxy: imageSrc,
+                    original: post.featuredImage
+                  });
+                  setRetryWithOriginal(true);
+                  setImageSrc(post.featuredImage);
+                  setImageError(false);
+                } else {
+                  console.error('[PostCard] 이미지 로드 실패:', errorInfo);
+                  setImageError(true);
+                }
               }}
               onLoad={() => {
                 console.log('[PostCard] ✅ 이미지 로드 성공:', {

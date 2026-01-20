@@ -14,7 +14,7 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
   const [isPaused, setIsPaused] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [speechRate, setSpeechRate] = useState(1.1); // 기본 속도 1.1
+  const [speechRate, setSpeechRate] = useState(2.0); // 기본 속도 2.0 (2배속)
   const [showFullPanel, setShowFullPanel] = useState(false); // 전체 패널 표시 여부
   const speechRateRef = useRef(speechRate); // 최신 속도 값을 항상 참조하기 위한 ref (초기값을 state와 동기화)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -45,6 +45,165 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
   useEffect(() => {
     speechRateRef.current = speechRate;
   }, [speechRate]);
+
+  // 약어를 자연스러운 발음으로 변환
+  const normalizeAbbreviations = (text: string): string => {
+    // 일반적인 약어 사전 (영문 약어 -> 한글 발음)
+    const abbreviationMap: Record<string, string> = {
+      // 은행/금융
+      'IBK': '아이비케이',
+      'KB': '케이비',
+      'NH': '엔에이치',
+      'SH': '에스에이치',
+      'KDB': '케이디비',
+      'BOK': '비오케이',
+      
+      // 기술/IT
+      'AI': '에이아이',
+      'IT': '아이티',
+      'IoT': '아이오티',
+      'VR': '브이알',
+      'AR': '에이알',
+      'MR': '엠알',
+      'XR': '엑스알',
+      'API': '에이피아이',
+      'UI': '유아이',
+      'UX': '유엑스',
+      'URL': '유알엘',
+      'HTTP': '에이치티티피',
+      'HTTPS': '에이치티티피에스',
+      'HTML': '에이치티엠엘',
+      'CSS': '씨에스에스',
+      'JS': '제이에스',
+      'JSX': '제이에스엑스',
+      'TS': '티에스',
+      'TSX': '티에스엑스',
+      'JSON': '제이슨',
+      'XML': '엑스엠엘',
+      'PDF': '피디에프',
+      'PNG': '피엔지',
+      'JPG': '제이피지',
+      'JPEG': '제이펙',
+      'GIF': '지아이에프',
+      'SVG': '에스브이지',
+      'MP3': '엠피쓰리',
+      'MP4': '엠피포',
+      'AVI': '에이브이아이',
+      'MKV': '엠케이브이',
+      
+      // 직책/조직
+      'CEO': '씨이오',
+      'CTO': '씨티오',
+      'CFO': '씨에프오',
+      'CMO': '씨엠오',
+      'COO': '씨오오',
+      'CTO': '씨티오',
+      'VP': '브이피',
+      'PM': '피엠',
+      'HR': '에이치알',
+      'PR': '피알',
+      'R&D': '알앤디',
+      'QA': '큐에이',
+      'QC': '큐씨',
+      
+      // 기업/조직
+      'LG': '엘지',
+      'SK': '에스케이',
+      'KT': '케이티',
+      'Samsung': '삼성',
+      'Hyundai': '현대',
+      'Kia': '기아',
+      'POSCO': '포스코',
+      'Lotte': '롯데',
+      'CJ': '씨제이',
+      'GS': '지에스',
+      'LS': '엘에스',
+      'HD': '에이치디',
+      'HD Hyundai': '에이치디 현대',
+      
+      // 국가/지역
+      'USA': '유에스에이',
+      'UK': '유케이',
+      'EU': '이유',
+      'UN': '유엔',
+      'UNESCO': '유네스코',
+      'WHO': '더블유에이치오',
+      'WTO': '더블유티오',
+      'IMF': '아이엠에프',
+      'OECD': '오이씨디',
+      
+      // 학위/자격
+      'PhD': '피에이치디',
+      'MBA': '엠비에이',
+      'TOEIC': '토익',
+      'TOEFL': '토플',
+      'IELTS': '아이엘츠',
+      
+      // 기타
+      'OK': '오케이',
+      'FYI': '에프와이아이',
+      'ASAP': '에이에스에이피',
+      'FAQ': '에프에이큐',
+      'Q&A': '큐앤에이',
+      'A/S': '에이에스',
+      'B2B': '비투비',
+      'B2C': '비투씨',
+      'C2C': '씨투씨',
+      'O2O': '오투오',
+      'IPO': '아이피오',
+      'M&A': '엠앤에이',
+      'ROI': '알오아이',
+      'KPI': '케이피아이',
+      'NPS': '엔피에스',
+      'CSR': '씨에스알',
+      'ESG': '이에스지',
+      'SDGs': '에스디지즈',
+    };
+    
+    // 약어 변환 (단어 경계와 한글 바로 뒤에 오는 경우 모두 처리)
+    // 예: "IBK기업은행" -> "아이비케이 기업은행"
+    let normalizedText = text;
+    
+    // 각 약어를 순회하며 변환
+    for (const [abbr, pronunciation] of Object.entries(abbreviationMap)) {
+      // 패턴 1: 단어 경계가 있는 경우 (예: "IBK is" -> "아이비케이 is")
+      const wordBoundaryRegex = new RegExp(`\\b${abbr}\\b`, 'gi');
+      normalizedText = normalizedText.replace(wordBoundaryRegex, pronunciation);
+      
+      // 패턴 2: 약어 바로 뒤에 한글이 오는 경우 (예: "IBK기업은행" -> "아이비케이기업은행")
+      // 이 경우 단어 경계가 없으므로 별도 처리 필요
+      const beforeHangulRegex = new RegExp(`${abbr}([가-힣])`, 'gi');
+      normalizedText = normalizedText.replace(beforeHangulRegex, (match, hangul) => {
+        // 약어와 한글 사이에 공백 추가하여 자연스럽게 읽히도록 함
+        return `${pronunciation} ${hangul}`;
+      });
+    }
+    
+    // 특별한 케이스: 은행명 패턴 처리
+    // "아이비케이기업은행" -> "아이비케이 기업은행" (이미 위에서 처리되지만 추가 보완)
+    const bankPatterns = [
+      '기업은행', '신한은행', '국민은행', '하나은행', '우리은행', 
+      '카카오뱅크', '토스뱅크', '케이뱅크', '카카오뱅크', '토스뱅크'
+    ];
+    
+    for (const bankName of bankPatterns) {
+      // "아이비케이기업은행" 같은 패턴을 "아이비케이 기업은행"으로 변환
+      const pattern = new RegExp(`([가-힣]+)${bankName}`, 'g');
+      normalizedText = normalizedText.replace(pattern, (match, before) => {
+        // "아이비케이", "케이비", "엔에이치" 같은 발음으로 끝나는 경우 공백 추가
+        if (before.match(/[이에이케이티알오]$/)) {
+          return `${before} ${bankName}`;
+        }
+        return match;
+      });
+    }
+    
+    // 최종 보완: "IBK기업은행" 패턴 직접 처리 (위의 일반 변환으로 처리되지 않은 경우)
+    normalizedText = normalizedText.replace(/IBK기업은행/gi, '아이비케이 기업은행');
+    normalizedText = normalizedText.replace(/아이비케이기업은행/gi, '아이비케이 기업은행');
+    
+    return normalizedText;
+  };
 
   // 날짜/시간을 자연스러운 형식으로 변환
   const normalizeDateTime = (text: string): string => {
@@ -169,6 +328,9 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
       .replace(/출처\s*\([^\)]*\)[^\n]*/gi, '') // "출처(...)" 형식
       .replace(/출처\s*[^\n]*/gi, '') // "출처"로 시작하는 모든 줄 제거
       .trim();
+
+    // 약어를 자연스러운 발음으로 변환 (날짜/시간 정규화 전에 수행)
+    text = normalizeAbbreviations(text);
 
     // 날짜/시간 형식 정규화 (시간 형식이 명확한 경우만)
     text = normalizeDateTime(text);
@@ -413,7 +575,7 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
             const currentUtterance = new SpeechSynthesisUtterance(textPartsRef.current[currentPartIndex]);
             currentUtterance.lang = 'ko-KR';
             currentUtterance.rate = speechRateRef.current; // 최신 속도 사용
-            currentUtterance.pitch = 1.15;
+            currentUtterance.pitch = 1.1; // 자연스럽고 친근한 느낌
             currentUtterance.volume = 1.0;
             
             if (process.env.NODE_ENV === 'development') {
@@ -464,7 +626,7 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
             const currentUtterance = new SpeechSynthesisUtterance(textPartsRef.current[currentPartIndex]);
             currentUtterance.lang = 'ko-KR';
             currentUtterance.rate = speechRateRef.current;
-            currentUtterance.pitch = 1.15;
+            currentUtterance.pitch = 1.1; // 자연스럽고 친근한 느낌
             currentUtterance.volume = 1.0;
             
             currentUtterance.onstart = () => {
@@ -514,11 +676,14 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
         }
         
         // 읽기 순서: 제목 -> 메타 설명 -> 본문
+        // 제목도 extractText를 거쳐서 약어 변환 등이 적용되도록 함
+        const extractedTitle = extractText(title);
+        
         if (metaDescription && metaDescription.trim().length > 0) {
           const extractedMeta = extractText(metaDescription);
-          textToRead = `${title}. ${extractedMeta}. ${extractedText}`;
+          textToRead = `${extractedTitle}. ${extractedMeta}. ${extractedText}`;
         } else {
-          textToRead = `${title}. ${extractedText}`;
+          textToRead = `${extractedTitle}. ${extractedText}`;
         }
         
         // 텍스트 길이 제한 (너무 긴 텍스트는 에러 발생 가능)
@@ -616,7 +781,7 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
         console.log('첫 번째 부분 재생 속도:', initialRate, 'x');
       }
       
-      firstUtterance.pitch = 1.15; // 음높이 (0 ~ 2) - 더 높여서 더 친근하고 밝은 느낌
+      firstUtterance.pitch = 1.1; // 음높이 (0 ~ 2) - 자연스럽고 친근한 느낌
       firstUtterance.volume = 1.0; // 볼륨 (0 ~ 1)
       
       // 첫 번째 utterance 이벤트 핸들러
@@ -667,7 +832,7 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
               console.log('다음 부분 재생 속도:', currentRate, 'x', '(인덱스:', currentIndexRef.current, ')');
             }
             
-            nextUtterance.pitch = 1.15; // 음높이 일관성 유지
+            nextUtterance.pitch = 1.1; // 자연스럽고 친근한 느낌
             nextUtterance.volume = 1.0;
             
             nextUtterance.onend = () => {
@@ -683,7 +848,7 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
             synthRef.current.speak(nextUtterance);
             utteranceRef.current = nextUtterance; // 현재 재생 중인 utterance 저장
             currentPlayingIndexRef.current = currentIndexRef.current; // 현재 재생 중인 부분 업데이트
-          }, 400); // 0.4초 일시정지 (더 빠르고 자연스러운 리듬)
+          }, 300); // 0.3초 일시정지 (자연스럽고 친근한 리듬)
           
           // timeout ID 저장 (필요시 취소 가능)
           timeoutIdsRef.current.push(timeoutId);
@@ -874,7 +1039,7 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
                             const nextUtterance = new SpeechSynthesisUtterance(textPartsRef.current[nextPartIndex]);
                             nextUtterance.lang = 'ko-KR';
                             nextUtterance.rate = newRate;
-                            nextUtterance.pitch = 1.15;
+                            nextUtterance.pitch = 1.1; // 자연스럽고 친근한 느낌
                             nextUtterance.volume = 1.0;
                             
                             currentIndexRef.current = nextPartIndex;
@@ -1206,7 +1371,7 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
                     const nextUtterance = new SpeechSynthesisUtterance(textPartsRef.current[nextPartIndex]);
                     nextUtterance.lang = 'ko-KR';
                     nextUtterance.rate = newRate; // 새로운 속도 즉시 적용
-                    nextUtterance.pitch = 1.15;
+                    nextUtterance.pitch = 1.1; // 자연스럽고 친근한 느낌
                     nextUtterance.volume = 1.0;
                     
                     if (process.env.NODE_ENV === 'development') {
