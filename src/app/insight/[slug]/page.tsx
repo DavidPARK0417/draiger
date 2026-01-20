@@ -290,9 +290,12 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
                     // 단순 img 태그로 렌더링 (MarkdownImage 복잡도 제거)
                     if (!src) return null;
                     
+                    // src를 문자열로 변환 (Blob인 경우 처리)
+                    const srcString = typeof src === 'string' ? src : src instanceof Blob ? URL.createObjectURL(src) : String(src);
+                    
                     // 외부 이미지는 프록시 사용
-                    const isExternalImage = src.startsWith('http://') || src.startsWith('https://');
-                    const proxySrc = isExternalImage ? `/api/proxy-image?url=${encodeURIComponent(src)}` : src;
+                    const isExternalImage = srcString.startsWith('http://') || srcString.startsWith('https://');
+                    const proxySrc = isExternalImage ? `/api/proxy-image?url=${encodeURIComponent(srcString)}` : srcString;
                     
                     return (
                       <div className="my-8 sm:my-10 lg:my-12">
