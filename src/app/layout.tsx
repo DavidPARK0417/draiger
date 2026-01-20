@@ -230,7 +230,7 @@ export default function RootLayout({
         {/* Next.js에서는 일반 script 태그가 제대로 작동하지 않을 수 있으므로 Script 컴포넌트 사용 */}
         <Script
           src="https://t1.daumcdn.net/kas/static/ba.min.js"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
           type="text/javascript"
           charSet="utf-8"
         />

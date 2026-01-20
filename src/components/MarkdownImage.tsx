@@ -129,19 +129,13 @@ export default function MarkdownImage({ src, alt, ...props }: MarkdownImageProps
         console.warn('[MarkdownImage] ⚠️ src가 없습니다:', { src, alt });
       }
     }
-  }, [src, alt, proxySrc]);
+  }, [src]);
 
-  // 이미지가 없으면 렌더링하지 않음
+  // 이미지가 없으면 fallback 렌더링 (본문 렌더링이 중단되지 않도록)
   if (!imageSrc || !proxySrc) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[MarkdownImage] ⚠️ imageSrc 또는 proxySrc가 없어 렌더링하지 않습니다:', { 
-        src, 
-        alt, 
-        imageSrc, 
-        proxySrc 
-      });
-    }
-    return null;
+    // 개발 환경에서만 경고 출력 (프로덕션에서는 조용히 처리)
+    // return null 대신 빈 div 반환하여 전체 렌더링이 중단되지 않도록 함
+    return <div style={{ display: 'none' }} />;
   }
   
   if (hasError && retryCount >= maxRetries) {

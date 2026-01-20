@@ -2,11 +2,9 @@ import { Metadata } from "next";
 import React from "react";
 import { getPostBySlug, getPostContent, getPublishedPosts } from "@/lib/notion";
 import ReactMarkdown from "react-markdown";
-import SmoothScroll from "@/components/SmoothScroll";
 import GrainOverlay from "@/components/GrainOverlay";
 import TextToSpeech from "@/components/TextToSpeech";
 import FormattedDate from "@/components/FormattedDate";
-import MarkdownImage from "@/components/MarkdownImage";
 import AdFit from "@/components/AdFit";
 import GiscusComments from "@/components/GiscusComments";
 import { notFound } from "next/navigation";
@@ -123,10 +121,9 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
   }
 
   return (
-    <SmoothScroll>
-      <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
-        <GrainOverlay />
-        <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
+      <GrainOverlay />
+      <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <article>
             <header className="mb-12 sm:mb-16">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-serif font-bold mb-6 sm:mb-8 leading-tight text-gray-900 dark:text-white">
@@ -290,11 +287,30 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
                     <hr className="border-gray-300 dark:border-white/20 my-8" />
                   ),
                   img: ({ src, alt, ...props }) => {
-                    // 디버깅: ReactMarkdown이 전달하는 src 확인
-                    console.log('[ReactMarkdown img] src:', src, 'alt:', alt);
-                    // src가 Blob인 경우 문자열로 변환, undefined인 경우 그대로 전달
-                    const srcString = typeof src === 'string' ? src : src instanceof Blob ? URL.createObjectURL(src) : undefined;
-                    return <MarkdownImage src={srcString} alt={alt} {...props} />;
+                    // 단순 img 태그로 렌더링 (MarkdownImage 복잡도 제거)
+                    if (!src) return null;
+                    
+                    // 외부 이미지는 프록시 사용
+                    const isExternalImage = src.startsWith('http://') || src.startsWith('https://');
+                    const proxySrc = isExternalImage ? `/api/proxy-image?url=${encodeURIComponent(src)}` : src;
+                    
+                    return (
+                      <div className="my-8 sm:my-10 lg:my-12">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={proxySrc}
+                          alt={alt || "이미지"}
+                          className="w-full h-auto rounded-xl sm:rounded-2xl shadow-lg dark:shadow-gray-900/50 object-contain bg-gray-100 dark:bg-gray-800"
+                          loading="lazy"
+                          {...props}
+                        />
+                        {alt && (
+                          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-center text-gray-500 dark:text-gray-400 italic">
+                            {alt}
+                          </p>
+                        )}
+                      </div>
+                    );
                   },
                   // 텍스트 노드에서 이미지 파일명을 감지하여 처리
                   text: ({ children }) => {
@@ -372,9 +388,8 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
               Back to Index
             </Link>
           </footer>
-        </main>
-      </div>
-    </SmoothScroll>
+      </main>
+    </div>
   );
 }
 
