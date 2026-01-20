@@ -344,6 +344,11 @@ export default function Header() {
             <Link
               href="/"
               className="flex items-center transition-opacity duration-300 hover:opacity-80"
+              onClick={(e) => {
+                // 즉시 네비게이션되도록 설정
+                // Lenis나 다른 스크립트가 링크 클릭을 가로채지 않도록 함
+                e.stopPropagation();
+              }}
             >
               {/* 모바일 모드 (640px 미만): DRAIGER.jpeg 사용 */}
               <Image
@@ -502,7 +507,11 @@ export default function Header() {
                 >
                   <Link
                     href="/insight"
-                    onClick={() => setIsBlogOpen(false)}
+                    onClick={(e) => {
+                      // 즉시 네비게이션되도록 설정
+                      e.stopPropagation();
+                      setIsBlogOpen(false);
+                    }}
                     className={`
                       block px-4 py-2.5 text-sm
                       transition-all duration-200
@@ -523,7 +532,11 @@ export default function Header() {
                       <Link
                         key={category.name}
                         href={category.href}
-                        onClick={() => setIsBlogOpen(false)}
+                        onClick={(e) => {
+                          // 즉시 네비게이션되도록 설정
+                          e.stopPropagation();
+                          setIsBlogOpen(false);
+                        }}
                         className={`
                           block px-4 py-2.5 text-sm
                           transition-all duration-200
