@@ -24,7 +24,9 @@ interface InsightPostPageProps {
 export async function generateStaticParams() {
   try {
     const posts = await getPublishedPosts();
-    console.log(`[generateStaticParams] 총 ${posts.length}개의 인사이트 포스트 slug 생성`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[generateStaticParams] 총 ${posts.length}개의 인사이트 포스트 slug 생성`);
+    }
     
     return posts
       .filter((post) => post.slug) // slug가 있는 포스트만 필터링
@@ -32,7 +34,9 @@ export async function generateStaticParams() {
         slug: post.slug,
       }));
   } catch (error) {
-    console.error("[generateStaticParams] 인사이트 포스트 slug 생성 실패:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("[generateStaticParams] 인사이트 포스트 slug 생성 실패:", error);
+    }
     // 에러 발생 시 빈 배열 반환 (동적 생성으로 대체)
     return [];
   }
@@ -72,8 +76,8 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
   const bodyContent = await getPostContent(post.id);
   const content = post.blogPost || bodyContent;
   
-  // 디버깅: 마크다운 콘텐츠에 이미지가 포함되어 있는지 확인
-  if (content) {
+  // 디버깅: 마크다운 콘텐츠에 이미지가 포함되어 있는지 확인 (개발 환경에서만)
+  if (content && process.env.NODE_ENV === 'development') {
     // 다양한 이미지 형식 확인
     const markdownImagePattern = /!\[.*?\]\([^\)]+\)/gi;
     const htmlImagePattern = /<img[^>]+src=["'][^"']+["'][^>]*>/gi;
@@ -319,7 +323,7 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
                     const imageFilenamePattern = /^([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))$/;
                     const match = textContent.trim().match(imageFilenamePattern);
                     
-                    if (match) {
+                    if (match && process.env.NODE_ENV === 'development') {
                       const filename = match[1];
                       console.log('[ReactMarkdown text] ⚠️ 이미지 파일명만 있는 텍스트 발견:', filename);
                       // 이미지 파일명만 있는 경우, 나중에 처리하기 위해 그대로 반환

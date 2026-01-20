@@ -101,10 +101,14 @@ export default function Header() {
           setCategoryCounts(data.categories || {});
           setTotalCount(data.total || 0);
         } else {
-          console.error("카테고리별 게시글 개수 조회 실패:", response.status);
+          if (process.env.NODE_ENV === 'development') {
+            console.error("카테고리별 게시글 개수 조회 실패:", response.status);
+          }
         }
       } catch (error) {
-        console.error("카테고리별 게시글 개수 조회 오류:", error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("카테고리별 게시글 개수 조회 오류:", error);
+        }
       }
     };
 
@@ -134,11 +138,17 @@ export default function Header() {
             }
             setCurrentPostCategory(data.category || null);
           } else {
-            console.error(`[Header] 포스트 카테고리 조회 실패: ${response.status}`);
+            // 404는 포스트가 없는 경우의 정상적인 응답이므로 개발 환경에서만 로그 출력
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`[Header] 포스트 카테고리 조회 실패 (포스트 없음): ${response.status}`);
+            }
             setCurrentPostCategory(null);
           }
         } catch (error) {
-          console.error("[Header] 포스트 카테고리 조회 오류:", error);
+          // 실제 에러는 개발 환경에서만 로그 출력
+          if (process.env.NODE_ENV === 'development') {
+            console.error("[Header] 포스트 카테고리 조회 오류:", error);
+          }
           setCurrentPostCategory(null);
         }
       } else {

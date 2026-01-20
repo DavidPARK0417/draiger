@@ -30,7 +30,9 @@ export async function GET(
       category: post.category || null,
     });
   } catch (error) {
-    console.error("[post-category API] 카테고리 조회 오류:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("[post-category API] 카테고리 조회 오류:", error);
+    }
     return NextResponse.json(
       { category: null },
       { status: 500 }

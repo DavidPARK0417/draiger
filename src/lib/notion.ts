@@ -1186,9 +1186,9 @@ export async function getPublishedPostsByCategoryPaginated(
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   // 캐시 확인
   const cacheKey = CacheKeys.postBySlug(slug);
-  const cached = cache.get<Post | null>(cacheKey);
-  if (cached !== null || cached === null) {
-    // null도 캐싱하여 존재하지 않는 slug에 대한 반복 조회 방지
+  if (cache.has(cacheKey)) {
+    // 캐시에 값이 있으면 반환 (null도 포함)
+    const cached = cache.get<Post | null>(cacheKey);
     return cached;
   }
 
@@ -1251,7 +1251,9 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 
     return post;
   } catch (error) {
-    console.error("Error fetching post by slug:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error fetching post by slug:", error);
+    }
     throw error;
   }
 }

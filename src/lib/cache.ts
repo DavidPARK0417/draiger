@@ -38,6 +38,26 @@ class MemoryCache {
   }
 
   /**
+   * 캐시에 키가 존재하는지 확인 (TTL 체크 포함)
+   */
+  has(key: string): boolean {
+    const entry = this.cache.get(key) as CacheEntry<unknown> | undefined;
+    if (!entry) {
+      return false;
+    }
+
+    // TTL 확인
+    const now = Date.now();
+    if (now - entry.timestamp > entry.ttl) {
+      // 만료된 캐시 삭제
+      this.cache.delete(key);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * 캐시에 데이터 저장
    * @param key 캐시 키
    * @param data 저장할 데이터
