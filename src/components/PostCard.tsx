@@ -34,10 +34,12 @@ function getProxyImageUrl(imageUrl: string | undefined): string | undefined {
       
       if (isExternal) {
         const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
-        console.log('[PostCard] 프록시 URL 생성:', {
-          original: imageUrl.substring(0, 100),
-          proxy: proxyUrl.substring(0, 100)
-        });
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[PostCard] 프록시 URL 생성:', {
+            original: imageUrl.substring(0, 100),
+            proxy: proxyUrl.substring(0, 100)
+          });
+        }
         return proxyUrl;
       }
     } catch (error) {
@@ -114,10 +116,12 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
                 
                 // 프록시 URL로 실패했고 아직 원본으로 재시도하지 않은 경우
                 if (imageSrc?.startsWith('/api/proxy-image') && !retryWithOriginal && post.featuredImage) {
-                  console.warn('[PostCard] 프록시 실패, 원본 URL로 재시도:', {
-                    proxy: imageSrc,
-                    original: post.featuredImage
-                  });
+                  if (process.env.NODE_ENV === 'development') {
+                    console.warn('[PostCard] 프록시 실패, 원본 URL로 재시도:', {
+                      proxy: imageSrc,
+                      original: post.featuredImage
+                    });
+                  }
                   setRetryWithOriginal(true);
                   setImageSrc(post.featuredImage);
                   setImageError(false);
@@ -127,10 +131,12 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
                 }
               }}
               onLoad={() => {
-                console.log('[PostCard] ✅ 이미지 로드 성공:', {
-                  original: post.featuredImage,
-                  proxy: imageSrc
-                });
+                if (process.env.NODE_ENV === 'development') {
+                  console.log('[PostCard] ✅ 이미지 로드 성공:', {
+                    original: post.featuredImage,
+                    proxy: imageSrc
+                  });
+                }
               }}
             />
           </div>

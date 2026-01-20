@@ -103,13 +103,15 @@ function getNotionClient(): Client {
   // 환경 변수에서 따옴표가 포함되어 있을 수 있으므로 제거
   apiKey = apiKey.trim().replace(/^["']|["']$/g, "");
 
-  // API 키 형식 검증 및 로깅
-  console.log("🔑 API 키 확인:", {
-    keyPrefix: apiKey.substring(0, 10) + "...",
-    keyLength: apiKey.length,
-    startsWithSecret: apiKey.startsWith("secret_"),
-    startsWithNtn: apiKey.startsWith("ntn_"),
-  });
+  // API 키 형식 검증 및 로깅 (개발 환경에서만)
+  if (process.env.NODE_ENV === 'development') {
+    console.log("🔑 API 키 확인:", {
+      keyPrefix: apiKey.substring(0, 10) + "...",
+      keyLength: apiKey.length,
+      startsWithSecret: apiKey.startsWith("secret_"),
+      startsWithNtn: apiKey.startsWith("ntn_"),
+    });
+  }
 
   if (!apiKey.startsWith("secret_") && !apiKey.startsWith("ntn_")) {
     console.warn(
@@ -139,14 +141,14 @@ function getNotionClient(): Client {
       );
     }
 
-    // 사용 가능한 메서드 확인 및 로깅
-    const databasesKeys = Object.keys(client.databases);
-    console.log("📋 사용 가능한 databases 메서드:", databasesKeys);
-
-    // query 메서드가 없으므로 직접 HTTP API를 사용합니다
-    console.log(
-      "✅ Notion Client가 생성되었습니다. (HTTP API를 직접 사용합니다)"
-    );
+    // 사용 가능한 메서드 확인 및 로깅 (개발 환경에서만)
+    if (process.env.NODE_ENV === 'development') {
+      const databasesKeys = Object.keys(client.databases);
+      console.log("📋 사용 가능한 databases 메서드:", databasesKeys);
+      console.log(
+        "✅ Notion Client가 생성되었습니다. (HTTP API를 직접 사용합니다)"
+      );
+    }
 
     return client;
   } catch (error) {
@@ -192,8 +194,10 @@ function getNotionToMarkdown() {
            // 단순히 앞뒤 공백만 제거 (URL 변환하지 않음)
            imageUrl = imageUrl.trim();
            
-           // 디버깅: 원본 URL 유지 확인
-           console.log(`[getNotionToMarkdown] 이미지 URL (원본 유지): ${imageUrl.substring(0, 100)}...`);
+           // 디버깅: 원본 URL 유지 확인 (개발 환경에서만)
+           if (process.env.NODE_ENV === 'development') {
+             console.log(`[getNotionToMarkdown] 이미지 URL (원본 유지): ${imageUrl.substring(0, 100)}...`);
+           }
          }
         
         // 캡션 추출
@@ -210,13 +214,15 @@ function getNotionToMarkdown() {
         return "";
       }
       
-      // 디버깅: 이미지 URL 로그
-      console.log(`[getNotionToMarkdown] 이미지 변환 성공:`, {
-        type: imageType,
-        url: imageUrl.substring(0, 100) + "...",
-        hasCaption: !!caption,
-        captionLength: caption.length
-      });
+      // 디버깅: 이미지 URL 로그 (개발 환경에서만)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[getNotionToMarkdown] 이미지 변환 성공:`, {
+          type: imageType,
+          url: imageUrl.substring(0, 100) + "...",
+          hasCaption: !!caption,
+          captionLength: caption.length
+        });
+      }
       
       // 마크다운 이미지 형식으로 반환
       if (caption) {
@@ -437,8 +443,10 @@ export async function getPublishedPosts(): Promise<Post[]> {
               const fullContent = await getPostContent(page.id);
               featuredImage = extractFirstImageUrl(fullContent);
             } catch (error) {
-              // 이미지 추출 실패는 무시 (로그만 남김)
-              console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
+              // 이미지 추출 실패는 무시 (개발 환경에서만 로그 남김)
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
+              }
             }
           }
 
@@ -736,8 +744,10 @@ export async function getPublishedPostsByCategory(
               const fullContent = await getPostContent(page.id);
               featuredImage = extractFirstImageUrl(fullContent);
             } catch (error) {
-              // 이미지 추출 실패는 무시 (로그만 남김)
-              console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
+              // 이미지 추출 실패는 무시 (개발 환경에서만 로그 남김)
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
+              }
             }
           }
 

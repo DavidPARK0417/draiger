@@ -14,11 +14,15 @@ const categories = [
 
 export async function GET() {
   try {
-    console.log("카테고리별 게시글 개수 조회 시작");
+    if (process.env.NODE_ENV === 'development') {
+      console.log("카테고리별 게시글 개수 조회 시작");
+    }
 
     // 전체 게시글 개수 가져오기
     const totalCount = await getTotalPostsCount();
-    console.log("전체 게시글 개수:", totalCount);
+    if (process.env.NODE_ENV === 'development') {
+      console.log("전체 게시글 개수:", totalCount);
+    }
 
     // 각 카테고리별 개수 가져오기
     const categoryCounts: Record<string, number> = {};
@@ -27,7 +31,9 @@ export async function GET() {
     const countPromises = categories.map(async (category) => {
       try {
         const count = await getTotalPostsCountByCategory(category);
-        console.log(`${category} 카테고리 개수:`, count);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`${category} 카테고리 개수:`, count);
+        }
         return { category, count };
       } catch (error) {
         console.error(`${category} 카테고리 개수 조회 오류:`, error);

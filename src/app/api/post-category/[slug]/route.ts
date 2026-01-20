@@ -7,19 +7,25 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    console.log(`[post-category API] slug로 카테고리 조회 시작: ${slug}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[post-category API] slug로 카테고리 조회 시작: ${slug}`);
+    }
 
     const post = await getPostBySlug(slug);
 
     if (!post) {
-      console.log(`[post-category API] 포스트를 찾을 수 없음: ${slug}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[post-category API] 포스트를 찾을 수 없음: ${slug}`);
+      }
       return NextResponse.json(
         { category: null },
         { status: 404 }
       );
     }
 
-    console.log(`[post-category API] 포스트 카테고리 조회 성공: ${post.category || '없음'}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[post-category API] 포스트 카테고리 조회 성공: ${post.category || '없음'}`);
+    }
     return NextResponse.json({
       category: post.category || null,
     });

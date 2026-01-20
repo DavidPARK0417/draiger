@@ -92,15 +92,19 @@ export default function MarkdownImage({ src, alt, ...props }: MarkdownImageProps
             // 프록시 URL 생성
             const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(normalized)}`;
             setProxySrc(proxyUrl);
-            console.log('[MarkdownImage] ✅ 프록시 URL 생성:', {
-              original: normalized.substring(0, 100),
-              proxy: proxyUrl.substring(0, 100),
-              isExternal: true
-            });
+            if (process.env.NODE_ENV === 'development') {
+              console.log('[MarkdownImage] ✅ 프록시 URL 생성:', {
+                original: normalized.substring(0, 100),
+                proxy: proxyUrl.substring(0, 100),
+                isExternal: true
+              });
+            }
           } else {
             // 내부 이미지는 원본 URL 사용
             setProxySrc(normalized);
-            console.log('[MarkdownImage] 내부 이미지 (원본 URL 사용):', normalized.substring(0, 100));
+            if (process.env.NODE_ENV === 'development') {
+              console.log('[MarkdownImage] 내부 이미지 (원본 URL 사용):', normalized.substring(0, 100));
+            }
           }
         } catch {
           setProxySrc(normalized);
@@ -109,28 +113,34 @@ export default function MarkdownImage({ src, alt, ...props }: MarkdownImageProps
         setProxySrc(normalized);
       }
       
-      // 디버깅: URL 추출 과정 로그 (항상 로그 출력)
-      console.log('[MarkdownImage] URL 처리:', {
-        original: src.substring(0, 150),
-        extracted: extracted.substring(0, 150),
-        normalized: normalized.substring(0, 150),
-        proxySrc: proxySrc?.substring(0, 150),
-        changed: src !== normalized,
-        hasError: false
-      });
+      // 디버깅: URL 추출 과정 로그 (개발 환경에서만)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[MarkdownImage] URL 처리:', {
+          original: src.substring(0, 150),
+          extracted: extracted.substring(0, 150),
+          normalized: normalized.substring(0, 150),
+          proxySrc: proxySrc?.substring(0, 150),
+          changed: src !== normalized,
+          hasError: false
+        });
+      }
     } else {
-      console.warn('[MarkdownImage] ⚠️ src가 없습니다:', { src, alt });
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[MarkdownImage] ⚠️ src가 없습니다:', { src, alt });
+      }
     }
   }, [src, alt, proxySrc]);
 
   // 이미지가 없으면 렌더링하지 않음
   if (!imageSrc || !proxySrc) {
-    console.warn('[MarkdownImage] ⚠️ imageSrc 또는 proxySrc가 없어 렌더링하지 않습니다:', { 
-      src, 
-      alt, 
-      imageSrc, 
-      proxySrc 
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[MarkdownImage] ⚠️ imageSrc 또는 proxySrc가 없어 렌더링하지 않습니다:', { 
+        src, 
+        alt, 
+        imageSrc, 
+        proxySrc 
+      });
+    }
     return null;
   }
   
@@ -208,7 +218,9 @@ export default function MarkdownImage({ src, alt, ...props }: MarkdownImageProps
               // 재시도 로직: 프록시가 실패하면 원본 URL로 재시도
               if (retryCount < maxRetries) {
                 const nextRetry = retryCount + 1;
-                console.log(`[MarkdownImage] 🔄 재시도 ${nextRetry}/${maxRetries}...`);
+                if (process.env.NODE_ENV === 'development') {
+                  console.log(`[MarkdownImage] 🔄 재시도 ${nextRetry}/${maxRetries}...`);
+                }
                 
                 // 재시도 간격 증가 (500ms, 1000ms, 1500ms)
                 setTimeout(() => {
@@ -216,7 +228,9 @@ export default function MarkdownImage({ src, alt, ...props }: MarkdownImageProps
                   setHasError(false);
                   // 마지막 재시도에서는 원본 URL 사용
                   if (nextRetry === maxRetries && imageSrc) {
-                    console.log('[MarkdownImage] 🔄 원본 URL로 재시도:', imageSrc);
+                    if (process.env.NODE_ENV === 'development') {
+                      console.log('[MarkdownImage] 🔄 원본 URL로 재시도:', imageSrc);
+                    }
                     setProxySrc(imageSrc);
                   }
                 }, 500 * nextRetry);
@@ -226,10 +240,12 @@ export default function MarkdownImage({ src, alt, ...props }: MarkdownImageProps
               }
             }}
             onLoad={() => {
-              console.log('[MarkdownImage] ✅ 이미지 로드 성공:', {
-                originalSrc: imageSrc,
-                proxySrc: proxySrc
-              });
+              if (process.env.NODE_ENV === 'development') {
+                console.log('[MarkdownImage] ✅ 이미지 로드 성공:', {
+                  originalSrc: imageSrc,
+                  proxySrc: proxySrc
+                });
+              }
               setHasError(false);
               setRetryCount(0); // 성공 시 재시도 횟수 리셋
             }}

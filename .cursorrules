@@ -1093,3 +1093,5 @@ import { Home, Search, User, Settings } from 'lucide-react';
 **REMEMBER: Always follow the design system rules when creating new components or pages!**
 **기억하세요: 새로운 컴포넌트나 페이지를 만들 때 항상 디자인 시스템 규칙을 따라야 합니다!**
 
+REMEMBER: 프로덕션 환경에서는 디버그 로그를 절대 출력하지 마세요!
+기억하세요: 배포 환경의 콘솔은 깨끗해야 합니다!

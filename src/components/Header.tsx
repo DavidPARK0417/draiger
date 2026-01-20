@@ -89,11 +89,15 @@ export default function Header() {
   useEffect(() => {
     const fetchCategoryCounts = async () => {
       try {
-        console.log("카테고리별 게시글 개수 조회 시작");
+        if (process.env.NODE_ENV === 'development') {
+          console.log("카테고리별 게시글 개수 조회 시작");
+        }
         const response = await fetch("/api/category-counts");
         if (response.ok) {
           const data = await response.json();
-          console.log("카테고리별 게시글 개수 조회 성공:", data);
+          if (process.env.NODE_ENV === 'development') {
+            console.log("카테고리별 게시글 개수 조회 성공:", data);
+          }
           setCategoryCounts(data.categories || {});
           setTotalCount(data.total || 0);
         } else {
@@ -117,13 +121,17 @@ export default function Header() {
       
       if (insightSlugMatch && !pathname.startsWith("/insight/category")) {
         const slug = insightSlugMatch[1];
-        console.log(`[Header] 인사이트 상세 페이지 감지, slug: ${slug}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[Header] 인사이트 상세 페이지 감지, slug: ${slug}`);
+        }
         
         try {
           const response = await fetch(`/api/post-category/${slug}`);
           if (response.ok) {
             const data = await response.json();
-            console.log(`[Header] 현재 포스트 카테고리: ${data.category || '없음'}`);
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`[Header] 현재 포스트 카테고리: ${data.category || '없음'}`);
+            }
             setCurrentPostCategory(data.category || null);
           } else {
             console.error(`[Header] 포스트 카테고리 조회 실패: ${response.status}`);
@@ -199,7 +207,9 @@ export default function Header() {
 
   // 모바일 메뉴가 열릴 때 body 스크롤 방지 및 상태 관리
   useEffect(() => {
-    console.log("모바일 메뉴 상태 변경:", isMobileMenuOpen);
+    if (process.env.NODE_ENV === 'development') {
+      console.log("모바일 메뉴 상태 변경:", isMobileMenuOpen);
+    }
     if (isMobileMenuOpen) {
       document.body.style.overflow = "hidden";
     } else {
@@ -242,50 +252,54 @@ export default function Header() {
   // 현재 경로가 유용한 도구 중 하나인지 확인
   const isUsefulToolActive = mounted && usefulTools.some((tool) => pathname === tool.href);
 
-  // 디버깅: 드롭다운 상태 변경 로그
+  // 디버깅: 드롭다운 상태 변경 로그 (개발 환경에서만)
   useEffect(() => {
-    console.log("마케팅도구 드롭다운 상태 변경:", isMarketingToolsOpen);
-    if (isMarketingToolsOpen && marketingToolsDropdownRef.current) {
-      const dropdownElement = marketingToolsDropdownRef.current.querySelector(
-        "[data-dropdown-menu]"
-      ) as HTMLElement;
-      if (dropdownElement) {
-        console.log("마케팅도구 드롭다운 요소 렌더링됨:", dropdownElement);
-        console.log(
-          "마케팅도구 드롭다운 위치:",
-          dropdownElement.getBoundingClientRect()
-        );
-        console.log(
-          "마케팅도구 드롭다운 스타일:",
-          window.getComputedStyle(dropdownElement)
-        );
+    if (process.env.NODE_ENV === 'development') {
+      console.log("마케팅도구 드롭다운 상태 변경:", isMarketingToolsOpen);
+      if (isMarketingToolsOpen && marketingToolsDropdownRef.current) {
+        const dropdownElement = marketingToolsDropdownRef.current.querySelector(
+          "[data-dropdown-menu]"
+        ) as HTMLElement;
+        if (dropdownElement) {
+          console.log("마케팅도구 드롭다운 요소 렌더링됨:", dropdownElement);
+          console.log(
+            "마케팅도구 드롭다운 위치:",
+            dropdownElement.getBoundingClientRect()
+          );
+          console.log(
+            "마케팅도구 드롭다운 스타일:",
+            window.getComputedStyle(dropdownElement)
+          );
+        }
       }
     }
   }, [isMarketingToolsOpen]);
 
   useEffect(() => {
-    console.log("유용한도구 드롭다운 상태 변경:", isUsefulToolsOpen);
-    if (isUsefulToolsOpen && usefulToolsDropdownRef.current) {
-      const dropdownElement = usefulToolsDropdownRef.current.querySelector(
-        "[data-dropdown-menu]"
-      ) as HTMLElement;
-      if (dropdownElement) {
-        console.log("유용한도구 드롭다운 요소 렌더링됨:", dropdownElement);
-        console.log(
-          "유용한도구 드롭다운 위치:",
-          dropdownElement.getBoundingClientRect()
-        );
-        console.log(
-          "유용한도구 드롭다운 스타일:",
-          window.getComputedStyle(dropdownElement)
-        );
+    if (process.env.NODE_ENV === 'development') {
+      console.log("유용한도구 드롭다운 상태 변경:", isUsefulToolsOpen);
+      if (isUsefulToolsOpen && usefulToolsDropdownRef.current) {
+        const dropdownElement = usefulToolsDropdownRef.current.querySelector(
+          "[data-dropdown-menu]"
+        ) as HTMLElement;
+        if (dropdownElement) {
+          console.log("유용한도구 드롭다운 요소 렌더링됨:", dropdownElement);
+          console.log(
+            "유용한도구 드롭다운 위치:",
+            dropdownElement.getBoundingClientRect()
+          );
+          console.log(
+            "유용한도구 드롭다운 스타일:",
+            window.getComputedStyle(dropdownElement)
+          );
+        }
       }
     }
   }, [isUsefulToolsOpen]);
 
-  // 모바일 메뉴 패널 렌더링 확인
+  // 모바일 메뉴 패널 렌더링 확인 (개발 환경에서만)
   useEffect(() => {
-    if (isMobileMenuOpen && mobileMenuPanelRef.current) {
+    if (process.env.NODE_ENV === 'development' && isMobileMenuOpen && mobileMenuPanelRef.current) {
       console.log("모바일 메뉴 패널 렌더링됨:", mobileMenuPanelRef.current);
       console.log(
         "모바일 메뉴 패널 위치:",
@@ -447,7 +461,9 @@ export default function Header() {
                       event_category: 'navigation',
                       event_label: '인사이트 버튼 클릭',
                     });
-                    console.log('view_insights 이벤트 전송 완료');
+                    if (process.env.NODE_ENV === 'development') {
+                      console.log('view_insights 이벤트 전송 완료');
+                    }
                   }
                 }}
                 className={`
@@ -561,10 +577,12 @@ export default function Header() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log(
-                    "마케팅도구 버튼 클릭, 현재 상태:",
-                    isMarketingToolsOpen
-                  );
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log(
+                      "마케팅도구 버튼 클릭, 현재 상태:",
+                      isMarketingToolsOpen
+                    );
+                  }
                   setIsMarketingToolsOpen(!isMarketingToolsOpen);
                 }}
                 className={`
@@ -653,10 +671,12 @@ export default function Header() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log(
-                    "유용한도구 버튼 클릭, 현재 상태:",
-                    isUsefulToolsOpen
-                  );
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log(
+                      "유용한도구 버튼 클릭, 현재 상태:",
+                      isUsefulToolsOpen
+                    );
+                  }
                   setIsUsefulToolsOpen(!isUsefulToolsOpen);
                 }}
                 className={`
@@ -831,7 +851,9 @@ export default function Header() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log("햄버거 메뉴 클릭, 현재 상태:", isMobileMenuOpen);
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log("햄버거 메뉴 클릭, 현재 상태:", isMobileMenuOpen);
+                  }
                   setIsMobileMenuOpen(!isMobileMenuOpen);
                 }}
                 className="
@@ -889,7 +911,9 @@ export default function Header() {
                       event_category: 'navigation',
                       event_label: '인사이트 버튼 클릭 (모바일)',
                     });
-                    console.log('view_insights 이벤트 전송 완료 (모바일)');
+                    if (process.env.NODE_ENV === 'development') {
+                      console.log('view_insights 이벤트 전송 완료 (모바일)');
+                    }
                   }
                 }}
                 className={`
@@ -980,15 +1004,19 @@ export default function Header() {
                   // 다른 메뉴들 닫기
                   setIsBlogOpen(false);
                   setIsUsefulToolsOpen(false);
-                  console.log(
-                    "모바일 마케팅도구 버튼 클릭, 현재 상태:",
-                    isMarketingToolsOpen
-                  );
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log(
+                      "모바일 마케팅도구 버튼 클릭, 현재 상태:",
+                      isMarketingToolsOpen
+                    );
+                  }
                   setIsMarketingToolsOpen(!isMarketingToolsOpen);
-                  console.log(
-                    "모바일 마케팅도구 버튼 클릭 후 상태:",
-                    !isMarketingToolsOpen
-                  );
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log(
+                      "모바일 마케팅도구 버튼 클릭 후 상태:",
+                      !isMarketingToolsOpen
+                    );
+                  }
                 }}
                 className={`
                   w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium
@@ -1057,15 +1085,19 @@ export default function Header() {
                   // 다른 메뉴들 닫기
                   setIsBlogOpen(false);
                   setIsMarketingToolsOpen(false);
-                  console.log(
-                    "모바일 유용한도구 버튼 클릭, 현재 상태:",
-                    isUsefulToolsOpen
-                  );
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log(
+                      "모바일 유용한도구 버튼 클릭, 현재 상태:",
+                      isUsefulToolsOpen
+                    );
+                  }
                   setIsUsefulToolsOpen(!isUsefulToolsOpen);
-                  console.log(
-                    "모바일 유용한도구 버튼 클릭 후 상태:",
-                    !isUsefulToolsOpen
-                  );
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log(
+                      "모바일 유용한도구 버튼 클릭 후 상태:",
+                      !isUsefulToolsOpen
+                    );
+                  }
                 }}
                 className={`
                   w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium

@@ -44,7 +44,9 @@ export async function GET(request: NextRequest) {
     }
 
     // 외부 이미지 가져오기
-    console.log(`[proxy-image] 이미지 가져오기 시도: ${decodedUrl.substring(0, 100)}...`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[proxy-image] 이미지 가져오기 시도: ${decodedUrl.substring(0, 100)}...`);
+    }
     
     // Referer를 이미지가 있는 원본 사이트로 설정
     let referer = 'https://news.nate.com/';
@@ -63,9 +65,11 @@ export async function GET(request: NextRequest) {
       redirect: 'follow',
     });
     
-    console.log(`[proxy-image] 응답 상태: ${imageResponse.status} ${imageResponse.statusText}`);
-    console.log(`[proxy-image] Content-Type: ${imageResponse.headers.get('content-type')}`);
-    console.log(`[proxy-image] Content-Length: ${imageResponse.headers.get('content-length')}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[proxy-image] 응답 상태: ${imageResponse.status} ${imageResponse.statusText}`);
+      console.log(`[proxy-image] Content-Type: ${imageResponse.headers.get('content-type')}`);
+      console.log(`[proxy-image] Content-Length: ${imageResponse.headers.get('content-length')}`);
+    }
 
     if (!imageResponse.ok) {
       console.error(`[proxy-image] 이미지 가져오기 실패: ${imageResponse.status} ${imageResponse.statusText}`);
