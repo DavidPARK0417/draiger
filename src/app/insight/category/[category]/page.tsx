@@ -6,11 +6,8 @@ import Pagination from "@/components/Pagination";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-// ISR 설정: 10초마다 재검증 (더 빠른 업데이트)
-export const revalidate = 10;
-
-// 동적 렌더링 강제 (캐시 우회)
-export const dynamic = 'force-dynamic';
+// ISR 설정: 60초마다 재검증 (더 빠른 업데이트를 원하면 30초로 조정 가능)
+export const revalidate = 60;
 
 const categories = [
   "내일의 AI",

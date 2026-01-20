@@ -80,8 +80,13 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
       className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors h-full shadow-sm dark:shadow-gray-900/30 ${
         isLarge ? "p-8" : "p-4 sm:p-6"
       }`}
+      suppressHydrationWarning
     >
-      <Link href={`/insight/${post.slug}`} className="absolute inset-0 z-10" />
+      <span suppressHydrationWarning className="absolute inset-0 z-10">
+        <Link href={`/insight/${post.slug}`} className="absolute inset-0" aria-label={post.title}>
+          <span className="sr-only">{post.title}</span>
+        </Link>
+      </span>
 
       <div className={`flex flex-col h-full ${isLarge ? 'gap-6' : 'gap-3 sm:gap-4'}`}>
         {/* 이미지가 있을 때 작은 이미지 표시 - 텍스트와 함께 보이도록 */}

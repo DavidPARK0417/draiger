@@ -1,5 +1,6 @@
 import { Client } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
+import cache, { CacheKeys } from "./cache";
 
 // Notion API 타입 정의
 interface NotionFilter {
@@ -499,6 +500,13 @@ function extractFirstImageUrl(markdown: string): string | undefined {
  * Published된 게시글의 총 개수를 가져옵니다
  */
 export async function getTotalPostsCount(): Promise<number> {
+  // 캐시 확인
+  const cacheKey = CacheKeys.totalPostsCount();
+  const cached = cache.get<number>(cacheKey);
+  if (cached !== null) {
+    return cached;
+  }
+
   const databaseId = process.env.NOTION_DATABASE_ID;
 
   if (!databaseId) {
@@ -541,6 +549,9 @@ export async function getTotalPostsCount(): Promise<number> {
       cursor = nextData.next_cursor;
     }
 
+    // 캐시에 저장 (60초)
+    cache.set(cacheKey, totalCount, 60000);
+
     return totalCount;
   } catch (error) {
     console.error("Error fetching total posts count:", error);
@@ -553,6 +564,13 @@ export async function getTotalPostsCount(): Promise<number> {
  * 생성일 기준 내림차순으로 정렬됩니다
  */
 export async function getPublishedPosts(): Promise<Post[]> {
+  // 캐시 확인
+  const cacheKey = CacheKeys.allPosts();
+  const cached = cache.get<Post[]>(cacheKey);
+  if (cached !== null) {
+    return cached;
+  }
+
   const databaseId = process.env.NOTION_DATABASE_ID;
 
   if (!databaseId) {
@@ -618,6 +636,9 @@ export async function getPublishedPosts(): Promise<Post[]> {
           };
         })
       );
+
+      // 캐시에 저장 (60초)
+      cache.set(cacheKey, posts, 60000);
 
       return posts;
   } catch (error) {
@@ -842,6 +863,13 @@ export async function getTotalPostsCountByCategory(
 export async function getPublishedPostsByCategory(
   category: string
 ): Promise<Post[]> {
+  // 캐시 확인
+  const cacheKey = CacheKeys.postsByCategory(category);
+  const cached = cache.get<Post[]>(cacheKey);
+  if (cached !== null) {
+    return cached;
+  }
+
   const databaseId = process.env.NOTION_DATABASE_ID;
 
   if (!databaseId) {
@@ -919,6 +947,9 @@ export async function getPublishedPostsByCategory(
         })
       );
 
+      // 캐시에 저장 (60초)
+      cache.set(cacheKey, posts, 60000);
+
       return posts;
     } catch (categoryError: unknown) {
       // category 속성이 없는 경우 (validation_error)
@@ -939,9 +970,14 @@ export async function getPublishedPostsByCategory(
         const allPosts = await getPublishedPosts();
         
         // category 속성이 있는 게시글만 필터링
-        return allPosts.filter(
+        const filteredPosts = allPosts.filter(
           (post) => post.category && post.category === category
         );
+
+        // 캐시에 저장 (60초)
+        cache.set(cacheKey, filteredPosts, 60000);
+
+        return filteredPosts;
       }
       
       // 다른 에러는 그대로 throw
@@ -962,8 +998,20 @@ export async function getLatestPostsByCategory(
   category: string,
   limit: number = 3
 ): Promise<Post[]> {
+  // 캐시 확인
+  const cacheKey = CacheKeys.latestPostsByCategory(category, limit);
+  const cached = cache.get<Post[]>(cacheKey);
+  if (cached !== null) {
+    return cached;
+  }
+
   const posts = await getPublishedPostsByCategory(category);
-  return posts.slice(0, limit);
+  const result = posts.slice(0, limit);
+
+  // 캐시에 저장 (60초)
+  cache.set(cacheKey, result, 60000);
+
+  return result;
 }
 
 /**
@@ -1136,6 +1184,14 @@ export async function getPublishedPostsByCategoryPaginated(
  * Slug로 특정 게시글을 가져옵니다
  */
 export async function getPostBySlug(slug: string): Promise<Post | null> {
+  // 캐시 확인
+  const cacheKey = CacheKeys.postBySlug(slug);
+  const cached = cache.get<Post | null>(cacheKey);
+  if (cached !== null || cached === null) {
+    // null도 캐싱하여 존재하지 않는 slug에 대한 반복 조회 방지
+    return cached;
+  }
+
   const databaseId = process.env.NOTION_DATABASE_ID;
 
   if (!databaseId) {
@@ -1166,10 +1222,14 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
       },
     });
 
-    if (data.results.length === 0) return null;
+    if (data.results.length === 0) {
+      // 존재하지 않는 slug도 캐싱 (60초)
+      cache.set(cacheKey, null, 60000);
+      return null;
+    }
 
     const page: NotionPage = data.results[0];
-    return {
+    const post = {
       id: page.id,
       title: page.properties.title?.title[0]?.plain_text || "Untitled",
       slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
@@ -1185,6 +1245,11 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
       date: page.properties.date?.date?.start || undefined,
       tags: page.properties.tags?.multi_select?.map((tag) => tag.name) || undefined,
     };
+
+    // 캐시에 저장 (60초)
+    cache.set(cacheKey, post, 60000);
+
+    return post;
   } catch (error) {
     console.error("Error fetching post by slug:", error);
     throw error;
@@ -1264,7 +1329,9 @@ async function extractImageUrlsFromPage(pageId: string): Promise<Map<string, str
                const normalizedUrl = imageUrl.trim();
                
                // 디버깅: 원본 URL 유지 확인
-               console.log(`[extractImageUrlsFromPage] 이미지 발견: ${block.id} -> ${normalizedUrl.substring(0, 100)}...`);
+               if (process.env.NODE_ENV === 'development') {
+                 console.log(`[extractImageUrlsFromPage] 이미지 발견: ${block.id} -> ${normalizedUrl.substring(0, 100)}...`);
+               }
                
                imageUrlMap.set(block.id, normalizedUrl);
              }
@@ -1293,50 +1360,65 @@ async function extractImageUrlsFromPage(pageId: string): Promise<Map<string, str
  * Notion 페이지의 콘텐츠를 마크다운으로 변환합니다
  */
 export async function getPostContent(pageId: string): Promise<string> {
+  // 캐시 확인
+  const cacheKey = CacheKeys.postContent(pageId);
+  const cached = cache.get<string>(cacheKey);
+  if (cached !== null) {
+    return cached;
+  }
+
   try {
     // 먼저 Notion API에서 직접 이미지 URL 추출
     const imageUrlMap = await extractImageUrlsFromPage(pageId);
-    console.log(`[getPostContent] Notion API에서 추출한 이미지: ${imageUrlMap.size}개`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[getPostContent] Notion API에서 추출한 이미지: ${imageUrlMap.size}개`);
+    }
     
     const n2m = getNotionToMarkdown();
     const mdblocks = await n2m.pageToMarkdown(pageId);
     
     // 디버깅: 마크다운 블록에서 이미지 확인
-    const imageBlocks = mdblocks.filter(
-      (block: { type?: string; parent?: string }) => 
-        block.type === 'image' || block.parent?.includes('image')
-    );
-    
-    if (imageBlocks.length > 0) {
-      console.log(`[getPostContent] notion-to-md에서 발견된 이미지 블록: ${imageBlocks.length}개`);
+    if (process.env.NODE_ENV === 'development') {
+      const imageBlocks = mdblocks.filter(
+        (block: { type?: string; parent?: string }) => 
+          block.type === 'image' || block.parent?.includes('image')
+      );
+      
+      if (imageBlocks.length > 0) {
+        console.log(`[getPostContent] notion-to-md에서 발견된 이미지 블록: ${imageBlocks.length}개`);
+      }
     }
     
     const mdString = n2m.toMarkdownString(mdblocks);
     let markdownContent = mdString.parent || "";
     
     // 디버깅: 원본 마크다운 콘텐츠 확인
-    console.log(`[getPostContent] 원본 마크다운 길이: ${markdownContent.length}자`);
-    const imageFilenameInContent = markdownContent.match(/news_1756856273_1543672_m_1\.png/);
-    if (imageFilenameInContent) {
-      console.log(`[getPostContent] ⚠️ 이미지 파일명 발견: ${imageFilenameInContent[0]}`);
-      console.log(`[getPostContent] 파일명 주변 텍스트:`, markdownContent.substring(
-        Math.max(0, markdownContent.indexOf(imageFilenameInContent[0]) - 50),
-        Math.min(markdownContent.length, markdownContent.indexOf(imageFilenameInContent[0]) + imageFilenameInContent[0].length + 50)
-      ));
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[getPostContent] 원본 마크다운 길이: ${markdownContent.length}자`);
+      const imageFilenameInContent = markdownContent.match(/news_1756856273_1543672_m_1\.png/);
+      if (imageFilenameInContent) {
+        console.log(`[getPostContent] ⚠️ 이미지 파일명 발견: ${imageFilenameInContent[0]}`);
+        console.log(`[getPostContent] 파일명 주변 텍스트:`, markdownContent.substring(
+          Math.max(0, markdownContent.indexOf(imageFilenameInContent[0]) - 50),
+          Math.min(markdownContent.length, markdownContent.indexOf(imageFilenameInContent[0]) + imageFilenameInContent[0].length + 50)
+        ));
+      }
     }
     
     // 이미지 파일명만 있는 경우 (URL이 없는 경우) Notion API에서 가져온 URL로 대체
     // 패턴: 이미지 파일명만 있는 경우 (예: "news_1756856273_1543672_m_1.png")
     if (imageUrlMap.size > 0) {
       const imageUrls = Array.from(imageUrlMap.values());
-      console.log(`[getPostContent] 사용 가능한 이미지 URL: ${imageUrls.length}개`);
-      imageUrls.forEach((url, index) => {
-        console.log(`[getPostContent] 이미지 URL ${index + 1}: ${url.substring(0, 100)}...`);
-      });
-      
-      // 이미 마크다운 형식인 이미지가 있는지 확인
-      const existingMarkdownImages = markdownContent.match(/!\[.*?\]\([^\)]+\)/g) || [];
-      console.log(`[getPostContent] 기존 마크다운 이미지: ${existingMarkdownImages.length}개`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[getPostContent] 사용 가능한 이미지 URL: ${imageUrls.length}개`);
+        imageUrls.forEach((url, index) => {
+          console.log(`[getPostContent] 이미지 URL ${index + 1}: ${url.substring(0, 100)}...`);
+        });
+        
+        // 이미 마크다운 형식인 이미지가 있는지 확인
+        const existingMarkdownImages = markdownContent.match(/!\[.*?\]\([^\)]+\)/g) || [];
+        console.log(`[getPostContent] 기존 마크다운 이미지: ${existingMarkdownImages.length}개`);
+      }
       
       // 이미지 파일명 패턴 찾기 (더 포괄적이고 정확한 패턴)
       // 1. 단독 줄에 있는 파일명: "news_1756856273_1543672_m_1.png"
@@ -1478,6 +1560,9 @@ export async function getPostContent(pageId: string): Promise<string> {
         console.log(`[getPostContent] 예시:`, patternMatches.slice(0, 2));
       }
     });
+    
+    // 캐시에 저장 (60초)
+    cache.set(cacheKey, markdownContent, 60000);
     
     return markdownContent;
   } catch (error) {

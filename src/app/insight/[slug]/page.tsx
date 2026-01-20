@@ -10,11 +10,8 @@ import GiscusComments from "@/components/GiscusComments";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
-// ISR 설정: 10초마다 재검증 (더 빠른 업데이트)
-export const revalidate = 10;
-
-// 동적 렌더링 강제 (캐시 우회)
-export const dynamic = 'force-dynamic';
+// ISR 설정: 60초마다 재검증 (더 빠른 업데이트를 원하면 30초로 조정 가능)
+export const revalidate = 60;
 
 // 동적 라우트 설정: 새로운 slug가 추가되면 자동으로 생성
 export const dynamicParams = true;

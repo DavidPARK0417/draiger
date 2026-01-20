@@ -77,8 +77,13 @@ export default function SmallPostCard({ post, index }: SmallPostCardProps) {
         ease: [0.16, 1, 0.3, 1],
       }}
       className="group relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors h-full shadow-sm dark:shadow-gray-900/30"
+      suppressHydrationWarning
     >
-      <Link href={`/insight/${post.slug}`} className="absolute inset-0 z-10" />
+      <span suppressHydrationWarning className="absolute inset-0 z-10">
+        <Link href={`/insight/${post.slug}`} className="absolute inset-0" aria-label={post.title}>
+          <span className="sr-only">{post.title}</span>
+        </Link>
+      </span>
 
       <div className="flex flex-col h-full gap-3 sm:gap-4">
         {/* 이미지가 있을 때 작은 이미지 표시 */}

@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
         hostname: "**", // HTTP도 허용 (필요한 경우)
       },
     ],
+    // 로컬 이미지 프록시 패턴 허용 (Next.js 16 호환성)
+    // 모든 로컬 경로 허용 (public 폴더 이미지 + API 프록시)
+    localPatterns: [
+      {
+        pathname: '/**',
+      },
+    ],
     // 외부 이미지 최적화 허용
     unoptimized: false,
   },

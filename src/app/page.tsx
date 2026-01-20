@@ -6,11 +6,8 @@ import GrainOverlay from "@/components/GrainOverlay";
 import Link from "next/link";
 import type { Metadata } from 'next';
 
-// ISR 설정: 10초마다 재검증 (더 빠른 업데이트)
-export const revalidate = 10;
-
-// 동적 렌더링 강제 (캐시 우회)
-export const dynamic = 'force-dynamic';
+// ISR 설정: 60초마다 재검증 (더 빠른 업데이트를 원하면 30초로 조정 가능)
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'DRAIGER',
@@ -51,7 +48,7 @@ function CategorySection({ category, posts, sectionIndex }: CategorySectionProps
   return (
     <section className="mb-16 sm:mb-20 lg:mb-24">
       {/* 카테고리 제목 */}
-      <div className="mb-6 sm:mb-8">
+      <div className="mb-6 sm:mb-8" suppressHydrationWarning>
         <Link
           href={`/insight/category/${encodeURIComponent(category)}`}
           className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300"
