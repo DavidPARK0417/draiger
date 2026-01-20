@@ -240,16 +240,124 @@ function getNotionToMarkdown() {
 }
 
 /**
- * Notion API를 직접 호출하여 데이터베이스를 쿼리합니다
- * SDK에 query 메서드가 없을 때 사용합니다
+ * 요청 간 지연을 위한 헬퍼 함수
  */
-async function queryNotionDatabase(params: {
+async function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// 요청 큐를 위한 타입 정의
+type QueuedRequest = {
+  resolve: (value: NotionQueryResponse) => void;
+  reject: (error: Error) => void;
+  params: {
+    database_id: string;
+    filter?: NotionFilter;
+    sorts?: NotionSort[];
+    page_size?: number;
+    start_cursor?: string;
+  };
+  retryCount: number;
+};
+
+// 요청 큐 및 처리 상태
+const requestQueue: QueuedRequest[] = [];
+let isProcessingQueue = false;
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 500; // 최소 요청 간격 (밀리초) - 350ms에서 500ms로 증가
+
+/**
+ * 요청 큐를 순차적으로 처리하는 함수
+ */
+async function processRequestQueue(): Promise<void> {
+  if (isProcessingQueue || requestQueue.length === 0) {
+    return;
+  }
+
+  isProcessingQueue = true;
+
+  while (requestQueue.length > 0) {
+    const request = requestQueue.shift();
+    if (!request) break;
+
+    try {
+      // 요청 간 최소 지연 시간 (Rate limit 방지)
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      
+      if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+        const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+        await delay(waitTime);
+      }
+
+      const result = await executeNotionRequest(request.params, request.retryCount);
+      lastRequestTime = Date.now();
+      request.resolve(result);
+    } catch (error) {
+      // Rate limit 오류인 경우 재시도
+      if (error instanceof Error && error.message.includes('Rate Limit (429)')) {
+        const maxRetries = 5;
+        if (request.retryCount < maxRetries) {
+          // 재시도를 위해 큐의 앞에 다시 추가
+          request.retryCount++;
+          requestQueue.unshift(request);
+          
+          // 에러 메시지에서 대기 시간 추출 시도
+          // 패턴: "XXX초 후 재시도 필요" 또는 "XXXms 후 재시도"
+          let waitTime = Math.min(Math.pow(2, request.retryCount) * 1000, 60000);
+          
+          // 초 단위 추출 (예: "124초 후")
+          const secondsMatch = error.message.match(/(\d+)초/);
+          if (secondsMatch) {
+            waitTime = parseInt(secondsMatch[1], 10) * 1000;
+          } else {
+            // 밀리초 단위 추출 (예: "124000ms")
+            const msMatch = error.message.match(/(\d+)ms/);
+            if (msMatch) {
+              waitTime = parseInt(msMatch[1], 10);
+            } else {
+              // 숫자만 추출 (초로 가정)
+              const numberMatch = error.message.match(/(\d+)/);
+              if (numberMatch) {
+                const extracted = parseInt(numberMatch[1], 10);
+                // 큰 숫자면 밀리초, 작은 숫자면 초로 가정
+                waitTime = extracted > 1000 ? extracted : extracted * 1000;
+              }
+            }
+          }
+          
+          // 최대 대기 시간 제한 (5분)
+          waitTime = Math.min(waitTime, 300000);
+          
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(
+              `⚠️ Notion API Rate Limit (429). ${Math.round(waitTime / 1000)}초 후 재시도... (${request.retryCount}/${maxRetries})`
+            );
+          }
+          
+          await delay(waitTime);
+        } else {
+          request.reject(error);
+        }
+      } else {
+        request.reject(error as Error);
+      }
+    }
+  }
+
+  isProcessingQueue = false;
+}
+
+/**
+ * 실제 Notion API 요청을 실행하는 함수
+ */
+async function executeNotionRequest(params: {
   database_id: string;
   filter?: NotionFilter;
   sorts?: NotionSort[];
   page_size?: number;
   start_cursor?: string;
-}): Promise<NotionQueryResponse> {
+}, retryCount: number = 0): Promise<NotionQueryResponse> {
   const apiKey = process.env.NOTION_API_KEY?.trim().replace(/^["']|["']$/g, "");
 
   if (!apiKey) {
@@ -287,12 +395,58 @@ async function queryNotionDatabase(params: {
     }
   );
 
+  // Rate limit 오류 처리 (429)
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    const errorText = await response.text();
+    
+    // Retry-After 헤더가 있으면 해당 시간만큼 대기, 없으면 지수 백오프 사용
+    let waitTime: number;
+    if (retryAfter) {
+      waitTime = parseInt(retryAfter, 10) * 1000; // 초를 밀리초로 변환
+    } else {
+      // 지수 백오프: 2^retryCount 초 (최대 60초)
+      waitTime = Math.min(Math.pow(2, retryCount) * 1000, 60000);
+    }
+
+    throw new Error(`Notion API Rate Limit (429): ${waitTime / 1000}초 후 재시도 필요. ${errorText}`);
+  }
+
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`Notion API 오류 (${response.status}): ${errorText}`);
   }
 
   return await response.json();
+}
+
+/**
+ * Notion API를 직접 호출하여 데이터베이스를 쿼리합니다
+ * SDK에 query 메서드가 없을 때 사용합니다
+ * Rate limit 오류 시 자동 재시도 로직 포함
+ * 요청 큐를 통해 순차적으로 처리됩니다
+ */
+async function queryNotionDatabase(params: {
+  database_id: string;
+  filter?: NotionFilter;
+  sorts?: NotionSort[];
+  page_size?: number;
+  start_cursor?: string;
+}, retryCount: number = 0): Promise<NotionQueryResponse> {
+  return new Promise((resolve, reject) => {
+    // 요청을 큐에 추가
+    requestQueue.push({
+      resolve,
+      reject,
+      params,
+      retryCount,
+    });
+
+    // 큐 처리 시작 (비동기로 실행)
+    processRequestQueue().catch((error) => {
+      console.error("요청 큐 처리 중 오류:", error);
+    });
+  });
 }
 
 // Post 인터페이스 정의
