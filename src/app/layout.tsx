@@ -89,8 +89,8 @@ export const metadata: Metadata = {
     ],
   },
   verification: {
-    // Google Search Console, Naver Search Advisor 등 검증 코드 추가 가능
-    // google: "your-google-verification-code",
+    google: "N3s-tHYhtlKyDSxzPPxWl5svLx4k4Dib4NaYuQFDpfo",
+    // Naver Search Advisor 등 검증 코드 추가 가능
     // other: {
     //   "naver-site-verification": "your-naver-verification-code",
     // },
