@@ -91,10 +91,9 @@ export const metadata: Metadata = {
   },
   verification: {
     google: "N3s-tHYhtlKyDSxzPPxWl5svLx4k4Dib4NaYuQFDpfo",
-    // Naver Search Advisor 등 검증 코드 추가 가능
-    // other: {
-    //   "naver-site-verification": "your-naver-verification-code",
-    // },
+    other: {
+      "naver-site-verification": "25126cf83b729c9a888938b4ca47df111ba24c08",
+    },
   },
 };
 
@@ -138,6 +137,8 @@ export default function RootLayout({
         <meta name="msapplication-config" content="/browserconfig.xml" />
         {/* RSS Feed */}
         <link rel="alternate" type="application/rss+xml" title="Draiger RSS Feed" href="/feed" />
+        {/* Naver Site Verification */}
+        <meta name="naver-site-verification" content="25126cf83b729c9a888938b4ca47df111ba24c08" />
       </head>
       <body className="antialiased text-gray-900 dark:text-white bg-[#F8F9FA] dark:bg-gray-900" suppressHydrationWarning>
         {/* 구조화된 데이터 (JSON-LD) - SEO 최적화 */}
