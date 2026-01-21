@@ -137,7 +137,7 @@ export default function RootLayout({
         <meta name="msapplication-TileImage" content="/Icon-192x192.png" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
         {/* RSS Feed */}
-        <link rel="alternate" type="application/rss+xml" title="Draiger RSS Feed" href="/feed.xml" />
+        <link rel="alternate" type="application/rss+xml" title="Draiger RSS Feed" href="/feed" />
       </head>
       <body className="antialiased text-gray-900 dark:text-white bg-[#F8F9FA] dark:bg-gray-900" suppressHydrationWarning>
         {/* 구조화된 데이터 (JSON-LD) - SEO 최적화 */}

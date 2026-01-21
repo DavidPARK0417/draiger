@@ -24,6 +24,16 @@ const nextConfig: NextConfig = {
     // 외부 이미지 최적화 허용
     unoptimized: false,
   },
+  // 리다이렉트 설정
+  async redirects() {
+    return [
+      {
+        source: '/feed.xml',
+        destination: '/feed',
+        permanent: true,
+      },
+    ];
+  },
   // 캐시 헤더 설정: 최신 콘텐츠를 빠르게 반영
   async headers() {
     return [

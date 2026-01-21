@@ -4,7 +4,7 @@ import { getBaseUrl } from '@/lib/site';
 
 /**
  * RSS 2.0 피드 생성
- * 경로: /feed.xml
+ * 경로: /feed (또는 /feed.xml로 리다이렉트)
  */
 export async function GET() {
   try {
@@ -23,7 +23,7 @@ export async function GET() {
     <description>마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.</description>
     <language>ko-KR</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-    <atom:link href="${baseUrl}/feed.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="${baseUrl}/feed" rel="self" type="application/rss+xml"/>
     <generator>Next.js</generator>
     <webMaster>decidepyb@gmail.com (박용범)</webMaster>
     <managingEditor>decidepyb@gmail.com (박용범)</managingEditor>
