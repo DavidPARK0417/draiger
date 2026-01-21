@@ -1531,22 +1531,23 @@ export async function getPostContent(pageId: string): Promise<string> {
         const imageUrl = imageMatch[2];
         
         // 출처 텍스트 추출 및 정리
-        let cleanSource = '';
+        let displaySource = '';
         
-        // 새로운 형식: "< 이미지 출처 : 머니투데이 >"
-        const newFormatMatch = sourceText.match(/<[^>]*이미지\s*출처\s*[:：]\s*([^>]+)>/i);
+        // 새로운 형식: "< 이미지 출처 : 머니투데이 >" - 원본 그대로 유지
+        const newFormatMatch = sourceText.match(/<[^>]*이미지\s*출처\s*[:：]\s*[^>]+>/i);
         if (newFormatMatch) {
-          cleanSource = newFormatMatch[1].trim();
+          displaySource = sourceText.trim(); // 원본 형식 그대로 유지
         } else {
-          // 기존 형식: "출처: ..."
-          cleanSource = sourceText.replace(/^출처\s*[:：]\s*/i, '').trim();
+          // 기존 형식: "출처: ..." - 기존 형식 유지
+          const cleanSource = sourceText.replace(/^출처\s*[:：]\s*/i, '').trim();
+          displaySource = `출처: ${cleanSource}`;
         }
         
         // 출처를 alt로 설정 (기존 alt가 있으면 유지하고 출처 추가)
-        const newAlt = currentAlt ? `${currentAlt} | 출처: ${cleanSource}` : `출처: ${cleanSource}`;
+        const newAlt = currentAlt ? `${currentAlt} | ${displaySource}` : displaySource;
         const newImageMarkdown = `![${newAlt}](${imageUrl})`;
         
-        console.log(`[getPostContent] ✅ 출처를 이미지 alt로 이동: "${cleanSource.substring(0, 50)}..."`);
+        console.log(`[getPostContent] ✅ 출처를 이미지 alt로 이동: "${displaySource.substring(0, 50)}..."`);
         sourceReplacementCount++;
         
         // 이미지만 반환 (출처 텍스트와 공백은 제거)
