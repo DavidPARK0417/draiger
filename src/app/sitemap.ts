@@ -36,6 +36,98 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  // 모든 도구 페이지 목록
+  const toolPages = [
+    {
+      url: `${baseUrl}/tools/roi-calculator`,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tools/budget-calculator`,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tools/ad-performance`,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tools/keyword-analysis`,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tools/break-even-point`,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tools/conversion-calculator`,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tools/profitability-diagnosis`,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tools/character-counter`,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/tools/favicon-generator`,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/tools/file-preview`,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/tools/image-resize`,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/tools/interest-calculator`,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/tools/qr-code-generator`,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/tools/url-shortener`,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/tools/world-time-converter`,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/tools/alarm-clock`,
+      priority: 0.8,
+    },
+  ];
+
+  // 기타 페이지 목록
+  const otherPages = [
+    {
+      url: `${baseUrl}/about`,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/support`,
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      priority: 0.5,
+    },
+  ];
+
   return [
     {
       url: baseUrl,
@@ -43,48 +135,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 1,
     },
-    {
-      url: `${baseUrl}/tools/roi-calculator`,
+    ...toolPages.map((tool) => ({
+      url: tool.url,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/tools/budget-calculator`,
+      changeFrequency: 'monthly' as const,
+      priority: tool.priority,
+    })),
+    ...otherPages.map((page) => ({
+      url: page.url,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/tools/ad-performance`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/tools/keyword-analysis`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/tools/break-even-point`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/tools/conversion-calculator`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/tools/profitability-diagnosis`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
+      changeFrequency: 'monthly' as const,
+      priority: page.priority,
+    })),
     ...categoryPages,
     ...insightPosts,
   ];

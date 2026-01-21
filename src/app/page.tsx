@@ -10,15 +10,38 @@ import type { Metadata } from 'next';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'DRAIGER',
-  description: 'A minimal, interactive blog powered by Notion and Next.js.',
+  title: 'Draiger : 데일리 툴킷 - 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
+  description: '마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.',
+  keywords: [
+    'Draiger',
+    '데일리 툴킷',
+    '마케팅 도구',
+    'ROI 계산기',
+    '광고 예산 계산기',
+    '키워드 분석',
+    '손익분기점 계산',
+    '광고 성과 분석',
+    '마케팅 분석',
+    '디지털 마케팅',
+    '광고 최적화',
+    'CRO 계산기',
+    '스마트 도구',
+    '인사이트',
+    '트렌드',
+  ],
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'DRAIGER',
-    description: 'A minimal, interactive blog powered by Notion and Next.js.',
+    title: 'Draiger : 데일리 툴킷 - 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
+    description: '마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.',
     url: '/',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Draiger : 데일리 툴킷 - 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
+    description: '마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.',
   },
 };
 
