@@ -11,7 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const posts = await getPublishedPosts();
     insightPosts = posts.map((post) => ({
       url: `${baseUrl}/insight/${post.slug}`,
-      lastModified: new Date(),
+      lastModified: post.date ? new Date(post.date) : new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     }));
