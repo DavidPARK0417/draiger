@@ -7,9 +7,10 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import ScrollToTop from "@/components/ScrollToTop";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PWAServiceWorker from "@/components/PWAServiceWorker";
+import { getBaseUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://adtoolkit.kr'),
+  metadataBase: new URL(getBaseUrl()),
   title: {
     default: "Draiger : 데일리 툴킷 - 매일 쌓이는 지식과 꼭 필요한 스마트 도구",
     template: "%s | Draiger : 데일리 툴킷",
@@ -145,7 +146,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               "name": "Draiger : 데일리 툴킷",
-              "url": process.env.NEXT_PUBLIC_SITE_URL || "https://adtoolkit.kr",
+              "url": getBaseUrl(),
               "description": "마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.",
               "author": {
                 "@type": "Person",
@@ -161,7 +162,7 @@ export default function RootLayout({
                 "@type": "SearchAction",
                 "target": {
                   "@type": "EntryPoint",
-                  "urlTemplate": `${process.env.NEXT_PUBLIC_SITE_URL || "https://adtoolkit.kr"}/search?q={search_term_string}`
+                  "urlTemplate": `${getBaseUrl()}/search?q={search_term_string}`
                 },
                 "query-input": "required name=search_term_string"
               }

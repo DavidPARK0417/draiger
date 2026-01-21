@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next';
 import { getPublishedPosts } from '@/lib/notion';
+import { getBaseUrl } from '@/lib/site';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://adtoolkit.kr';
+  const baseUrl = getBaseUrl();
 
   // 인사이트 포스트 가져오기
   let insightPosts: MetadataRoute.Sitemap = [];
