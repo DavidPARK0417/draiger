@@ -1518,8 +1518,9 @@ export async function getPostContent(pageId: string): Promise<string> {
     }
     
     // 이미지 다음에 출처 텍스트가 있는 경우, 출처를 이미지의 alt로 이동
-    // 패턴: ![alt](url) 다음에 "출처: ..." 텍스트가 오는 경우 (빈 줄 포함)
-    const imageWithSourcePattern = /(!\[.*?\]\([^\)]+\))(\s*\n\s*)(출처\s*[:：]\s*[^\n]+)/g;
+    // 패턴 1: ![alt](url) 다음에 "출처: ..." 텍스트가 오는 경우 (빈 줄 포함)
+    // 패턴 2: ![alt](url) 다음에 "< 이미지 출처 : ... >" 텍스트가 오는 경우 (빈 줄 포함)
+    const imageWithSourcePattern = /(!\[.*?\]\([^\)]+\))(\s*\n\s*)((?:출처\s*[:：]\s*[^\n]+)|(?:<[^>]*이미지\s*출처\s*[:：]\s*[^>]+>))/g;
     let sourceReplacementCount = 0;
     
     markdownContent = markdownContent.replace(imageWithSourcePattern, (match, imageMarkdown, whitespace, sourceText) => {
@@ -1528,8 +1529,18 @@ export async function getPostContent(pageId: string): Promise<string> {
       if (imageMatch) {
         const currentAlt = imageMatch[1] || '';
         const imageUrl = imageMatch[2];
-        // 출처 텍스트에서 "출처:" 부분 제거하고 순수 출처만 추출
-        const cleanSource = sourceText.replace(/^출처\s*[:：]\s*/i, '').trim();
+        
+        // 출처 텍스트 추출 및 정리
+        let cleanSource = '';
+        
+        // 새로운 형식: "< 이미지 출처 : 머니투데이 >"
+        const newFormatMatch = sourceText.match(/<[^>]*이미지\s*출처\s*[:：]\s*([^>]+)>/i);
+        if (newFormatMatch) {
+          cleanSource = newFormatMatch[1].trim();
+        } else {
+          // 기존 형식: "출처: ..."
+          cleanSource = sourceText.replace(/^출처\s*[:：]\s*/i, '').trim();
+        }
         
         // 출처를 alt로 설정 (기존 alt가 있으면 유지하고 출처 추가)
         const newAlt = currentAlt ? `${currentAlt} | 출처: ${cleanSource}` : `출처: ${cleanSource}`;
