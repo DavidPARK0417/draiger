@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack -H localhost -p 3000",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
@@ -46,6 +46,7 @@
     "@types/nodemailer": "^7.0.3",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.9",
     "tailwindcss": "^4",

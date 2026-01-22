@@ -302,6 +302,25 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
         return `${headingText} ... `;
       });
 
+    // 출처 부분 먼저 제거 (읽지 않도록 함)
+    // "< 이미지 출처 : 마켓인 - 이데일리 >" 형식의 이미지 출처 부분 전체를 제거
+    // "출처: YouTube (https://...)" 형식의 일반 출처도 제거
+    // 이미지 태그 제거 전에 먼저 처리하여 출처가 남지 않도록 함
+    text = text
+      // 이미지 출처 형식 제거: "< 이미지 출처 : ... >" 형식 전체 제거
+      .replace(/<\s*이미지\s*출처\s*[:：]\s*[^>]*>/gi, '') // "< 이미지 출처 : ... >" 형식 전체 제거
+      .replace(/<\s*이미지출처\s*[:：]\s*[^>]*>/gi, '') // "< 이미지출처 : ... >" 형식 전체 제거
+      .replace(/<\s*출처\s*[:：]\s*[^>]*이미지[^>]*>/gi, '') // "< 출처 : ... 이미지 ... >" 형식 전체 제거
+      // 줄 전체에 있는 이미지 출처 패턴도 제거
+      .replace(/^\s*<\s*이미지\s*출처\s*[:：]\s*[^>]*>\s*$/gim, '') // 줄 전체의 "< 이미지 출처 : ... >" 제거
+      .replace(/^\s*<\s*이미지출처\s*[:：]\s*[^>]*>\s*$/gim, '') // 줄 전체의 "< 이미지출처 : ... >" 제거
+      // 일반 출처 형식 제거: "출처: YouTube (https://...)" 형식 전체 제거
+      .replace(/출처\s*[:：]\s*[^\n]*\(https?:\/\/[^\n\)]*\)[^\n]*/gi, '') // "출처: ... (https://...)" 형식 제거
+      .replace(/출처\s*[:：]\s*[^\n]*https?:\/\/[^\n]*/gi, '') // "출처: ... https://..." 형식 제거
+      .replace(/^\s*출처\s*[:：]\s*[^\n]*\(https?:\/\/[^\n\)]*\)[^\n]*$/gim, '') // 줄 전체의 "출처: ... (https://...)" 제거
+      .replace(/^\s*출처\s*[:：]\s*[^\n]*https?:\/\/[^\n]*$/gim, '') // 줄 전체의 "출처: ... https://..." 제거
+      .trim();
+
     // 마크다운 태그 제거
     text = text
       .replace(/\*\*(.*?)\*\*/g, '$1') // 볼드 제거
@@ -319,13 +338,16 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
       .replace(/[^\s\)]+\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?[^\s\)]*)?/gi, '') // 이미지 파일명 제거 (URL이 아닌 경우)
       .trim();
 
-    // 출처 부분 제거 (읽지 않도록 함)
-    // "출처: ...", "출처 : ...", "출처 - ...", "출처(...)" 등의 패턴 제거
+    // 출처 부분 재확인 및 제거 (혹시 남아있을 수 있는 경우 대비)
     text = text
-      .replace(/출처\s*[:：]\s*[^\n]*/gi, '') // "출처: ..." 또는 "출처 : ..." 형식
-      .replace(/출처\s*[-－]\s*[^\n]*/gi, '') // "출처 - ..." 형식
-      .replace(/출처\s*\([^\)]*\)[^\n]*/gi, '') // "출처(...)" 형식
-      .replace(/출처\s*[^\n]*/gi, '') // "출처"로 시작하는 모든 줄 제거
+      // 이미지 출처 재확인
+      .replace(/<\s*이미지\s*출처\s*[:：]\s*[^>]*>/gi, '') // "< 이미지 출처 : ... >" 형식 전체 제거
+      .replace(/^\s*<\s*이미지\s*출처\s*[:：]\s*[^>]*>\s*$/gim, '') // 줄 전체의 "< 이미지 출처 : ... >" 제거
+      // 일반 출처 재확인 (URL이 포함된 경우)
+      .replace(/출처\s*[:：]\s*[^\n]*\(https?:\/\/[^\n\)]*\)[^\n]*/gi, '') // "출처: ... (https://...)" 형식 제거
+      .replace(/출처\s*[:：]\s*[^\n]*https?:\/\/[^\n]*/gi, '') // "출처: ... https://..." 형식 제거
+      .replace(/^\s*출처\s*[:：]\s*[^\n]*\(https?:\/\/[^\n\)]*\)[^\n]*$/gim, '') // 줄 전체의 "출처: ... (https://...)" 제거
+      .replace(/^\s*출처\s*[:：]\s*[^\n]*https?:\/\/[^\n]*$/gim, '') // 줄 전체의 "출처: ... https://..." 제거
       .trim();
 
     // 약어를 자연스러운 발음으로 변환 (날짜/시간 정규화 전에 수행)
@@ -334,11 +356,57 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
     // 날짜/시간 형식 정규화 (시간 형식이 명확한 경우만)
     text = normalizeDateTime(text);
 
+    // 소수점이 있는 숫자를 한글로 변환 (예: 2.0% -> 이점영 퍼센트)
+    // 먼저 소수점 숫자를 처리한 후 일반 정수 숫자를 처리
+    text = text.replace(
+      /\b(\d+)\.(\d+)\s*%/g,
+      (match, intPart, decPart) => {
+        const intNum = parseInt(intPart, 10);
+        const decNum = parseInt(decPart, 10);
+        
+        // 정수 부분 변환
+        let intStr = '';
+        if (intNum === 0) {
+          intStr = '영';
+        } else if (intNum < 10) {
+          const units = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+          intStr = units[intNum];
+        } else if (intNum < 20) {
+          const ones = intNum % 10;
+          const onesMap = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+          intStr = `십${onesMap[ones]}`;
+        } else if (intNum < 100) {
+          const tens = Math.floor(intNum / 10);
+          const ones = intNum % 10;
+          const tensMap = ['', '', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+          const onesMap = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+          if (ones === 0) {
+            intStr = `${tensMap[tens]}십`;
+          } else {
+            intStr = `${tensMap[tens]}십${onesMap[ones]}`;
+          }
+        } else {
+          return match; // 100 이상은 그대로
+        }
+        
+        // 소수점 부분 변환 (한 자리씩 읽기)
+        let decStr = '';
+        const decStrArr = decPart.split('');
+        for (const digit of decStrArr) {
+          const d = parseInt(digit, 10);
+          const units = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+          decStr += units[d];
+        }
+        
+        return `${intStr}점${decStr} 퍼센트`;
+      }
+    );
+
     // 일반 숫자를 한글로 변환하여 시간 형식으로 오인되지 않도록 처리
     // 단, 이미 시간 형식으로 변환된 부분은 제외
     // 예: "23" -> "이십삼" (단, "23시", "23분" 같은 시간 표현은 그대로 유지)
     text = text.replace(
-      /\b(\d{1,2})\b(?![시분초])/g,
+      /\b(\d{1,2})\b(?![시분초점])/g,
       (match, num) => {
         const number = parseInt(num, 10);
         // 0-99 범위의 숫자를 한글로 변환
