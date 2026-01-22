@@ -74,7 +74,41 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
 
   // Notion 페이지 콘텐츠를 마크다운으로 변환
   const bodyContent = await getPostContent(post.id);
-  const content = post.blogPost || bodyContent;
+  let content = post.blogPost || bodyContent;
+  
+  // 공지사항 추출 및 본문에서 제거
+  let noticeContent = '';
+  
+  // 📢로 시작하는 공지사항 찾기 (---  구분선 이후)
+  if (content && content.includes('📢')) {
+    // --- 구분선 이후에 나오는 > _📢로 시작하는 공지사항 매칭
+    // \n---\n 이후 > _📢로 시작하고, 문서 끝까지 또는 다음 섹션까지
+    const noticePattern = /-{3,}\n+(>?\s*_?📢[\s\S]+?)$/;
+    const match = content.match(noticePattern);
+    
+    if (match) {
+      // 공지사항 원본 추출 (match[1]이 공지사항 내용)
+      const rawNotice = match[1];
+      
+      // 마크다운 형식 제거 (**, _, >, 등)
+      noticeContent = rawNotice
+        .replace(/\*\*/g, '')  // 볼드 제거
+        .replace(/_/g, '')      // 이탤릭 제거
+        .replace(/^>\s*/gm, '') // 인용문 제거
+        .trim();
+      
+      // "📢 읽어주셔서 감사합니다! " 다음에 줄바꿈 추가
+      if (noticeContent && !noticeContent.includes('📢 읽어주셔서 감사합니다!\n')) {
+        noticeContent = noticeContent.replace(/📢\s*읽어주셔서 감사합니다!/,  '📢 읽어주셔서 감사합니다!\n');
+      }
+      
+      // 본문에서 공지사항과 구분선 완전히 제거
+      // --- 구분선부터 문서 끝까지 제거
+      content = content
+        .replace(/-{3,}\n+(>?\s*_?📢[\s\S]+?)$/, '')  // 구분선 + 공지사항 제거
+        .trim();
+    }
+  }
   
   // 디버깅: 마크다운 콘텐츠에 이미지가 포함되어 있는지 확인 (개발 환경에서만)
   if (content && process.env.NODE_ENV === 'development') {
@@ -212,6 +246,36 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
                           {children}
                         </div>
                       );
+                    }
+
+                    // 공지사항 패턴 감지 (AI 기본법 준수 공지사항)
+                    const getTextContent = (node: React.ReactNode): string => {
+                      if (typeof node === 'string') {
+                        return node;
+                      }
+                      if (React.isValidElement(node)) {
+                        const element = node as React.ReactElement<{ children?: React.ReactNode }>;
+                        if (element.props?.children) {
+                          return React.Children.toArray(element.props.children)
+                            .map(getTextContent)
+                            .join('');
+                        }
+                      }
+                      if (Array.isArray(node)) {
+                        return node.map(getTextContent).join('');
+                      }
+                      return '';
+                    };
+
+                    const textContent = getTextContent(children);
+                    const isNotice = 
+                      textContent.includes('📢 읽어주셔서 감사합니다') ||
+                      textContent.includes('지능형 정보 요약 시스템의 도움을 받아') ||
+                      textContent.includes('본 포스팅은 방대한 데이터를 신속하게 취합하는');
+
+                    // 공지사항인 경우 본문에서 제거 (태그 아래에 별도로 렌더링)
+                    if (isNotice) {
+                      return null;
                     }
 
                     // 일반 텍스트는 p로 렌더링
@@ -360,6 +424,15 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* AI 기본법 준수 공지사항 - 태그 아래에 표시 */}
+            {noticeContent && (
+              <div className="mt-8 sm:mt-12 mb-8 sm:mb-12">
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 italic leading-relaxed whitespace-pre-line">
+                  {noticeContent}
+                </p>
               </div>
             )}
           </article>
