@@ -429,7 +429,7 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
 
             {/* AI 기본법 준수 공지사항 - 태그 아래에 표시 */}
             {noticeContent && (
-              <div className="mt-8 sm:mt-12 mb-8 sm:mb-12">
+              <div className="mt-8 sm:mt-12 mb-8 sm:mb-12" aria-hidden="true">
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 italic leading-relaxed whitespace-pre-line">
                   {noticeContent}
                 </p>
