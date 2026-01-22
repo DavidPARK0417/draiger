@@ -16,6 +16,8 @@ import {
 } from "recharts";
 import { renderMarkdown as renderMarkdownCommon } from "@/utils/markdown-renderer";
 import { InfoTooltip } from "@/components/Tooltip";
+import { AIServiceNotice } from "@/components/AIServiceNotice";
+import { AIGeneratedContent } from "@/components/AIGeneratedContent";
 
 export default function ProfitabilityDiagnosisPage() {
   // 공통 상품명
@@ -405,9 +407,12 @@ export default function ProfitabilityDiagnosisPage() {
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           마케팅 수익성 진단 도구
         </h1>
-        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-8">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
           3단계로 구성된 수익성 진단 도구로 광고 예산을 최적화하세요
         </p>
+
+        {/* AI 서비스 제공 사실 고지 */}
+        <AIServiceNotice />
 
         <div className="space-y-8">
           {/* 공통 상품명 입력 */}
@@ -950,14 +955,16 @@ export default function ProfitabilityDiagnosisPage() {
                   </div>
 
                   {/* AI 텍스트 분석 결과 */}
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600 shadow-sm">
-                    <div
-                      className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
-                      dangerouslySetInnerHTML={{
-                        __html: renderMarkdown(aiAnalysis),
-                      }}
-                    />
-                  </div>
+                  <AIGeneratedContent>
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600 shadow-sm">
+                      <div
+                        className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: renderMarkdown(aiAnalysis),
+                        }}
+                      />
+                    </div>
+                  </AIGeneratedContent>
                 </div>
               )}
             </div>

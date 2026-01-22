@@ -1093,5 +1093,63 @@ import { Home, Search, User, Settings } from 'lucide-react';
 **REMEMBER: Always follow the design system rules when creating new components or pages!**
 **기억하세요: 새로운 컴포넌트나 페이지를 만들 때 항상 디자인 시스템 규칙을 따라야 합니다!**
 
+
 REMEMBER: 프로덕션 환경에서는 디버그 로그를 절대 출력하지 마세요!
 기억하세요: 배포 환경의 콘솔은 깨끗해야 합니다!
+
+
+# AI 기본법 준수 규칙 (AI Basic Law Compliance)
+
+## 🚨 CRITICAL: AI 기본법 준수 필수
+
+**모든 AI 기능 사용 시 [인공지능 발전과 신뢰 기반 조성 등에 관한 기본법](https://www.law.go.kr/lsInfoP.do?lsiSeq=268543) 준수 필수**
+
+**법령 정보**: [국가법령정보센터 - AI 기본법](https://www.law.go.kr/lsInfoP.do?lsiSeq=268543)  
+**시행일**: 2026년 1월 22일
+
+---
+
+## 필수 준수 사항
+
+### 1. AI 서비스 고지 (필수)
+- AI 기능 페이지 상단에 `AIServiceNotice` 컴포넌트 추가
+- "Google Gemini AI 활용" 및 "Google 서버로 전송될 수 있음" 명시
+
+### 2. AI 생성 콘텐츠 표시 (필수)
+- AI 생성 콘텐츠는 `AIGeneratedContent` 컴포넌트로 감싸기
+- "AI 생성 콘텐츠" 배지 및 주의사항 표시
+
+### 3. 개인정보 처리방침 업데이트 (필수)
+- AI 서비스 사용 명시
+- Google Gemini API 제3자 제공 명시
+- 수집 정보 및 보관 기간 명시
+
+### 4. 이용약관 업데이트 (필수)
+- AI 서비스 이용 조항 추가
+- AI 생성 콘텐츠 성격 및 사용자 책임 명시
+
+---
+
+## 개발 시 체크리스트
+
+**새로운 AI 기능 추가 시:**
+- [ ] `AIServiceNotice` 추가했는가?
+- [ ] `AIGeneratedContent`로 감쌌는가?
+- [ ] 개인정보 처리방침 업데이트했는가?
+- [ ] 이용약관 업데이트했는가?
+
+---
+
+## 확인이 필요한 경우
+
+**다음 상황에서는 반드시 사용자에게 질문:**
+- 새로운 AI 서비스 도입 시
+- AI 기능의 법적 적용 여부가 불명확할 때
+- 개인정보 처리 범위가 불명확할 때
+- 법적 요구사항이 불명확할 때
+
+**법령 확인**: [https://www.law.go.kr/lsInfoP.do?lsiSeq=268543](https://www.law.go.kr/lsInfoP.do?lsiSeq=268543)
+
+---
+
+**REMEMBER: AI 기능 사용 시 반드시 AI 기본법 준수! 불확실하면 사용자에게 질문!**

@@ -16,6 +16,8 @@ import {
 } from "recharts";
 import { renderMarkdown as renderMarkdownCommon } from "@/utils/markdown-renderer";
 import { InfoTooltip } from "@/components/Tooltip";
+import { AIServiceNotice } from "@/components/AIServiceNotice";
+import { AIGeneratedContent } from "@/components/AIGeneratedContent";
 
 export default function ROICalculatorPage() {
   const [productName, setProductName] = useState<string>("");
@@ -266,6 +268,9 @@ export default function ROICalculatorPage() {
         <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
           투자 대비 수익률을 계산하여 광고 효과를 측정하세요
         </p>
+
+        {/* AI 서비스 제공 사실 고지 */}
+        <AIServiceNotice />
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
           <div className="space-y-6">
@@ -548,14 +553,16 @@ export default function ROICalculatorPage() {
                   </div>
 
                   {/* AI 텍스트 분석 결과 */}
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600 shadow-sm">
-                    <div
-                      className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
-                      dangerouslySetInnerHTML={{
-                        __html: renderMarkdown(aiAnalysis),
-                      }}
-                    />
-                  </div>
+                  <AIGeneratedContent>
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600 shadow-sm">
+                      <div
+                        className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: renderMarkdown(aiAnalysis),
+                        }}
+                      />
+                    </div>
+                  </AIGeneratedContent>
                 </div>
               )}
             </div>

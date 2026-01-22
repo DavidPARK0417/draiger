@@ -18,6 +18,8 @@ import {
 } from 'recharts';
 import { renderMarkdown as renderMarkdownCommon } from '@/utils/markdown-renderer';
 import { InfoTooltip } from '@/components/Tooltip';
+import { AIServiceNotice } from '@/components/AIServiceNotice';
+import { AIGeneratedContent } from '@/components/AIGeneratedContent';
 
 interface Product {
   id: string;
@@ -345,6 +347,9 @@ export default function AdPerformancePage() {
         <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
           여러 상품의 광고 성과를 비교하고 최적의 상품을 찾아보세요
         </p>
+
+        {/* AI 서비스 제공 사실 고지 */}
+        <AIServiceNotice />
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8 overflow-x-auto">
           {/* 데스크탑 테이블 뷰 */}
@@ -1111,12 +1116,14 @@ export default function AdPerformancePage() {
             </div>
 
             {/* AI 텍스트 분석 결과 */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
-              <div 
-                className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis) }}
-              />
-            </div>
+            <AIGeneratedContent>
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-600">
+                <div 
+                  className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis) }}
+                />
+              </div>
+            </AIGeneratedContent>
           </div>
         )}
 

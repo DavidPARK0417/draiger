@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { renderMarkdown as renderMarkdownCommon } from '@/utils/markdown-renderer';
+import { AIServiceNotice } from '@/components/AIServiceNotice';
+import { AIGeneratedContent } from '@/components/AIGeneratedContent';
 import {
   BarChart,
   Bar,
@@ -328,6 +330,9 @@ export default function ConversionCalculatorPage() {
         <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
           전환율 개선에 따른 월간/연간 예상 매출 증가액과 추가 확보 전환수를 실시간으로 계산하세요
         </p>
+
+        {/* AI 서비스 제공 사실 고지 */}
+        <AIServiceNotice />
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
           <div className="space-y-6">
@@ -725,10 +730,12 @@ export default function ConversionCalculatorPage() {
                   다운로드
                 </button>
               </div>
-            <div 
-              className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis) }}
-            />
+            <AIGeneratedContent>
+              <div 
+                className="prose prose-sm max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis) }}
+              />
+            </AIGeneratedContent>
             </div>
           </div>
         )}
