@@ -254,6 +254,9 @@ export default function Header() {
     blogCategories.some((cat) => pathname === cat.href)
   );
 
+  // 현재 경로가 메뉴 관련인지 확인
+  const isMenuActive = mounted && pathname.startsWith("/menu");
+
   // 현재 경로가 마케팅 도구 중 하나인지 확인
   const isMarketingToolActive = mounted && marketingTools.some(
     (tool) => pathname === tool.href
@@ -456,6 +459,22 @@ export default function Header() {
                 </button>
               </form>
             )}
+
+            {/* 오늘의메뉴 메뉴 (드롭다운 없이) */}
+            <Link
+              href="/menu"
+              className={`
+                px-3 py-2 rounded-xl text-sm font-medium whitespace-nowrap 
+                transition-all duration-300
+                ${
+                  isMenuActive
+                    ? "bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+                    : "text-gray-700 dark:text-white dark:font-semibold hover:bg-emerald-50 dark:hover:bg-gray-700 hover:text-emerald-600 dark:hover:text-emerald-300"
+                }
+              `}
+            >
+              오늘의메뉴
+            </Link>
 
             {/* 블로그 드롭다운 메뉴 */}
             <div className="relative" ref={blogDropdownRef}>
@@ -905,6 +924,26 @@ export default function Header() {
           }}
         >
           <div className="px-4 py-6 space-y-4">
+            {/* 오늘의메뉴 섹션 */}
+            <Link
+              href="/menu"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMobileMenuOpen(false);
+              }}
+              className={`
+                block px-4 py-3 rounded-xl text-base font-medium
+                transition-all duration-300
+                ${
+                  isMenuActive
+                    ? "bg-emerald-500 text-white shadow-md"
+                    : "text-gray-700 dark:text-white hover:bg-emerald-50 dark:hover:bg-gray-800"
+                }
+              `}
+            >
+              오늘의메뉴
+            </Link>
+
             {/* 블로그 섹션 */}
             <div className="space-y-2">
               <button
