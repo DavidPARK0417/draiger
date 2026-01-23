@@ -546,7 +546,7 @@ export async function getPublishedRecipesPaginated(
 
         // cookingtime 추출 (rich_text 또는 number)
         let cookingTime: string | number | undefined = undefined;
-        if (page.properties.cookingtime) {
+        if (page.properties.cookingtime && typeof page.properties.cookingtime === 'object' && page.properties.cookingtime !== null) {
           if ('rich_text' in page.properties.cookingtime && page.properties.cookingtime.rich_text?.[0]?.plain_text) {
             cookingTime = page.properties.cookingtime.rich_text[0].plain_text;
           } else if ('number' in page.properties.cookingtime && page.properties.cookingtime.number !== null && page.properties.cookingtime.number !== undefined) {
@@ -669,12 +669,12 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
 
     // image 속성에서 이미지 URL 추출
     let imageUrl: string | undefined = undefined;
-    if (page.properties.image && 'files' in page.properties.image && Array.isArray(page.properties.image.files)) {
+    if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'files' in page.properties.image && Array.isArray(page.properties.image.files)) {
       const imageFile = page.properties.image.files[0];
       if (imageFile?.file?.url) {
         imageUrl = imageFile.file.url;
       }
-    } else if (page.properties.image && 'url' in page.properties.image && page.properties.image.url) {
+    } else if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'url' in page.properties.image && typeof page.properties.image.url === 'string') {
       imageUrl = page.properties.image.url;
     }
 
@@ -683,7 +683,7 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
 
     // cookingtime 추출
     let cookingTime: string | number | undefined = undefined;
-    if (page.properties.cookingtime) {
+    if (page.properties.cookingtime && typeof page.properties.cookingtime === 'object' && page.properties.cookingtime !== null) {
       if ('rich_text' in page.properties.cookingtime && page.properties.cookingtime.rich_text?.[0]?.plain_text) {
         cookingTime = page.properties.cookingtime.rich_text[0].plain_text;
       } else if ('number' in page.properties.cookingtime && page.properties.cookingtime.number !== null && page.properties.cookingtime.number !== undefined) {
