@@ -3,10 +3,7 @@ import React from "react";
 import { getRecipeBySlug, getRecipeContent } from "@/lib/notion-recipe";
 import ReactMarkdown from "react-markdown";
 import GrainOverlay from "@/components/GrainOverlay";
-import TextToSpeech from "@/components/TextToSpeech";
 import FormattedDate from "@/components/FormattedDate";
-import AdFit from "@/components/AdFit";
-import GiscusComments from "@/components/GiscusComments";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -107,23 +104,6 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
             </p>
           </header>
 
-          {/* 카카오 애드핏 광고 */}
-          <div className="mb-8 sm:mb-12 flex justify-center">
-            <AdFit
-              unitId="DAN-3zxEkFXjkDNH2T9G"
-              width={300}
-              height={250}
-              className="w-full max-w-[300px]"
-            />
-          </div>
-
-          {/* 음성 읽기 컴포넌트 */}
-          <TextToSpeech 
-            content={content} 
-            title={recipe.title} 
-            metaDescription={recipe.metaDescription}
-          />
-
           <div className="max-w-none">
             <ReactMarkdown
               components={{
@@ -198,27 +178,197 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
                     return null;
                   }
 
+                  // 레시피 정보 패턴 감지 (이모지로 시작하는 정보)
+                  const isRecipeInfo = 
+                    textContent.match(/^[🍽️⭐⏱️]/) ||
+                    textContent.includes('음식 종류:') ||
+                    textContent.includes('난이도:') ||
+                    textContent.includes('요리 시간:');
+
+                  // 오늘의 재료 섹션 감지 (더 포괄적인 패턴)
+                  // 🛒 이모지가 포함되어 있거나 "재료"와 함께 "오늘"이 포함된 경우
+                  const hasShoppingCartEmoji = textContent.includes('🛒');
+                  const hasIngredients = textContent.includes('재료') || textContent.includes('Ingredients');
+                  const hasToday = textContent.includes('오늘') || textContent.includes('Today');
+                  
+                  const isIngredientsSection = 
+                    (hasShoppingCartEmoji && hasIngredients) ||
+                    (hasToday && hasIngredients) ||
+                    textContent.includes('오늘의 재료') ||
+                    textContent.includes("Today's Ingredients");
+
+                  // 더 확실한 여백 적용을 위해 wrapper div 사용 (더 큰 여백)
+                  if (isIngredientsSection) {
+                    return (
+                      <div className="mt-12 mb-6" style={{ marginTop: '2.5rem' }}>
+                        <p className="text-base sm:text-lg text-gray-700 dark:text-white/90 leading-relaxed">
+                          {children}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  // 요리 단계 번호 감지 (1., 2., 3. 등으로 시작하는 텍스트)
+                  const isCookingStep = /^\d+\./.test(textContent.trim());
+
+                  // 요리 단계는 h3 크기로 표시
+                  if (isCookingStep) {
+                    return (
+                      <p className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-6 mb-3">
+                        {children}
+                      </p>
+                    );
+                  }
+
                   return (
-                    <p className="text-base sm:text-lg text-gray-700 dark:text-white/90 leading-relaxed mb-6">
+                    <p className={`text-base sm:text-lg text-gray-700 dark:text-white/90 leading-relaxed ${
+                      isRecipeInfo ? 'mb-1' : 'mb-6'
+                    }`}>
                       {children}
                     </p>
                   );
                 },
-                h1: ({ children }) => (
-                  <h1 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-2xl sm:text-3xl lg:text-4xl mt-8 mb-4">
-                    {children}
-                  </h1>
-                ),
-                h2: ({ children }) => (
-                  <h2 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-xl sm:text-2xl lg:text-3xl mt-8 mb-4">
-                    {children}
-                  </h2>
-                ),
-                h3: ({ children }) => (
-                  <h3 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-6 mb-3">
-                    {children}
-                  </h3>
-                ),
+                h1: ({ children }) => {
+                  // h1 텍스트 내용 추출
+                  const getTextContent = (node: React.ReactNode): string => {
+                    if (typeof node === 'string') return node;
+                    if (React.isValidElement(node)) {
+                      const element = node as React.ReactElement<{ children?: React.ReactNode }>;
+                      if (element.props?.children) {
+                        return React.Children.toArray(element.props.children).map(getTextContent).join('');
+                      }
+                    }
+                    if (Array.isArray(node)) return node.map(getTextContent).join('');
+                    return '';
+                  };
+                  
+                  const textContent = getTextContent(children);
+                  
+                  // "오늘의 재료" 또는 "요리 가이드" 섹션 감지
+                  const hasShoppingCartEmoji = textContent.includes('🛒');
+                  const hasCookingEmoji = textContent.includes('🍳');
+                  const hasIngredients = textContent.includes('재료');
+                  const hasCookingGuide = textContent.includes('가이드') || textContent.includes('Guide');
+                  
+                  const isIngredientsSection = 
+                    (hasShoppingCartEmoji && hasIngredients) ||
+                    textContent.includes('오늘의 재료') ||
+                    textContent.includes("Today's Ingredients");
+                    
+                  const isCookingGuideSection = 
+                    (hasCookingEmoji && hasCookingGuide) ||
+                    textContent.includes('요리 가이드') ||
+                    textContent.includes('Cooking Guide');
+                  
+                  // 섹션 타이틀에는 상단 여백 추가
+                  if (isIngredientsSection || isCookingGuideSection) {
+                    return (
+                      <h1 className="font-serif font-bold tracking-tight text-emerald-600 dark:text-emerald-400 text-2xl sm:text-3xl lg:text-4xl mt-16 mb-4">
+                        {children}
+                      </h1>
+                    );
+                  }
+                  
+                  return (
+                    <h1 className="font-serif font-bold tracking-tight text-emerald-600 dark:text-emerald-400 text-2xl sm:text-3xl lg:text-4xl mt-8 mb-4">
+                      {children}
+                    </h1>
+                  );
+                },
+                h2: ({ children }) => {
+                  // h2 텍스트 내용 추출
+                  const getTextContent = (node: React.ReactNode): string => {
+                    if (typeof node === 'string') return node;
+                    if (React.isValidElement(node)) {
+                      const element = node as React.ReactElement<{ children?: React.ReactNode }>;
+                      if (element.props?.children) {
+                        return React.Children.toArray(element.props.children).map(getTextContent).join('');
+                      }
+                    }
+                    if (Array.isArray(node)) return node.map(getTextContent).join('');
+                    return '';
+                  };
+                  
+                  const textContent = getTextContent(children);
+                  
+                  // "오늘의 재료" 또는 "요리 가이드" 섹션 감지
+                  const hasShoppingCartEmoji = textContent.includes('🛒');
+                  const hasCookingEmoji = textContent.includes('🍳');
+                  const hasIngredients = textContent.includes('재료');
+                  const hasCookingGuide = textContent.includes('가이드') || textContent.includes('Guide');
+                  
+                  const isIngredientsSection = 
+                    (hasShoppingCartEmoji && hasIngredients) ||
+                    textContent.includes('오늘의 재료') ||
+                    textContent.includes("Today's Ingredients");
+                    
+                  const isCookingGuideSection = 
+                    (hasCookingEmoji && hasCookingGuide) ||
+                    textContent.includes('요리 가이드') ||
+                    textContent.includes('Cooking Guide');
+                  
+                  // 섹션 타이틀에는 상단 여백 추가
+                  if (isIngredientsSection || isCookingGuideSection) {
+                    return (
+                      <h2 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-xl sm:text-2xl lg:text-3xl mt-16 mb-4">
+                        {children}
+                      </h2>
+                    );
+                  }
+                  
+                  return (
+                    <h2 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-xl sm:text-2xl lg:text-3xl mt-8 mb-4">
+                      {children}
+                    </h2>
+                  );
+                },
+                h3: ({ children }) => {
+                  // h3 텍스트 내용 추출
+                  const getTextContent = (node: React.ReactNode): string => {
+                    if (typeof node === 'string') return node;
+                    if (React.isValidElement(node)) {
+                      const element = node as React.ReactElement<{ children?: React.ReactNode }>;
+                      if (element.props?.children) {
+                        return React.Children.toArray(element.props.children).map(getTextContent).join('');
+                      }
+                    }
+                    if (Array.isArray(node)) return node.map(getTextContent).join('');
+                    return '';
+                  };
+                  
+                  const textContent = getTextContent(children);
+                  
+                  // "오늘의 재료" 또는 "요리 가이드" 섹션 감지
+                  const hasShoppingCartEmoji = textContent.includes('🛒');
+                  const hasCookingEmoji = textContent.includes('🍳');
+                  const hasIngredients = textContent.includes('재료');
+                  const hasCookingGuide = textContent.includes('가이드') || textContent.includes('Guide');
+                  
+                  const isIngredientsSection = 
+                    (hasShoppingCartEmoji && hasIngredients) ||
+                    textContent.includes('오늘의 재료') ||
+                    textContent.includes("Today's Ingredients");
+                    
+                  const isCookingGuideSection = 
+                    (hasCookingEmoji && hasCookingGuide) ||
+                    textContent.includes('요리 가이드') ||
+                    textContent.includes('Cooking Guide');
+                  
+                  // 섹션 타이틀에는 상단 여백 추가
+                  if (isIngredientsSection || isCookingGuideSection) {
+                    return (
+                      <h3 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-16 mb-3">
+                        {children}
+                      </h3>
+                    );
+                  }
+                  
+                  return (
+                    <h3 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-6 mb-3">
+                      {children}
+                    </h3>
+                  );
+                },
                 h4: ({ children }) => (
                   <h4 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-base sm:text-lg lg:text-xl mt-6 mb-3">
                     {children}
@@ -253,7 +403,7 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
                   </ol>
                 ),
                 li: ({ children }) => (
-                  <li className="text-gray-700 dark:text-white/90 mb-2 marker:text-gray-500 dark:marker:text-white/70">
+                  <li className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mb-3 marker:text-gray-500 dark:marker:text-white/70">
                     {children}
                   </li>
                 ),
@@ -288,11 +438,6 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
                         loading="lazy"
                         {...props}
                       />
-                      {alt && (
-                        <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-center text-gray-500 dark:text-gray-400 italic">
-                          {alt}
-                        </p>
-                      )}
                     </div>
                   );
                 },
@@ -336,9 +481,6 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
             </div>
           )}
         </article>
-
-        {/* 댓글 섹션 */}
-        <GiscusComments slug={slug} />
 
         <footer className="mt-24 sm:mt-32 pt-12 sm:pt-16 border-t border-gray-200 dark:border-white/10">
           <Link
