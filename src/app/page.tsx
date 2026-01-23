@@ -1,6 +1,8 @@
-import { getLatestPostsByCategory, type Post } from "@/lib/notion";
+import { getPublishedPostsPaginated, type Post } from "@/lib/notion";
+import { getPublishedRecipesPaginated, type Recipe } from "@/lib/notion-recipe";
 import PostCard from "@/components/PostCard";
 import SmallPostCard from "@/components/SmallPostCard";
+import MenuCard from "@/components/MenuCard";
 import SmoothScroll from "@/components/SmoothScroll";
 import GrainOverlay from "@/components/GrainOverlay";
 import Link from "next/link";
@@ -45,24 +47,58 @@ export const metadata: Metadata = {
   },
 };
 
-// 카테고리 목록
-const categories = [
-  "내일의 AI",
-  "돈이 되는 소식",
-  "궁금한 세상 이야기",
-  "슬기로운 생활",
-  "오늘보다 건강하게",
-  "마음 채우기",
-  "기타",
-];
-
-interface CategorySectionProps {
-  category: string;
-  posts: Post[];
-  sectionIndex: number;
+interface RecipeSectionProps {
+  recipes: Recipe[];
 }
 
-function CategorySection({ category, posts, sectionIndex }: CategorySectionProps) {
+function RecipeSection({ recipes }: RecipeSectionProps) {
+  if (recipes.length === 0) return null;
+
+  const [mainRecipe, ...smallRecipes] = recipes;
+  const smallRecipesToShow = smallRecipes.slice(0, 2);
+
+  return (
+    <section className="mb-16 sm:mb-20 lg:mb-24">
+      {/* 섹션 제목 */}
+      <div className="mb-6 sm:mb-8" suppressHydrationWarning>
+        <Link
+          href="/menu"
+          className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300"
+        >
+          오늘의 메뉴
+        </Link>
+      </div>
+
+      {/* 카드 레이아웃: 큰 카드 1개 + 작은 카드 2개 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* 큰 카드 (왼쪽) */}
+        <div className="lg:col-span-2">
+          {mainRecipe && (
+            <MenuCard recipe={mainRecipe} index={0} isLarge={true} />
+          )}
+        </div>
+
+        {/* 작은 카드들 (오른쪽) */}
+        <div className="lg:col-span-1 flex flex-col gap-4 sm:gap-6">
+          {smallRecipesToShow.map((recipe, index) => (
+            <MenuCard
+              key={recipe.id}
+              recipe={recipe}
+              index={index + 1}
+              isLarge={false}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+interface InsightSectionProps {
+  posts: Post[];
+}
+
+function InsightSection({ posts }: InsightSectionProps) {
   if (posts.length === 0) return null;
 
   const [mainPost, ...smallPosts] = posts;
@@ -70,13 +106,13 @@ function CategorySection({ category, posts, sectionIndex }: CategorySectionProps
 
   return (
     <section className="mb-16 sm:mb-20 lg:mb-24">
-      {/* 카테고리 제목 */}
+      {/* 섹션 제목 */}
       <div className="mb-6 sm:mb-8" suppressHydrationWarning>
         <Link
-          href={`/insight/category/${encodeURIComponent(category)}`}
+          href="/insight"
           className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300"
         >
-          {category}
+          인사이트
         </Link>
       </div>
 
@@ -85,7 +121,7 @@ function CategorySection({ category, posts, sectionIndex }: CategorySectionProps
         {/* 큰 카드 (왼쪽) */}
         <div className="lg:col-span-2">
           {mainPost && (
-            <PostCard post={mainPost} index={sectionIndex * 3} isLarge={true} />
+            <PostCard post={mainPost} index={0} isLarge={true} />
           )}
         </div>
 
@@ -95,7 +131,7 @@ function CategorySection({ category, posts, sectionIndex }: CategorySectionProps
             <SmallPostCard
               key={post.id}
               post={post}
-              index={sectionIndex * 3 + index + 1}
+              index={index + 1}
             />
           ))}
         </div>
@@ -105,27 +141,34 @@ function CategorySection({ category, posts, sectionIndex }: CategorySectionProps
 }
 
 export default async function Home() {
-  // 각 카테고리별로 최신 3개 포스트 가져오기
-  const categoryPostsMap = await Promise.all(
-    categories.map(async (category) => {
-      try {
-        const posts = await getLatestPostsByCategory(category, 3);
-        return { category, posts };
-      } catch (error) {
-        console.error(`카테고리 "${category}" 포스트 조회 실패:`, error);
-        return { category, posts: [] };
-      }
-    })
-  );
+  // 최신 레시피 3개와 최신 인사이트 3개 가져오기
+  let recipes: Recipe[] = [];
+  let posts: Post[] = [];
 
-  const hasAnyPosts = categoryPostsMap.some(({ posts }) => posts.length > 0);
+  try {
+    // 최신 레시피 3개 가져오기
+    const recipesData = await getPublishedRecipesPaginated(1, 3);
+    recipes = recipesData.recipes;
+  } catch (error) {
+    console.error("레시피 조회 실패:", error);
+  }
+
+  try {
+    // 최신 인사이트 글 3개 가져오기
+    const postsData = await getPublishedPostsPaginated(1, 3);
+    posts = postsData.posts;
+  } catch (error) {
+    console.error("인사이트 글 조회 실패:", error);
+  }
+
+  const hasContent = recipes.length > 0 || posts.length > 0;
 
   return (
     <SmoothScroll>
       <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
         <GrainOverlay />
         <main className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          {!hasAnyPosts ? (
+          {!hasContent ? (
             <div className="text-center py-20">
               <p className="text-gray-600 dark:text-gray-400 text-lg">
                 게시글이 없습니다.
@@ -133,14 +176,11 @@ export default async function Home() {
             </div>
           ) : (
             <div className="space-y-16 sm:space-y-20 lg:space-y-24">
-              {categoryPostsMap.map(({ category, posts }, index) => (
-                <CategorySection
-                  key={category}
-                  category={category}
-                  posts={posts}
-                  sectionIndex={index}
-                />
-              ))}
+              {/* 오늘의 메뉴 섹션 */}
+              <RecipeSection recipes={recipes} />
+
+              {/* 인사이트 섹션 */}
+              <InsightSection posts={posts} />
             </div>
           )}
         </main>
