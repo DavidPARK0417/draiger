@@ -1584,3 +1584,57 @@ export async function getPostContent(pageId: string): Promise<string> {
     throw error;
   }
 }
+
+/**
+ * 검색어로 인사이트 글을 검색합니다
+ */
+export async function searchPosts(
+  searchQuery: string,
+  page: number = 1,
+  pageSize: number = 12
+): Promise<PaginatedPosts> {
+  const databaseId = process.env.NOTION_DATABASE_ID;
+
+  if (!databaseId) {
+    throw new Error(
+      "NOTION_DATABASE_ID is not defined in environment variables. " +
+        "Please add NOTION_DATABASE_ID to your .env.local file."
+    );
+  }
+
+  try {
+    // 먼저 모든 Published 포스트를 가져온 후 클라이언트 측에서 필터링
+    const searchLower = searchQuery.toLowerCase();
+    const allData = await getPublishedPostsPaginated(1, 1000);
+
+    // 검색어로 필터링 (제목, 설명, 카테고리, 태그에서 검색)
+    const filteredPosts = allData.posts.filter(
+      (post) =>
+        post.title.toLowerCase().includes(searchLower) ||
+        post.metaDescription.toLowerCase().includes(searchLower) ||
+        post.category?.toLowerCase().includes(searchLower) ||
+        post.tags?.some((tag) => tag.toLowerCase().includes(searchLower))
+    );
+
+    const totalCount = filteredPosts.length;
+    const totalPages = Math.ceil(totalCount / pageSize);
+    const currentPage = Math.max(1, Math.min(page, totalPages || 1));
+
+    // 페이지네이션 적용
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const pagePosts = filteredPosts.slice(startIndex, endIndex);
+
+    return {
+      posts: pagePosts,
+      totalCount,
+      currentPage,
+      totalPages,
+      hasNextPage: currentPage < totalPages,
+      hasPrevPage: currentPage > 1,
+    };
+  } catch (error) {
+    console.error("Error searching posts:", error);
+    throw error;
+  }
+}

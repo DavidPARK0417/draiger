@@ -6,6 +6,7 @@ import MenuCard from "@/components/MenuCard";
 import SmoothScroll from "@/components/SmoothScroll";
 import GrainOverlay from "@/components/GrainOverlay";
 import Link from "next/link";
+import { UtensilsCrossed, Lightbulb, ArrowRight } from "lucide-react";
 import type { Metadata } from 'next';
 
 // ISR 설정: 60초마다 재검증 (더 빠른 업데이트를 원하면 30초로 조정 가능)
@@ -63,9 +64,17 @@ function RecipeSection({ recipes }: RecipeSectionProps) {
       <div className="mb-6 sm:mb-8" suppressHydrationWarning>
         <Link
           href="/menu"
-          className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300"
+          className="group inline-flex items-center gap-3 text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300"
         >
-          오늘의 메뉴
+          <UtensilsCrossed 
+            className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-emerald-500 dark:text-emerald-400" 
+            strokeWidth={2.5}
+          />
+          <span>오늘의 메뉴</span>
+          <ArrowRight 
+            className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" 
+            strokeWidth={2.5}
+          />
         </Link>
       </div>
 
@@ -110,9 +119,17 @@ function InsightSection({ posts }: InsightSectionProps) {
       <div className="mb-6 sm:mb-8" suppressHydrationWarning>
         <Link
           href="/insight"
-          className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300"
+          className="group inline-flex items-center gap-3 text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300"
         >
-          인사이트
+          <Lightbulb 
+            className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-emerald-500 dark:text-emerald-400" 
+            strokeWidth={2.5}
+          />
+          <span>인사이트</span>
+          <ArrowRight 
+            className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" 
+            strokeWidth={2.5}
+          />
         </Link>
       </div>
 
