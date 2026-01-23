@@ -513,14 +513,14 @@ export async function getPublishedRecipesPaginated(
         let featuredImage: string | undefined = undefined;
         
         // image 속성이 files 배열인 경우
-        if (page.properties.image && 'files' in page.properties.image && Array.isArray(page.properties.image.files)) {
+        if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'files' in page.properties.image && Array.isArray(page.properties.image.files)) {
           const imageFile = page.properties.image.files[0];
           if (imageFile?.file?.url) {
             featuredImage = imageFile.file.url;
           }
         }
         // image 속성이 url인 경우
-        else if (page.properties.image && 'url' in page.properties.image && page.properties.image.url) {
+        else if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'url' in page.properties.image && page.properties.image.url) {
           featuredImage = page.properties.image.url;
         }
         
