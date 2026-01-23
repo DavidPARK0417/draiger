@@ -547,9 +547,9 @@ export async function getPublishedRecipesPaginated(
         // cookingtime 추출 (rich_text 또는 number)
         let cookingTime: string | number | undefined = undefined;
         if (page.properties.cookingtime && typeof page.properties.cookingtime === 'object' && page.properties.cookingtime !== null) {
-          if ('rich_text' in page.properties.cookingtime && page.properties.cookingtime.rich_text?.[0]?.plain_text) {
+          if ('rich_text' in page.properties.cookingtime && Array.isArray(page.properties.cookingtime.rich_text) && page.properties.cookingtime.rich_text?.[0]?.plain_text) {
             cookingTime = page.properties.cookingtime.rich_text[0].plain_text;
-          } else if ('number' in page.properties.cookingtime && page.properties.cookingtime.number !== null && page.properties.cookingtime.number !== undefined) {
+          } else if ('number' in page.properties.cookingtime && typeof page.properties.cookingtime.number === 'number') {
             cookingTime = page.properties.cookingtime.number;
           }
         }
@@ -684,9 +684,9 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
     // cookingtime 추출
     let cookingTime: string | number | undefined = undefined;
     if (page.properties.cookingtime && typeof page.properties.cookingtime === 'object' && page.properties.cookingtime !== null) {
-      if ('rich_text' in page.properties.cookingtime && page.properties.cookingtime.rich_text?.[0]?.plain_text) {
+      if ('rich_text' in page.properties.cookingtime && Array.isArray(page.properties.cookingtime.rich_text) && page.properties.cookingtime.rich_text?.[0]?.plain_text) {
         cookingTime = page.properties.cookingtime.rich_text[0].plain_text;
-      } else if ('number' in page.properties.cookingtime && page.properties.cookingtime.number !== null && page.properties.cookingtime.number !== undefined) {
+      } else if ('number' in page.properties.cookingtime && typeof page.properties.cookingtime.number === 'number') {
         cookingTime = page.properties.cookingtime.number;
       }
     }
