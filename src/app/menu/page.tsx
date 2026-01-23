@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import MenuCard from "@/components/MenuCard";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -18,7 +18,7 @@ interface PaginatedRecipes {
   hasPrevPage: boolean;
 }
 
-export default function MenuPage() {
+function MenuPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -231,6 +231,27 @@ export default function MenuPage() {
         </main>
       </div>
     </SmoothScroll>
+  );
+}
+
+export default function MenuPage() {
+  return (
+    <Suspense fallback={
+      <SmoothScroll>
+        <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
+          <GrainOverlay />
+          <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8">
+            <div className="text-center py-20">
+              <p className="text-gray-600 dark:text-white/50 text-lg">
+                로딩 중...
+              </p>
+            </div>
+          </main>
+        </div>
+      </SmoothScroll>
+    }>
+      <MenuPageContent />
+    </Suspense>
   );
 }
 
