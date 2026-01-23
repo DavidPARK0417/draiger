@@ -520,7 +520,7 @@ export async function getPublishedRecipesPaginated(
           }
         }
         // image 속성이 url인 경우
-        else if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'url' in page.properties.image && page.properties.image.url) {
+        else if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'url' in page.properties.image && typeof page.properties.image.url === 'string') {
           featuredImage = page.properties.image.url;
         }
         
