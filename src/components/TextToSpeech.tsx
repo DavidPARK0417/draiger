@@ -14,23 +14,47 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
   const [isPaused, setIsPaused] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [speechRate, setSpeechRate] = useState(2.0); // 기본 속도 2.0 (2배속)
+  const [speechRate, setSpeechRate] = useState(3.0); // 기본 속도 3.0 (3배속) - 빠른 읽기
   const [showFullPanel, setShowFullPanel] = useState(false); // 전체 패널 표시 여부
   const speechRateRef = useRef(speechRate); // 최신 속도 값을 항상 참조하기 위한 ref (초기값을 state와 동기화)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
-  const textPartsRef = useRef<string[]>([]); // 텍스트 부분들을 저장
+  const textPartsRef = useRef<string[]>([]); // 텍스트 부분들을 저장 (문장 단위)
+  const wordPartsRef = useRef<string[]>([]); // 단어 단위로 나눈 텍스트 (속도 변경 시 사용)
+  const pauseAfterRef = useRef<boolean[]>([]); // 각 문장 뒤에 일시정지가 있는지 표시
   const currentIndexRef = useRef(0); // 다음에 재생할 인덱스
   const currentPlayingIndexRef = useRef(0); // 현재 재생 중인 부분의 인덱스
+  const currentWordIndexRef = useRef(0); // 현재 재생 중인 단어의 인덱스 (속도 변경 시 사용)
   const timeoutIdsRef = useRef<number[]>([]); // setTimeout ID들을 저장 (속도 변경 시 취소 가능)
   const playNextPartRef = useRef<(() => void) | null>(null); // playNextPart 함수 참조
   const isRateChangingRef = useRef(false); // 속도 변경 중 플래그 (중복 재생 방지)
+  
+  // 정확한 위치 추적을 위한 ref 추가
+  const currentCharIndexRef = useRef(0); // 현재 재생 중인 문자 위치
+  const currentSentenceStartCharIndexRef = useRef(0); // 현재 문장의 시작 문자 위치
+  const isBoundarySupportedRef = useRef(false); // onboundary 이벤트 지원 여부
 
   useEffect(() => {
     // 브라우저 지원 여부 확인
     if ('speechSynthesis' in window) {
       setIsSupported(true);
       synthRef.current = window.speechSynthesis;
+      
+      // 보이스 목록이 로드될 때까지 대기 (Chrome/Edge에서 필요)
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        if (process.env.NODE_ENV === 'development') {
+          console.log('사용 가능한 보이스:', voices.map(v => ({ name: v.name, lang: v.lang })));
+        }
+      };
+      
+      // 보이스 목록 로드 이벤트 리스너
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+      
+      // 즉시 한 번 실행 (이미 로드된 경우)
+      loadVoices();
     }
 
     // 컴포넌트 언마운트 시 음성 중지
@@ -45,6 +69,59 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
   useEffect(() => {
     speechRateRef.current = speechRate;
   }, [speechRate]);
+
+  // 브라우저 호환성 확인 (onboundary 이벤트 지원 여부)
+  useEffect(() => {
+    try {
+      const testUtterance = new SpeechSynthesisUtterance('test');
+      isBoundarySupportedRef.current = 'onboundary' in testUtterance;
+      if (process.env.NODE_ENV === 'development') {
+        console.log('onboundary 이벤트 지원:', isBoundarySupportedRef.current);
+      }
+    } catch {
+      isBoundarySupportedRef.current = false;
+    }
+  }, []);
+
+  // 속도에 따른 pitch 조절 함수 (자연스러운 읽기를 위해)
+  const getPitchForRate = (rate: number): number => {
+    // 낮은 속도(0.5~1.0)에서는 pitch를 약간 높여서 더 자연스럽게
+    if (rate < 1.0) {
+      return 1.1; // 약간 높은 pitch
+    } else if (rate > 3.0) {
+      return 0.85; // 매우 빠른 속도(3.0 이상)에서는 pitch를 더 낮춤
+    } else if (rate > 2.0) {
+      return 0.9; // 빠른 속도(2.0~3.0)에서는 pitch를 낮춤
+    }
+    return 1.0; // 기본값 (1.0~2.0)
+  };
+
+  // 최적의 한국어 보이스 선택 함수 (edge-TTS 스타일 개선)
+  const getBestKoreanVoice = (): SpeechSynthesisVoice | null => {
+    const voices = window.speechSynthesis.getVoices();
+    const koreanVoices = voices.filter(voice => 
+      voice.lang.startsWith('ko') || 
+      voice.lang.includes('Korean') ||
+      voice.lang === 'ko-KR'
+    );
+    
+    if (koreanVoices.length === 0) {
+      return null;
+    }
+    
+    // 우선순위: Neural > Premium > Female > 선희 > 기타
+    return koreanVoices.find(voice => 
+      voice.name.toLowerCase().includes('neural')
+    ) || koreanVoices.find(voice => 
+      voice.name.toLowerCase().includes('premium')
+    ) || koreanVoices.find(voice => 
+      voice.name.toLowerCase().includes('female') || 
+      voice.name.toLowerCase().includes('여성')
+    ) || koreanVoices.find(voice => 
+      voice.name.toLowerCase().includes('sun') || 
+      voice.name.toLowerCase().includes('선희')
+    ) || koreanVoices[0]; // 기본값: 첫 번째 한국어 보이스
+  };
 
   // 약어를 자연스러운 발음으로 변환
   const normalizeAbbreviations = (text: string): string => {
@@ -350,7 +427,34 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
       .replace(/^\s*출처\s*[:：]\s*[^\n]*https?:\/\/[^\n]*$/gim, '') // 줄 전체의 "출처: ... https://..." 제거
       .trim();
 
-    // 약어를 자연스러운 발음으로 변환 (날짜/시간 정규화 전에 수행)
+    // 괄호 안의 약어 제거 (약어 변환 전에 수행해야 함)
+    // 영문 약어나 짧은 영문만 있는 괄호를 제거 (한글이 포함된 괄호는 유지)
+    // 예: "인공지능(AI)" -> "인공지능", "로봇과 인공지능(AI)을 통해" -> "로봇과 인공지능을 통해"
+    // 패턴: 괄호 안에 영문 대소문자, 숫자, 하이픈, 언더스코어만 있는 경우 (1-15자)
+    // 한글이 포함된 괄호는 제외하기 위해 [가-힣]이 없는 경우만 매칭
+    const beforeBracketRemoval = text;
+    text = text.replace(/\([A-Za-z0-9\-_]{1,15}\)/g, (match) => {
+      // 한글이 포함되어 있으면 제거하지 않음
+      if (/[가-힣]/.test(match)) {
+        return match;
+      }
+      // 개발 환경에서만 로그 출력
+      if (process.env.NODE_ENV === 'development') {
+        console.log('괄호 제거:', match);
+      }
+      return ''; // 한글이 없으면 괄호와 내용 모두 제거
+    });
+    
+    // 개발 환경에서만 변경 사항 확인
+    if (process.env.NODE_ENV === 'development' && beforeBracketRemoval !== text) {
+      console.log('괄호 제거 전:', beforeBracketRemoval.substring(0, 100));
+      console.log('괄호 제거 후:', text.substring(0, 100));
+    }
+    
+    // 공백 정리 (괄호 제거 후 생긴 이중 공백 제거)
+    text = text.replace(/\s+/g, ' ').trim();
+
+    // 약어를 자연스러운 발음으로 변환 (괄호 제거 후 수행)
     text = normalizeAbbreviations(text);
 
     // 날짜/시간 형식 정규화 (시간 형식이 명확한 경우만)
@@ -436,15 +540,16 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
     );
 
     // 문장 구분을 자연스럽게 만들기
-    // 마침표, 느낌표, 물음표 뒤에 일시정지 추가 (짧게 조정)
+    // 마침표와 제목 줄바꿈 시점에 짧은 일시정지 추가
     text = text
-      .replace(/([.!?])\s+/g, '$1 ... ') // 문장 끝에 일시정지 마커 추가
-      .replace(/([.!?])\s*$/gm, '$1 ... ') // 줄 끝의 문장 부호 뒤에도 추가
-      .replace(/\.\.\.\s+\.\.\./g, '...') // 중복된 일시정지 마커 제거
-      .replace(/\n\s*\n/g, ' ... ') // 단락 구분에도 일시정지 추가
-      .replace(/\n/g, ' ') // 줄바꿈을 공백으로 변환
-      // 쉼표 뒤에는 일시정지 없이 자연스럽게 (더 빠른 리듬)
-      .replace(/\.\.\.\s+\.\.\./g, '...'); // 중복 제거
+      .replace(/(\.)\s+/g, '$1 ... ') // 마침표 뒤에 짧은 일시정지 마커 추가
+      .replace(/(\.)\s*$/gm, '$1 ... ') // 줄 끝의 마침표 뒤에도 일시정지 마커 추가
+      .replace(/([!?])\s+/g, '$1 ') // 느낌표, 물음표는 공백만 유지 (자연스럽게)
+      .replace(/([!?])\s*$/gm, '$1 ') // 줄 끝의 느낌표, 물음표 뒤에도 공백만
+      .replace(/\n\s*\n/g, ' ... ') // 단락 구분(줄바꿈 2개)에 일시정지 마커 추가
+      .replace(/\n/g, ' ') // 단일 줄바꿈은 공백으로 변환
+      // 쉼표 뒤에는 일시정지 없이 자연스럽게 (현재 방식 유지)
+      .replace(/\s+/g, ' '); // 연속된 공백을 하나로
 
     // 불필요한 공백 정리 및 자연스러운 읽기를 위한 처리
     text = text
@@ -639,10 +744,12 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
           // 현재 재생 중인 부분부터 새 속도로 재생
           if (currentPlayingIndexRef.current < textPartsRef.current.length) {
             const currentPartIndex = currentPlayingIndexRef.current;
+            const selectedVoice = getBestKoreanVoice();
             const currentUtterance = new SpeechSynthesisUtterance(textPartsRef.current[currentPartIndex]);
-            currentUtterance.lang = 'ko-KR';
+            currentUtterance.lang = selectedVoice?.lang || 'ko-KR';
+            currentUtterance.voice = selectedVoice; // 최적의 보이스 설정
             currentUtterance.rate = speechRateRef.current; // 최신 속도 사용
-            currentUtterance.pitch = 1.1; // 자연스럽고 친근한 느낌
+            currentUtterance.pitch = getPitchForRate(speechRateRef.current); // 속도에 따른 pitch 조절
             currentUtterance.volume = 1.0;
             
             if (process.env.NODE_ENV === 'development') {
@@ -690,10 +797,12 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
           
           if (currentPlayingIndexRef.current < textPartsRef.current.length) {
             const currentPartIndex = currentPlayingIndexRef.current;
+            const selectedVoice = getBestKoreanVoice();
             const currentUtterance = new SpeechSynthesisUtterance(textPartsRef.current[currentPartIndex]);
-            currentUtterance.lang = 'ko-KR';
+            currentUtterance.lang = selectedVoice?.lang || 'ko-KR';
+            currentUtterance.voice = selectedVoice; // 최적의 보이스 설정
             currentUtterance.rate = speechRateRef.current;
-            currentUtterance.pitch = 1.1; // 자연스럽고 친근한 느낌
+            currentUtterance.pitch = getPitchForRate(speechRateRef.current); // 속도에 따른 pitch 조절
             currentUtterance.volume = 1.0;
             
             currentUtterance.onstart = () => {
@@ -765,18 +874,22 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
       }
       
       // 텍스트를 문장 단위로 나누어 속도 변경 시 효율적으로 처리
-      // 문장 단위로 나누면 속도 변경 시 해당 문장부터 재생할 수 있어 더 효율적
+      // 문장 단위로 나누면 속도 변경 시 현재 문장만 중복되므로 더 효율적
+      // 마침표와 제목 줄바꿈 시점에는 짧은 일시정지 추가
       
       // 1단계: 일시정지 마커("...")로 먼저 나누기 (의도적인 일시정지 구분)
+      // 마침표 뒤와 제목/줄바꿈 뒤에 일시정지 마커가 있음
       const pauseParts = textToRead.split(/\s*\.\.\.\s*/).filter(part => part.trim().length > 0);
       
-      // 2단계: 각 부분을 문장 단위로 더 세분화
+      // 2단계: 각 부분을 문장 단위로 세분화하고 일시정지 정보 추적
       const sentenceParts: string[] = [];
+      const hasPauseAfter: boolean[] = []; // 각 문장 뒤에 일시정지가 있는지 표시
       
-      for (const part of pauseParts) {
+      for (let partIndex = 0; partIndex < pauseParts.length; partIndex++) {
+        const part = pauseParts[partIndex];
+        const isLastPart = partIndex === pauseParts.length - 1;
+        
         // 문장 단위로 나누기: 마침표(.), 느낌표(!), 물음표(?) 뒤에 공백이 오는 경우를 기준
-        // 정규식: 문장 부호 뒤에 공백이 오거나 문자열 끝인 경우를 기준으로 분할
-        // split(/([.!?]+(?:\s+|$))/)를 사용하면 구분자도 포함되므로, 문장과 구분자를 합쳐서 처리
         const segments = part.split(/([.!?]+(?:\s+|$))/);
         
         let currentSentence = '';
@@ -794,10 +907,22 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
             if (currentSentence.trim()) {
               currentSentence += segment;
               sentenceParts.push(currentSentence.trim());
+              
+              // 마침표(.)로 끝나고 일시정지 마커가 있는 경우 일시정지 표시
+              // (일시정지 마커로 나눴으므로, 마지막 부분이 아니면 일시정지가 있음)
+              const hasPause = !isLastPart && /\./.test(segment);
+              hasPauseAfter.push(hasPause);
+              
               currentSentence = '';
             } else if (sentenceParts.length > 0) {
               // 이전 문장에 구분자 추가 (빈 문장이 아닌 경우)
               sentenceParts[sentenceParts.length - 1] += segment;
+              
+              // 이전 문장의 일시정지 정보 업데이트
+              if (hasPauseAfter.length > 0) {
+                const hasPause = !isLastPart && /\./.test(segment);
+                hasPauseAfter[hasPauseAfter.length - 1] = hasPause;
+              }
             }
           } else {
             // 일반 텍스트인 경우
@@ -808,19 +933,25 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
         // 마지막 문장이 남아있으면 추가 (문장 부호가 없는 경우)
         if (currentSentence.trim()) {
           sentenceParts.push(currentSentence.trim());
+          // 마지막 부분이 아니면 일시정지가 있음 (제목/줄바꿈의 경우)
+          hasPauseAfter.push(!isLastPart);
         }
       }
       
       // 문장 단위로 나눈 결과 사용 (최소 1개는 있어야 함)
       let textParts: string[] = [];
+      let pauseAfter: boolean[] = [];
+      
       if (sentenceParts.length > 0) {
         textParts = sentenceParts;
+        pauseAfter = hasPauseAfter;
         if (process.env.NODE_ENV === 'development') {
           console.log('텍스트를 문장 단위로 나눔:', textParts.length, '개 문장');
         }
       } else {
         // 문장 단위로 나눌 수 없는 경우 원본 사용
         textParts = pauseParts;
+        pauseAfter = pauseParts.map(() => false); // 일시정지 없음
         if (process.env.NODE_ENV === 'development') {
           console.log('문장 단위 분할 실패, 원본 사용:', textParts.length, '개 부분');
         }
@@ -833,23 +964,69 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
       
       // 텍스트 부분들을 ref에 저장 (속도 변경 시 사용)
       textPartsRef.current = textParts;
+      pauseAfterRef.current = pauseAfter; // 일시정지 정보 저장
+      
+      // 단어 단위로도 나눠서 저장 (속도 변경 시 현재 위치부터 이어서 읽기 위해)
+      const allWords: string[] = [];
+      for (const sentence of textParts) {
+        // 문장을 단어 단위로 나누기 (공백, 문장 부호 기준)
+        const words = sentence.split(/(\s+|[.!?]+)/).filter(word => word.trim().length > 0);
+        allWords.push(...words);
+      }
+      wordPartsRef.current = allWords;
+      currentWordIndexRef.current = 0; // 단어 인덱스 초기화
+      
       currentIndexRef.current = 0; // 다음에 재생할 인덱스 (첫 번째 부분)
       currentPlayingIndexRef.current = 0; // 현재 재생 중인 부분의 인덱스 (첫 번째 부분)
       
+      // 최적의 한국어 보이스 선택 (edge-TTS 스타일 개선)
+      const selectedVoice = getBestKoreanVoice();
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('선택된 보이스:', selectedVoice?.name || '기본 보이스', selectedVoice?.lang || 'ko-KR');
+      }
+      
       // 첫 번째 utterance 생성
       const firstUtterance = new SpeechSynthesisUtterance(textParts[0]);
-      firstUtterance.lang = 'ko-KR';
+      firstUtterance.lang = selectedVoice?.lang || 'ko-KR';
+      firstUtterance.voice = selectedVoice; // 최적의 보이스 설정
+      
       // ref에서 최신 속도 값 사용
       const initialRate = speechRateRef.current;
       firstUtterance.rate = initialRate;
       
       // 개발 환경에서만 로그 출력
       if (process.env.NODE_ENV === 'development') {
-        console.log('첫 번째 부분 재생 속도:', initialRate, 'x');
+        console.log('첫 번째 부분 재생 속도:', initialRate, 'x', '보이스:', selectedVoice?.name);
       }
       
-      firstUtterance.pitch = 1.1; // 음높이 (0 ~ 2) - 자연스럽고 친근한 느낌
+      firstUtterance.pitch = getPitchForRate(initialRate); // 속도에 따른 pitch 조절
       firstUtterance.volume = 1.0; // 볼륨 (0 ~ 1)
+      
+      // 정확한 위치 추적을 위한 onboundary 이벤트 추가 (지원 브라우저에서만)
+      if (isBoundarySupportedRef.current) {
+        firstUtterance.onboundary = (event: SpeechSynthesisEvent) => {
+          if (event.name === 'word' || event.name === 'sentence') {
+            currentCharIndexRef.current = event.charIndex;
+            if (event.name === 'sentence') {
+              // 문장 경계에서 문장 시작 위치 업데이트
+              currentSentenceStartCharIndexRef.current = event.charIndex;
+            }
+            
+            if (process.env.NODE_ENV === 'development') {
+              console.log('경계 이벤트:', {
+                name: event.name,
+                charIndex: event.charIndex,
+                text: event.utterance.text.substring(0, event.charIndex)
+              });
+            }
+          }
+        };
+      }
+      
+      // 위치 추적 초기화
+      currentCharIndexRef.current = 0;
+      currentSentenceStartCharIndexRef.current = 0;
       
       // 첫 번째 utterance 이벤트 핸들러
       firstUtterance.onstart = () => {
@@ -874,7 +1051,15 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
         currentPlayingIndexRef.current = currentIndexRef.current; // 현재 재생 중인 부분 업데이트
         
         if (currentIndexRef.current < textPartsRef.current.length) {
-          // 약 0.4초 일시정지 후 다음 부분 재생 (더 빠르고 자연스러운 리듬)
+          // 이전 문장 뒤에 일시정지가 있는지 확인
+          const prevIndex = currentIndexRef.current - 1;
+          const hasPause = prevIndex >= 0 && pauseAfterRef.current[prevIndex];
+          
+          // 일시정지 시간 설정:
+          // - 마침표/제목/줄바꿈 뒤: 200ms (자연스러운 끊김)
+          // - 그 외: 0ms (부드러운 연결)
+          const pauseTime = hasPause ? 200 : 0;
+          
           // setTimeout 내부에서 최신 speechRateRef.current를 읽도록 함
           const timeoutId = window.setTimeout(() => {
             if (!synthRef.current) return;
@@ -890,8 +1075,12 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
             // setTimeout 실행 시점에 최신 속도 값 읽기 (항상 최신 값 참조)
             const currentRate = speechRateRef.current;
             
+            // 최적의 한국어 보이스 재선택 (동일한 보이스 유지)
+            const selectedVoice = getBestKoreanVoice();
+            
             const nextUtterance = new SpeechSynthesisUtterance(textPartsRef.current[currentIndexRef.current]);
-            nextUtterance.lang = 'ko-KR';
+            nextUtterance.lang = selectedVoice?.lang || 'ko-KR';
+            nextUtterance.voice = selectedVoice; // 최적의 보이스 설정
             nextUtterance.rate = currentRate;
             
             // 개발 환경에서만 로그 출력
@@ -899,8 +1088,37 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
               console.log('다음 부분 재생 속도:', currentRate, 'x', '(인덱스:', currentIndexRef.current, ')');
             }
             
-            nextUtterance.pitch = 1.1; // 자연스럽고 친근한 느낌
+            nextUtterance.pitch = getPitchForRate(currentRate); // 속도에 따른 pitch 조절
             nextUtterance.volume = 1.0;
+            
+            // 정확한 위치 추적을 위한 onboundary 이벤트 추가 (지원 브라우저에서만)
+            if (isBoundarySupportedRef.current) {
+              nextUtterance.onboundary = (event: SpeechSynthesisEvent) => {
+                if (event.name === 'word' || event.name === 'sentence') {
+                  // 현재 문장까지의 문자 수를 고려하여 전체 텍스트에서의 위치 계산
+                  let totalCharIndex = 0;
+                  for (let i = 0; i < currentIndexRef.current; i++) {
+                    if (i < textPartsRef.current.length) {
+                      totalCharIndex += textPartsRef.current[i].length;
+                    }
+                  }
+                  currentCharIndexRef.current = totalCharIndex + event.charIndex;
+                  
+                  if (event.name === 'sentence') {
+                    currentSentenceStartCharIndexRef.current = totalCharIndex + event.charIndex;
+                  }
+                  
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log('경계 이벤트 (다음 부분):', {
+                      name: event.name,
+                      charIndex: event.charIndex,
+                      totalCharIndex: currentCharIndexRef.current,
+                      sentenceIndex: currentIndexRef.current
+                    });
+                  }
+                }
+              };
+            }
             
             nextUtterance.onend = () => {
               if (playNextPartRef.current && !isRateChangingRef.current) {
@@ -915,7 +1133,7 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
             synthRef.current.speak(nextUtterance);
             utteranceRef.current = nextUtterance; // 현재 재생 중인 utterance 저장
             currentPlayingIndexRef.current = currentIndexRef.current; // 현재 재생 중인 부분 업데이트
-          }, 300); // 0.3초 일시정지 (자연스럽고 친근한 리듬)
+          }, pauseTime); // 일시정지 시간 (마침표/제목/줄바꿈: 200ms, 그 외: 0ms)
           
           // timeout ID 저장 (필요시 취소 가능)
           timeoutIdsRef.current.push(timeoutId);
@@ -925,8 +1143,11 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
           setIsPaused(false);
           setError(null);
           textPartsRef.current = [];
+          wordPartsRef.current = [];
+          pauseAfterRef.current = [];
           currentIndexRef.current = 0;
           currentPlayingIndexRef.current = 0;
+          currentWordIndexRef.current = 0;
           timeoutIdsRef.current = [];
           playNextPartRef.current = null;
           isRateChangingRef.current = false;
@@ -995,6 +1216,9 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
     isRateChangingRef.current = false;
     currentIndexRef.current = 0;
     currentPlayingIndexRef.current = 0;
+    currentWordIndexRef.current = 0;
+    wordPartsRef.current = [];
+    pauseAfterRef.current = [];
   };
 
   if (!isSupported) {
@@ -1061,7 +1285,7 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
                     <input
                       type="range"
                       min="0.5"
-                      max="2.0"
+                      max="4.0"
                       step="0.1"
                       value={speechRate}
                       onChange={(e) => {
@@ -1083,38 +1307,90 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
                           timeoutIdsRef.current.forEach(id => clearTimeout(id));
                           timeoutIdsRef.current = [];
                           
-                          let currentPlayingIndex = currentPlayingIndexRef.current;
+                          // 현재 재생 중인 문장의 인덱스
+                          const currentPlayingIndex = currentPlayingIndexRef.current >= 0 
+                            ? currentPlayingIndexRef.current 
+                            : Math.max(0, currentIndexRef.current);
                           
-                          if (currentPlayingIndex === 0 && isPlaying && currentIndexRef.current === 0) {
-                            currentPlayingIndex = 0;
-                          } else if (currentPlayingIndexRef.current >= 0) {
-                            currentPlayingIndex = currentPlayingIndexRef.current;
+                          let textToContinue = '';
+                          let startIndex = currentPlayingIndex;
+                          
+                          // onboundary 이벤트를 지원하는 경우 정확한 위치부터 재생
+                          if (isBoundarySupportedRef.current && currentCharIndexRef.current > 0) {
+                            // 전체 텍스트를 하나로 합침
+                            const fullText = textPartsRef.current.join(' ');
+                            
+                            // 현재 문자 위치부터 나머지 텍스트 추출
+                            textToContinue = fullText.substring(currentCharIndexRef.current);
+                            
+                            // 현재 위치가 속한 문장 찾기
+                            let charCount = 0;
+                            for (let i = 0; i < textPartsRef.current.length; i++) {
+                              const sentenceLength = textPartsRef.current[i].length;
+                              if (charCount + sentenceLength > currentCharIndexRef.current) {
+                                startIndex = i;
+                                break;
+                              }
+                              charCount += sentenceLength + 1; // +1은 공백
+                            }
+                            
+                            if (process.env.NODE_ENV === 'development') {
+                              console.log('정확한 위치부터 재생:', {
+                                currentCharIndex: currentCharIndexRef.current,
+                                startIndex: startIndex,
+                                textLength: textToContinue.length
+                              });
+                            }
                           } else {
-                            currentPlayingIndex = Math.max(0, currentIndexRef.current);
+                            // onboundary를 지원하지 않는 경우 현재 문장부터 재생
+                            const remainingSentences = textPartsRef.current.slice(currentPlayingIndex);
+                            textToContinue = remainingSentences.join(' ');
+                            
+                            if (process.env.NODE_ENV === 'development') {
+                              console.log('현재 문장부터 재생 (폴백):', {
+                                currentPlayingIndex: currentPlayingIndex,
+                                remainingSentencesCount: remainingSentences.length
+                              });
+                            }
                           }
                           
-                          let nextPartIndex = currentPlayingIndex;
-                          
-                          if (nextPartIndex < 0) {
-                            nextPartIndex = 0;
-                          }
-                          if (nextPartIndex >= textPartsRef.current.length) {
-                            nextPartIndex = textPartsRef.current.length - 1;
-                          }
-                          
-                          if (synthRef.current && nextPartIndex < textPartsRef.current.length && nextPartIndex >= 0) {
-                            const nextUtterance = new SpeechSynthesisUtterance(textPartsRef.current[nextPartIndex]);
-                            nextUtterance.lang = 'ko-KR';
+                          if (synthRef.current && textToContinue.trim().length > 0) {
+                            const selectedVoice = getBestKoreanVoice();
+                            const nextUtterance = new SpeechSynthesisUtterance(textToContinue);
+                            nextUtterance.lang = selectedVoice?.lang || 'ko-KR';
+                            nextUtterance.voice = selectedVoice;
                             nextUtterance.rate = newRate;
-                            nextUtterance.pitch = 1.1; // 자연스럽고 친근한 느낌
+                            nextUtterance.pitch = getPitchForRate(newRate); // 속도에 따른 pitch 조절
                             nextUtterance.volume = 1.0;
                             
-                            currentIndexRef.current = nextPartIndex;
-                            currentPlayingIndexRef.current = nextPartIndex;
+                            // onboundary 이벤트 추가 (지원 브라우저에서만)
+                            if (isBoundarySupportedRef.current) {
+                              nextUtterance.onboundary = (event: SpeechSynthesisEvent) => {
+                                if (event.name === 'word' || event.name === 'sentence') {
+                                  // 전체 텍스트에서의 위치 계산
+                                  let totalCharIndex = 0;
+                                  for (let i = 0; i < startIndex; i++) {
+                                    if (i < textPartsRef.current.length) {
+                                      totalCharIndex += textPartsRef.current[i].length + 1; // +1은 공백
+                                    }
+                                  }
+                                  currentCharIndexRef.current = totalCharIndex + event.charIndex;
+                                  
+                                  if (event.name === 'sentence') {
+                                    currentSentenceStartCharIndexRef.current = totalCharIndex + event.charIndex;
+                                  }
+                                }
+                              };
+                            }
+                            
+                            // 현재 문장 인덱스 유지
+                            currentIndexRef.current = startIndex;
+                            currentPlayingIndexRef.current = startIndex;
+                            
+                            const originalPlayNextPart = playNextPartRef.current;
                             
                             nextUtterance.onstart = () => {
                               isRateChangingRef.current = false;
-                              currentPlayingIndexRef.current = nextPartIndex;
                               setIsPlaying(true);
                               setIsPaused(false);
                               setError(null);
@@ -1122,8 +1398,41 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
                             
                             nextUtterance.onend = () => {
                               isRateChangingRef.current = false;
-                              if (playNextPartRef.current) {
-                                playNextPartRef.current();
+                              // 재생이 끝나면 다음 문장부터 문장 단위로 재생
+                              if (originalPlayNextPart) {
+                                // 전체 텍스트 길이 계산
+                                const fullTextLength = textPartsRef.current.join(' ').length;
+                                
+                                // 재생이 끝난 위치 계산
+                                let endCharIndex = 0;
+                                for (let i = 0; i <= startIndex; i++) {
+                                  if (i < textPartsRef.current.length) {
+                                    endCharIndex += textPartsRef.current[i].length;
+                                    if (i < startIndex) endCharIndex += 1; // 공백
+                                  }
+                                }
+                                endCharIndex += textToContinue.length;
+                                
+                                // 다음 문장 인덱스 찾기
+                                let nextSentenceIndex = startIndex;
+                                let charCount = 0;
+                                for (let i = 0; i < textPartsRef.current.length; i++) {
+                                  charCount += textPartsRef.current[i].length;
+                                  if (charCount >= endCharIndex) {
+                                    nextSentenceIndex = i + 1;
+                                    break;
+                                  }
+                                  charCount += 1; // 공백
+                                }
+                                
+                                currentIndexRef.current = nextSentenceIndex;
+                                currentPlayingIndexRef.current = nextSentenceIndex;
+                                currentCharIndexRef.current = endCharIndex;
+                                
+                                originalPlayNextPart();
+                              } else {
+                                setIsPlaying(false);
+                                setIsPaused(false);
                               }
                             };
                             
@@ -1152,8 +1461,11 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
                             setIsPaused(false);
                             setError(null);
                             textPartsRef.current = [];
+                            wordPartsRef.current = [];
                             currentIndexRef.current = 0;
                             currentPlayingIndexRef.current = 0;
+                            currentWordIndexRef.current = 0;
+                            currentCharIndexRef.current = 0;
                             timeoutIdsRef.current = [];
                             playNextPartRef.current = null;
                           }
@@ -1172,8 +1484,9 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
                     <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                       <span>0.5x</span>
                       <span>1.0x</span>
-                      <span>1.5x</span>
                       <span>2.0x</span>
+                      <span>3.0x</span>
+                      <span>4.0x</span>
                     </div>
                   </div>
                 </div>
@@ -1339,130 +1652,124 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
             <input
               type="range"
               min="0.5"
-              max="2.0"
+              max="4.0"
               step="0.1"
               value={speechRate}
               onChange={(e) => {
                 const newRate = parseFloat(e.target.value);
                 setSpeechRate(newRate);
-                // ref도 즉시 업데이트 (useEffect보다 먼저 실행될 수 있음)
                 speechRateRef.current = newRate;
                 
-                // 개발 환경에서만 로그 출력
                 if (process.env.NODE_ENV === 'development') {
                   console.log('속도 변경:', newRate, 'x', '(재생 중:', isPlaying, ')');
                 }
                 
-                // 재생 중이거나 일시정지 상태면 속도 변경 즉시 적용
                 if ((isPlaying || isPaused) && textPartsRef.current.length > 0) {
-                  // 속도 변경 플래그 설정 (중복 재생 방지)
                   isRateChangingRef.current = true;
                   
-                  // 현재 재생 중인 utterance 취소
                   if (synthRef.current) {
                     synthRef.current.cancel();
                   }
                   
-                  // 대기 중인 모든 timeout 취소
                   timeoutIdsRef.current.forEach(id => clearTimeout(id));
                   timeoutIdsRef.current = [];
                   
-                  // 속도 변경 시 현재 재생 중인 부분을 건너뛰고 다음 부분부터 이어서 재생
-                  // 
-                  // 인덱스 추적 방식:
-                  // - 첫 번째 부분(인덱스 0) 재생 중: currentIndexRef = 0, currentPlayingIndexRef = 0
-                  // - playNextPart 호출 시: currentIndexRef++, currentPlayingIndexRef = currentIndexRef
-                  // - 두 번째 부분 재생 중: currentIndexRef = 1, currentPlayingIndexRef = 1
-                  // 
-                  // 속도 변경 시: 현재 재생 중인 부분을 건너뛰고 다음 부분부터 재생해야 함
-                  // - currentPlayingIndexRef가 현재 재생 중인 부분의 인덱스를 나타냄
-                  // - 다음 부분은 currentPlayingIndexRef + 1
+                  const currentPlayingIndex = currentPlayingIndexRef.current >= 0 
+                    ? currentPlayingIndexRef.current 
+                    : Math.max(0, currentIndexRef.current);
                   
-                  // 현재 재생 중인 부분의 인덱스 (currentPlayingIndexRef가 가장 정확함)
-                  let currentPlayingIndex = currentPlayingIndexRef.current;
+                  let textToContinue = '';
+                  let startIndex = currentPlayingIndex;
                   
-                  // currentPlayingIndexRef가 0이고 재생 중이라면, 실제로는 첫 번째 부분을 재생 중
-                  // 이 경우 currentIndexRef도 확인하여 더 정확한 값 사용
-                  if (currentPlayingIndex === 0 && isPlaying && currentIndexRef.current === 0) {
-                    // 첫 번째 부분을 재생 중이므로 다음 부분은 1
-                    currentPlayingIndex = 0;
-                  } else if (currentPlayingIndexRef.current >= 0) {
-                    // currentPlayingIndexRef가 유효하면 사용
-                    currentPlayingIndex = currentPlayingIndexRef.current;
+                  if (isBoundarySupportedRef.current && currentCharIndexRef.current > 0) {
+                    const fullText = textPartsRef.current.join(' ');
+                    textToContinue = fullText.substring(currentCharIndexRef.current);
+                    
+                    let charCount = 0;
+                    for (let i = 0; i < textPartsRef.current.length; i++) {
+                      const sentenceLength = textPartsRef.current[i].length;
+                      if (charCount + sentenceLength > currentCharIndexRef.current) {
+                        startIndex = i;
+                        break;
+                      }
+                      charCount += sentenceLength + 1;
+                    }
                   } else {
-                    // currentPlayingIndexRef가 유효하지 않으면 currentIndexRef 사용
-                    currentPlayingIndex = Math.max(0, currentIndexRef.current);
+                    const remainingSentences = textPartsRef.current.slice(currentPlayingIndex);
+                    textToContinue = remainingSentences.join(' ');
                   }
                   
-                  // ⚠️ Web Speech API의 근본적인 제약사항:
-                  // 1. SpeechSynthesisUtterance의 rate 속성은 utterance 생성 시에만 설정 가능
-                  // 2. 재생 중인 utterance의 속도를 동적으로 변경할 수 없음
-                  // 3. 현재 재생 위치를 알 수 없음
-                  // 4. 중간 지점부터 재생할 수 없음
-                  //
-                  // 따라서 "재생 중인 부분의 중간에서 속도만 변경"은 불가능합니다.
-                  // 가능한 선택지:
-                  // 1. 현재 부분을 처음부터 새 속도로 재생 (일부 중복)
-                  // 2. 현재 부분을 건너뛰고 다음 부분부터 새 속도로 재생 (일부 건너뜀)
-                  //
-                  // 현재 구현: 현재 부분을 처음부터 새 속도로 재생
-                  // (사용자가 "현재 부분을 건너뛰면 안 된다"고 했으므로)
-                  
-                  let nextPartIndex = currentPlayingIndex;
-                  
-                  // 인덱스 유효성 최종 확인
-                  if (nextPartIndex < 0) {
-                    nextPartIndex = 0;
-                  }
-                  if (nextPartIndex >= textPartsRef.current.length) {
-                    nextPartIndex = textPartsRef.current.length - 1;
-                  }
-                  
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('속도 변경 시 현재 부분부터 재생 (인덱스:', nextPartIndex, ', 현재 부분:', currentPlayingIndex, ')');
-                  }
-                  
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('속도 변경 인덱스 계산:', {
-                      currentIndexRef: currentIndexRef.current,
-                      currentPlayingIndexRef: currentPlayingIndexRef.current,
-                      currentPlayingIndex,
-                      nextPartIndex,
-                      textPartsLength: textPartsRef.current.length,
-                      isPlaying,
-                      isPaused
-                    });
-                  }
-                  
-                  if (synthRef.current && nextPartIndex < textPartsRef.current.length && nextPartIndex >= 0) {
-                    const nextUtterance = new SpeechSynthesisUtterance(textPartsRef.current[nextPartIndex]);
-                    nextUtterance.lang = 'ko-KR';
-                    nextUtterance.rate = newRate; // 새로운 속도 즉시 적용
-                    nextUtterance.pitch = 1.1; // 자연스럽고 친근한 느낌
+                  if (synthRef.current && textToContinue.trim().length > 0) {
+                    const selectedVoice = getBestKoreanVoice();
+                    const nextUtterance = new SpeechSynthesisUtterance(textToContinue);
+                    nextUtterance.lang = selectedVoice?.lang || 'ko-KR';
+                    nextUtterance.voice = selectedVoice;
+                    nextUtterance.rate = newRate;
+                    nextUtterance.pitch = getPitchForRate(newRate);
                     nextUtterance.volume = 1.0;
                     
-                    if (process.env.NODE_ENV === 'development') {
-                      console.log('속도 변경 즉시 적용 - 이어서 재생:', newRate, 'x', '(인덱스:', nextPartIndex, ', currentPlayingIndex:', currentPlayingIndex, ', currentIndexRef:', currentIndexRef.current, ', isPlaying:', isPlaying, ', isPaused:', isPaused, ')');
+                    if (isBoundarySupportedRef.current) {
+                      nextUtterance.onboundary = (event: SpeechSynthesisEvent) => {
+                        if (event.name === 'word' || event.name === 'sentence') {
+                          let totalCharIndex = 0;
+                          for (let i = 0; i < startIndex; i++) {
+                            if (i < textPartsRef.current.length) {
+                              totalCharIndex += textPartsRef.current[i].length + 1;
+                            }
+                          }
+                          currentCharIndexRef.current = totalCharIndex + event.charIndex;
+                          
+                          if (event.name === 'sentence') {
+                            currentSentenceStartCharIndexRef.current = totalCharIndex + event.charIndex;
+                          }
+                        }
+                      };
                     }
                     
-                    // currentIndexRef와 currentPlayingIndexRef를 다음 부분으로 설정
-                    currentIndexRef.current = nextPartIndex;
-                    currentPlayingIndexRef.current = nextPartIndex;
+                    currentIndexRef.current = startIndex;
+                    currentPlayingIndexRef.current = startIndex;
+                    
+                    const originalPlayNextPart = playNextPartRef.current;
                     
                     nextUtterance.onstart = () => {
-                      // 재생 시작 시 플래그 해제 및 상태 업데이트
                       isRateChangingRef.current = false;
-                      currentPlayingIndexRef.current = nextPartIndex;
                       setIsPlaying(true);
                       setIsPaused(false);
                       setError(null);
                     };
                     
                     nextUtterance.onend = () => {
-                      // 재생 완료 후 플래그 해제
                       isRateChangingRef.current = false;
-                      if (playNextPartRef.current) {
-                        playNextPartRef.current();
+                      if (originalPlayNextPart) {
+                        const fullTextLength = textPartsRef.current.join(' ').length;
+                        let endCharIndex = 0;
+                        for (let i = 0; i <= startIndex; i++) {
+                          if (i < textPartsRef.current.length) {
+                            endCharIndex += textPartsRef.current[i].length;
+                            if (i < startIndex) endCharIndex += 1;
+                          }
+                        }
+                        endCharIndex += textToContinue.length;
+                        
+                        let nextSentenceIndex = startIndex;
+                        let charCount = 0;
+                        for (let i = 0; i < textPartsRef.current.length; i++) {
+                          charCount += textPartsRef.current[i].length;
+                          if (charCount >= endCharIndex) {
+                            nextSentenceIndex = i + 1;
+                            break;
+                          }
+                          charCount += 1;
+                        }
+                        
+                        currentIndexRef.current = nextSentenceIndex;
+                        currentPlayingIndexRef.current = nextSentenceIndex;
+                        currentCharIndexRef.current = endCharIndex;
+                        
+                        originalPlayNextPart();
+                      } else {
+                        setIsPlaying(false);
+                        setIsPaused(false);
                       }
                     };
                     
@@ -1471,19 +1778,13 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
                       handleUtteranceError(event, nextUtterance);
                     };
                     
-                    utteranceRef.current = nextUtterance; // 현재 재생 중인 utterance 저장
+                    utteranceRef.current = nextUtterance;
                     
                     try {
-                      // 재생 상태를 먼저 설정 (speak 호출 전)
                       setIsPlaying(true);
                       setIsPaused(false);
                       setError(null);
-                      
                       synthRef.current.speak(nextUtterance);
-                      
-                      if (process.env.NODE_ENV === 'development') {
-                        console.log('속도 변경 후 재생 시작됨 - 인덱스:', nextPartIndex);
-                      }
                     } catch (err) {
                       console.error('속도 변경 시 재생 오류:', err);
                       isRateChangingRef.current = false;
@@ -1492,17 +1793,16 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
                       setError('속도 변경 중 오류가 발생했습니다.');
                     }
                   } else {
-                    // 재생할 부분이 없거나 인덱스가 유효하지 않음
-                    if (process.env.NODE_ENV === 'development') {
-                      console.warn('속도 변경 시 재생할 부분이 없음:', { nextPartIndex, textPartsLength: textPartsRef.current.length, currentPlayingIndex });
-                    }
                     isRateChangingRef.current = false;
                     setIsPlaying(false);
                     setIsPaused(false);
                     setError(null);
                     textPartsRef.current = [];
+                    wordPartsRef.current = [];
                     currentIndexRef.current = 0;
                     currentPlayingIndexRef.current = 0;
+                    currentWordIndexRef.current = 0;
+                    currentCharIndexRef.current = 0;
                     timeoutIdsRef.current = [];
                     playNextPartRef.current = null;
                   }
@@ -1522,8 +1822,9 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
             <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
               <span>0.5x</span>
               <span>1.0x</span>
-              <span>1.5x</span>
               <span>2.0x</span>
+              <span>3.0x</span>
+              <span>4.0x</span>
             </div>
           </div>
         </div>
