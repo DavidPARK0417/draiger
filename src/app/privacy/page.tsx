@@ -113,6 +113,30 @@ export default function PrivacyPage() {
                 <p className="ml-4">
                   서비스 이용 통계 분석 및 서비스 개선을 위해 개인정보를 처리합니다.
                 </p>
+                <p>
+                  <strong className="text-gray-900 dark:text-gray-100">
+                    3. AI 기반 분석 서비스 제공
+                  </strong>
+                </p>
+                <p className="ml-4">
+                  Google Gemini AI를 활용한 분석 기능 제공을 위해 개인정보를 처리합니다.
+                </p>
+                <p>
+                  <strong className="text-gray-900 dark:text-gray-100">
+                    4. 오늘의메뉴 서비스 제공
+                  </strong>
+                </p>
+                <p className="ml-4">
+                  Notion과 연동하여 요리 레시피를 제공하기 위해 개인정보를 처리합니다.
+                </p>
+                <p>
+                  <strong className="text-gray-900 dark:text-gray-100">
+                    5. 인사이트 콘텐츠 서비스 제공
+                  </strong>
+                </p>
+                <p className="ml-4">
+                  Notion과 연동하여 전문 인사이트 콘텐츠를 제공하기 위해 개인정보를 처리합니다.
+                </p>
               </div>
             </div>
 
@@ -145,6 +169,12 @@ export default function PrivacyPage() {
                   </li>
                   <li>
                     서비스 이용 기록: 서비스 제공 종료 시까지 보관
+                  </li>
+                  <li>
+                    AI 서비스 사용: 분석 완료 후 즉시 삭제 (Google 서버에는 Google 정책에 따라 보관될 수 있음)
+                  </li>
+                  <li>
+                    오늘의메뉴 및 인사이트 콘텐츠: Notion 데이터베이스에서 제공되는 콘텐츠로, 서비스 제공 종료 시까지 보관
                   </li>
                 </ul>
               </div>
@@ -183,6 +213,26 @@ export default function PrivacyPage() {
                   <ul className="list-disc list-inside space-y-1 ml-4">
                     <li>IP 주소, 쿠키, 접속 로그, 서비스 이용 기록 등</li>
                   </ul>
+                  <p className="mt-4">
+                    <strong className="text-gray-900 dark:text-gray-100">
+                      AI 서비스 사용 시 수집되는 정보:
+                    </strong>
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>상품명 또는 비즈니스 정보</li>
+                    <li>계산 데이터 (판매가, 원가, 광고비, 전환수 등)</li>
+                    <li>분석 요청 시점의 입력 데이터</li>
+                  </ul>
+                  <p className="mt-4">
+                    <strong className="text-gray-900 dark:text-gray-100">
+                      오늘의메뉴 및 인사이트 콘텐츠 서비스 사용 시:
+                    </strong>
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>레시피 정보 (제목, 내용, 이미지 등)</li>
+                    <li>인사이트 콘텐츠 (제목, 내용, 이미지 등)</li>
+                    <li>콘텐츠 검색 및 조회 기록</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -209,9 +259,37 @@ export default function PrivacyPage() {
                 text-sm sm:text-base
                 text-gray-600 dark:text-gray-400
               ">
+                <li>
+                  <strong className="text-gray-900 dark:text-gray-100">AI 서비스 제공</strong>: Google Gemini API를 통한 AI 분석 서비스 제공을 위해 Google LLC에 데이터가 전송될 수 있습니다. (사용자가 AI 기능을 사용하는 경우)
+                </li>
+                <li>
+                  <strong className="text-gray-900 dark:text-gray-100">콘텐츠 서비스 제공</strong>: Notion API를 통한 콘텐츠 서비스 제공을 위해 Notion Labs Inc.에 데이터가 전송될 수 있습니다. (오늘의메뉴 및 인사이트 콘텐츠 조회 시)
+                </li>
                 <li>이용자가 사전에 동의한 경우</li>
                 <li>법령의 규정에 의거하거나, 수사 목적으로 법령에 정해진 절차와 방법에 따라 수사기관의 요구가 있는 경우</li>
               </ul>
+              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  Google Gemini API 데이터 전송에 대한 안내:
+                </p>
+                <ul className="list-disc list-inside space-y-1 ml-4 text-sm text-gray-600 dark:text-gray-400">
+                  <li>전송되는 데이터: 상품명, 비즈니스 정보, 계산 데이터 등 (개인을 식별할 수 있는 정보는 제외)</li>
+                  <li>전송 목적: AI 기반 분석 서비스 제공</li>
+                  <li>보관 기간: Google 서버에는 Google의 개인정보 처리방침에 따라 보관될 수 있음</li>
+                  <li>거부 권리: AI 기능 사용을 거부할 수 있으며, 이 경우 해당 기능을 사용할 수 없습니다</li>
+                </ul>
+              </div>
+              <div className="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  Notion API 데이터 전송에 대한 안내:
+                </p>
+                <ul className="list-disc list-inside space-y-1 ml-4 text-sm text-gray-600 dark:text-gray-400">
+                  <li>전송되는 데이터: 콘텐츠 조회 요청, 검색 쿼리 등 (개인을 식별할 수 있는 정보는 제외)</li>
+                  <li>전송 목적: 오늘의메뉴 및 인사이트 콘텐츠 서비스 제공</li>
+                  <li>보관 기간: Notion 서버에는 Notion의 개인정보 처리방침에 따라 보관될 수 있음</li>
+                  <li>거부 권리: 콘텐츠 서비스 사용을 거부할 수 있으며, 이 경우 해당 기능을 사용할 수 없습니다</li>
+                </ul>
+              </div>
             </div>
 
             <div>
@@ -385,6 +463,73 @@ export default function PrivacyPage() {
                 <li>기술적 조치: 개인정보처리시스템 등의 접근권한 관리, 접근통제시스템 설치, 고유식별정보 등의 암호화, 보안프로그램 설치</li>
                 <li>물리적 조치: 전산실, 자료보관실 등의 접근통제</li>
               </ul>
+            </div>
+
+            <div id="ai">
+              <h2 className="
+                text-lg sm:text-xl
+                font-semibold
+                text-gray-900 dark:text-gray-100
+                mb-3
+              ">
+                제11조 (AI 서비스 사용 및 개인정보 처리)
+              </h2>
+              <div className="
+                text-sm sm:text-base
+                text-gray-600 dark:text-gray-400
+                leading-relaxed
+                space-y-3
+              ">
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    1. AI 서비스 제공
+                  </p>
+                  <p className="ml-4">
+                    서비스는 Google Gemini AI를 활용하여 다음과 같은 기능을 제공합니다:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-8 mt-2">
+                    <li>상품 정보 자동 추정</li>
+                    <li>광고 성과 분석</li>
+                    <li>ROI 정보 추정</li>
+                    <li>수익성 진단 분석</li>
+                    <li>키워드 추천</li>
+                    <li>예산 계산 분석</li>
+                    <li>전환율 분석</li>
+                    <li>손익분기점 분석</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    2. AI 서비스 사용 시 개인정보 처리
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li><strong className="text-gray-900 dark:text-gray-100">처리 항목</strong>: 상품명, 비즈니스 정보, 계산 데이터 등 (개인을 식별할 수 있는 정보는 제외)</li>
+                    <li><strong className="text-gray-900 dark:text-gray-100">처리 목적</strong>: AI 기반 분석 서비스 제공</li>
+                    <li><strong className="text-gray-900 dark:text-gray-100">제3자 제공</strong>: Google Gemini API (Google LLC)</li>
+                    <li><strong className="text-gray-900 dark:text-gray-100">보관 기간</strong>: 분석 완료 후 즉시 삭제 (Google 서버에는 Google 정책에 따라 보관될 수 있음)</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    3. 사용자 권리
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>AI 기능 사용 거부 권리</li>
+                    <li>AI 분석 결과에 대한 설명 요구 권리</li>
+                    <li>개인정보 처리 정지 요구 권리</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    4. AI 생성 콘텐츠 안내
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>AI가 생성한 분석 결과는 참고용으로만 활용하시기 바랍니다.</li>
+                    <li>AI 분석 결과의 정확성을 보장하지 않으며, 실제 의사결정 시에는 추가 검증이 필요할 수 있습니다.</li>
+                    <li>AI 분석 결과를 기반으로 한 의사결정에 대한 책임은 사용자에게 있습니다.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
             <div>

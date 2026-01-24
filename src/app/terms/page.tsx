@@ -176,6 +176,7 @@ export default function TermsPage() {
                   <li>마케팅 도구 제공</li>
                   <li>유용한 도구 제공</li>
                   <li>인사이트 콘텐츠 제공</li>
+                  <li>오늘의메뉴 레시피 제공</li>
                   <li>기타 서비스가 정하는 업무</li>
                 </ul>
                 <p>
@@ -261,7 +262,62 @@ export default function TermsPage() {
                 text-gray-900 dark:text-gray-100
                 mb-3
               ">
-                제8조 (면책조항)
+                제8조 (AI 서비스 이용)
+              </h2>
+              <div className="
+                text-sm sm:text-base
+                text-gray-600 dark:text-gray-400
+                leading-relaxed
+                space-y-3
+              ">
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    1. AI 서비스 제공
+                  </p>
+                  <p className="ml-4">
+                    본 서비스는 Google Gemini AI를 활용한 분석 기능을 제공합니다.
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    2. AI 생성 콘텐츠의 성격
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>AI가 생성한 분석 결과는 참고용으로만 활용하시기 바랍니다.</li>
+                    <li>AI 분석 결과의 정확성을 보장하지 않으며, 실제 의사결정 시에는 추가 검증이 필요할 수 있습니다.</li>
+                    <li>AI 분석 결과는 시장 데이터를 기반으로 한 추정치이며, 실제 결과와 다를 수 있습니다.</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    3. 사용자 책임
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>AI 분석 결과를 기반으로 한 의사결정에 대한 책임은 사용자에게 있습니다.</li>
+                    <li>AI 분석 결과로 인한 손해에 대해 서비스는 책임을 지지 않습니다.</li>
+                    <li>AI 기능 사용 시 입력하신 정보는 Google Gemini API로 전송될 수 있으며, 이에 동의한 것으로 간주됩니다.</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    4. AI 기능 사용 거부
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>사용자는 AI 기능 사용을 거부할 수 있으며, 이 경우 해당 기능을 사용할 수 없습니다.</li>
+                    <li>AI 기능 사용 거부 시에도 서비스의 다른 기능은 정상적으로 이용할 수 있습니다.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="
+                text-lg sm:text-xl
+                font-semibold
+                text-gray-900 dark:text-gray-100
+                mb-3
+              ">
+                제9조 (면책조항)
               </h2>
               <div className="
                 text-sm sm:text-base
@@ -281,6 +337,10 @@ export default function TermsPage() {
                   3. 서비스는 이용자가 서비스를 이용하여 기대하는 수익을 상실한 것에
                   대하여 책임을 지지 않으며, 그 밖의 서비스를 통하여 얻은 자료로 인한
                   손해에 관하여 책임을 지지 않습니다.
+                </p>
+                <p>
+                  4. 서비스는 AI 분석 결과의 정확성, 완전성, 신뢰성을 보장하지 않으며,
+                  AI 분석 결과로 인한 손해에 대해 책임을 지지 않습니다.
                 </p>
               </div>
             </div>
