@@ -107,9 +107,18 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
                 />
               </div>
             )}
-            <p className="text-base sm:text-lg text-gray-600 dark:text-white/50 font-sans italic leading-relaxed">
-              {recipe.metaDescription}
-            </p>
+            <div className="
+              border-l-4 border-teal-500 dark:border-cyan-400
+              bg-gradient-to-r from-teal-50/80 via-cyan-50/50 to-sky-50/80
+              dark:from-teal-900/20 dark:via-cyan-900/20 dark:to-sky-900/20
+              pl-6 pr-6 py-5
+              rounded-r-lg
+              my-6 sm:my-8
+            ">
+              <p className="text-base sm:text-lg lg:text-xl text-teal-800 dark:text-cyan-200 font-sans leading-relaxed">
+                {recipe.metaDescription}
+              </p>
+            </div>
           </header>
 
           <div className="max-w-none">
