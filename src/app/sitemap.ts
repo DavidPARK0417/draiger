@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getPublishedPosts } from '@/lib/notion';
+import { getPublishedRecipesPaginated } from '@/lib/notion-recipe';
 import { getBaseUrl } from '@/lib/site';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -17,6 +18,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   } catch (error) {
     console.error('Error fetching insight posts for sitemap:', error);
+  }
+
+  // 오늘의메뉴 레시피 가져오기
+  let menuPosts: MetadataRoute.Sitemap = [];
+  try {
+    // 모든 레시피를 가져오기 위해 큰 페이지 사이즈 사용
+    const recipesData = await getPublishedRecipesPaginated(1, 1000);
+    menuPosts = recipesData.recipes.map((recipe) => ({
+      url: `${baseUrl}/menu/${recipe.slug}`,
+      lastModified: recipe.date ? new Date(recipe.date) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+  } catch (error) {
+    console.error('Error fetching menu recipes for sitemap:', error);
   }
 
   // 카테고리 페이지 추가
@@ -119,6 +135,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
     {
+      url: `${baseUrl}/menu`,
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/privacy`,
       priority: 0.5,
     },
@@ -149,6 +169,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...categoryPages,
     ...insightPosts,
+    ...menuPosts,
   ];
 }
 

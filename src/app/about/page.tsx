@@ -292,6 +292,41 @@ export default function AboutPage() {
                   ✨ 모든 콘텐츠는 음성 읽기 기능을 지원하여 언제 어디서나 학습할 수 있습니다.
                 </p>
               </div>
+
+              <div className="
+                bg-gray-50 dark:bg-gray-700/50
+                p-5 rounded-lg
+                border border-gray-100 dark:border-gray-700
+              ">
+                <h3 className="
+                  text-base sm:text-lg
+                  font-semibold
+                  text-gray-900 dark:text-gray-100
+                  mb-3
+                ">
+                  🍽️ 오늘의메뉴
+                </h3>
+                <p className="mb-3">
+                  Notion과 연동하여 <strong className="text-gray-900 dark:text-gray-100">매일 자동으로 업데이트</strong>되는 
+                  요리 레시피를 제공합니다. 다양한 요리 방법과 재료 정보를 통해 
+                  일상의 식사 준비를 더욱 쉽고 즐겁게 만들어드립니다.
+                </p>
+                <ul className="
+                  list-disc list-inside
+                  space-y-2
+                  text-sm
+                  text-gray-700 dark:text-gray-300
+                  ml-2
+                ">
+                  <li><strong>다양한 요리 레시피</strong>: 일상 식사부터 특별한 날을 위한 요리까지</li>
+                  <li><strong>상세한 재료 정보</strong>: 필요한 재료와 양을 명확하게 안내</li>
+                  <li><strong>단계별 요리 가이드</strong>: 초보자도 따라할 수 있는 상세한 요리 방법</li>
+                  <li><strong>검색 기능</strong>: 원하는 메뉴를 빠르게 찾을 수 있는 검색 기능 제공</li>
+                </ul>
+                <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                  ✨ 모든 레시피는 Notion 데이터베이스와 연동되어 자동으로 업데이트됩니다.
+                </p>
+              </div>
             </div>
           </section>
 
