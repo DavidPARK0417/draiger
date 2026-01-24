@@ -172,9 +172,18 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
                   />
                 </div>
               )}
-              <p className="text-base sm:text-lg text-gray-600 dark:text-white/50 font-sans italic leading-relaxed">
-                {post.metaDescription}
-              </p>
+              <div className="
+                border-l-4 border-emerald-500 dark:border-emerald-400
+                bg-gradient-to-r from-emerald-50/80 via-emerald-50/50 to-emerald-50/80
+                dark:from-emerald-900/20 dark:via-emerald-900/20 dark:to-emerald-900/20
+                pl-6 pr-6 py-5
+                rounded-r-lg
+                my-6 sm:my-8
+              ">
+                <p className="text-base sm:text-lg lg:text-xl text-emerald-800 dark:text-emerald-200 font-sans leading-relaxed">
+                  {post.metaDescription}
+                </p>
+              </div>
             </header>
 
             {/* 카카오 애드핏 광고 */}
