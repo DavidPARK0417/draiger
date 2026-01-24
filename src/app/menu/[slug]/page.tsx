@@ -64,6 +64,13 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
       .replace(/\s+(\*\*육수\*\*:)/g, '\n\n$1');
   }
   
+  // 재료 섹션의 꺾쇠괄호 형식 (<돼지고기 양념>, <고추잡채 소스>, <곁들임> 등) 앞에 줄바꿈 2개 추가 및 진하게 표시
+  // 재료 섹션에서만 적용되도록 조건 추가 (오늘의 재료, 재료 등 키워드가 있는 경우)
+  if (content.includes('오늘의 재료') || content.includes('재료') || content.includes('**재료**')) {
+    // 꺾쇠괄호로 감싸진 패턴을 찾아서 앞의 공백을 줄바꿈 2개로 교체하고, 진하게 표시를 위해 **로 감싸기
+    content = content.replace(/\s+(<[^>]+>)/g, '\n\n**$1**');
+  }
+  
   // 공지사항 추출 및 본문에서 제거
   let noticeContent = '';
   
