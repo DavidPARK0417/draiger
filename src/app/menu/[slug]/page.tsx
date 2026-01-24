@@ -56,6 +56,14 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
   const bodyContent = await getRecipeContent(recipe.id);
   let content = recipe.blogPost || bodyContent;
   
+  // 재료 섹션의 양념, 육수 등을 별도 줄로 분리
+  // **양념**: 패턴 앞에 줄바꿈 2개 추가
+  if (content.includes('**양념**') || content.includes('**육수**')) {
+    content = content
+      .replace(/\s+(\*\*양념\*\*:)/g, '\n\n$1')
+      .replace(/\s+(\*\*육수\*\*:)/g, '\n\n$1');
+  }
+  
   // 공지사항 추출 및 본문에서 제거
   let noticeContent = '';
   
@@ -107,6 +115,7 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
           <div className="max-w-none">
             <ReactMarkdown
               components={{
+                br: () => <br className="my-2" />,
                 p: ({ children, node }) => {
                   const hasImageInNode = node?.children?.some(
                     (child: { type: string; tagName?: string }) =>
@@ -185,25 +194,52 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
                     textContent.includes('난이도:') ||
                     textContent.includes('요리 시간:');
 
-                  // 오늘의 재료 섹션 감지 (더 포괄적인 패턴)
-                  // 🛒 이모지가 포함되어 있거나 "재료"와 함께 "오늘"이 포함된 경우
+                  // 오늘의 재료 섹션 제목 감지
                   const hasShoppingCartEmoji = textContent.includes('🛒');
                   const hasIngredients = textContent.includes('재료') || textContent.includes('Ingredients');
                   const hasToday = textContent.includes('오늘') || textContent.includes('Today');
                   
-                  const isIngredientsSection = 
+                  const isIngredientsSectionTitle = 
                     (hasShoppingCartEmoji && hasIngredients) ||
                     (hasToday && hasIngredients) ||
                     textContent.includes('오늘의 재료') ||
                     textContent.includes("Today's Ingredients");
 
-                  // 더 확실한 여백 적용을 위해 wrapper div 사용 (더 큰 여백)
-                  if (isIngredientsSection) {
+                  // 재료 내용 감지: **양념**, **육수** 같은 패턴이 있거나 "고추가루", "국간장" 등이 포함된 경우
+                  const hasIngredientsContent = 
+                    textContent.includes('양념:') || 
+                    textContent.includes('육수:') ||
+                    (textContent.includes('고추가루') && textContent.includes('국간장')) ||
+                    (textContent.includes('소고기') && (textContent.includes('고사리') || textContent.includes('숙주')));
+
+                  // 재료 섹션: 더 큰 글자 크기와 줄바꿈 적용
+                  if (isIngredientsSectionTitle || hasIngredientsContent) {
+                    // children 배열을 순회하면서 strong 태그 앞뒤에 줄바꿈 추가
+                    const childrenArray = React.Children.toArray(children);
+                    const processedChildren: React.ReactNode[] = [];
+                    let previousWasStrong = false;
+
+                    childrenArray.forEach((child, index) => {
+                      // strong 태그인 경우
+                      if (React.isValidElement(child) && child.type === 'strong') {
+                        // 첫 번째가 아니고 이전이 strong이 아니었으면 앞에 줄바꿈 2개 추가
+                        if (index > 0 && !previousWasStrong) {
+                          processedChildren.push(<br key={`br1-${index}`} />);
+                          processedChildren.push(<br key={`br2-${index}`} />);
+                        }
+                        processedChildren.push(child);
+                        previousWasStrong = true;
+                      } else {
+                        processedChildren.push(child);
+                        previousWasStrong = false;
+                      }
+                    });
+
                     return (
-                      <div className="mt-12 mb-6" style={{ marginTop: '2.5rem' }}>
-                        <p className="text-base sm:text-lg text-gray-700 dark:text-white/90 leading-relaxed">
-                          {children}
-                        </p>
+                      <div className="mt-12 mb-8" style={{ marginTop: '2.5rem' }}>
+                        <div className="text-base sm:text-lg lg:text-xl text-gray-700 dark:text-white/90 leading-relaxed">
+                          {processedChildren}
+                        </div>
                       </div>
                     );
                   }
