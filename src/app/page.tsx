@@ -14,11 +14,15 @@ import { getBaseUrl } from "@/lib/site";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Draiger : 데일리 툴킷 - 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
-  description: '마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.',
+  title: '드라이거 (Draiger) - 데일리 툴킷 | 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
+  description: '드라이거(Draiger)는 마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트되는 데일리 툴킷입니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 드라이거에서 한 번에 만나보세요.',
   keywords: [
     'Draiger',
+    'draiger',
+    'DRAIGER',
+    '드라이거',
     '데일리 툴킷',
+    'Daily Toolkit',
     '마케팅 도구',
     'ROI 계산기',
     '광고 예산 계산기',
@@ -37,15 +41,15 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Draiger : 데일리 툴킷 - 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
-    description: '마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.',
+    title: '드라이거 (Draiger) - 데일리 툴킷 | 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
+    description: '드라이거(Draiger)는 마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트되는 데일리 툴킷입니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 드라이거에서 한 번에 만나보세요.',
     url: '/',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Draiger : 데일리 툴킷 - 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
-    description: '마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.',
+    title: '드라이거 (Draiger) - 데일리 툴킷 | 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
+    description: '드라이거(Draiger)는 마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트되는 데일리 툴킷입니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 드라이거에서 한 번에 만나보세요.',
   },
 };
 
@@ -184,7 +188,8 @@ export default async function Home() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": "Draiger : 데일리 툴킷",
+    "name": "드라이거 (Draiger) - 데일리 툴킷",
+    "alternateName": ["드라이거", "Draiger", "DRAIGER", "draiger", "데일리 툴킷", "Daily Toolkit"],
     "description": "매일 쌓이는 지식과 꼭 필요한 스마트 도구",
     "url": baseUrl,
     "mainEntity": {
@@ -245,6 +250,11 @@ export default async function Home() {
       <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
         <GrainOverlay />
         <main className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          {/* SEO용 숨김 H1 태그 (화면에는 보이지 않지만 검색엔진은 읽음) */}
+          <h1 className="sr-only">
+            드라이거 (Draiger) - 매일 쌓이는 지식과 꼭 필요한 스마트 도구를 제공하는 데일리 툴킷
+          </h1>
+
           {!hasContent ? (
             <div className="text-center py-20">
               <p className="text-gray-600 dark:text-gray-400 text-lg">

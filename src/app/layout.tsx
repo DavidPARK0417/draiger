@@ -12,13 +12,17 @@ import { getBaseUrl } from "@/lib/site";
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseUrl()),
   title: {
-    default: "Draiger : 데일리 툴킷 - 매일 쌓이는 지식과 꼭 필요한 스마트 도구",
-    template: "%s | Draiger : 데일리 툴킷",
+    default: "드라이거 (Draiger) - 데일리 툴킷 | 매일 쌓이는 지식과 꼭 필요한 스마트 도구",
+    template: "%s | 드라이거 (Draiger)",
   },
-  description: "마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.",
+  description: "드라이거(Draiger)는 마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트되는 데일리 툴킷입니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 드라이거에서 한 번에 만나보세요.",
   keywords: [
     "Draiger",
+    "draiger",
+    "DRAIGER",
+    "드라이거",
     "데일리 툴킷",
+    "Daily Toolkit",
     "마케팅 도구",
     "ROI 계산기",
     "광고 예산 계산기",
@@ -43,9 +47,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     url: "/",
-    siteName: "Draiger : 데일리 툴킷",
-    title: "Draiger : 데일리 툴킷 - 매일 쌓이는 지식과 꼭 필요한 스마트 도구",
-    description: "마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.",
+    siteName: "드라이거 (Draiger) - 데일리 툴킷",
+    title: "드라이거 (Draiger) - 데일리 툴킷 | 매일 쌓이는 지식과 꼭 필요한 스마트 도구",
+    description: "드라이거(Draiger)는 마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트되는 데일리 툴킷입니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 드라이거에서 한 번에 만나보세요.",
     images: [
       {
         url: "/adtoolkit_logo.jpg",
@@ -57,8 +61,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Draiger : 데일리 툴킷 - 매일 쌓이는 지식과 꼭 필요한 스마트 도구",
-    description: "마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.",
+    title: "드라이거 (Draiger) - 데일리 툴킷 | 매일 쌓이는 지식과 꼭 필요한 스마트 도구",
+    description: "드라이거(Draiger)는 마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트되는 데일리 툴킷입니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 드라이거에서 한 번에 만나보세요.",
     images: ["/adtoolkit_logo.jpg"],
   },
   robots: {
@@ -148,9 +152,10 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "name": "Draiger : 데일리 툴킷",
+              "name": "드라이거 (Draiger) - 데일리 툴킷",
+              "alternateName": ["드라이거", "Draiger", "DRAIGER", "draiger", "데일리 툴킷", "Daily Toolkit"],
               "url": getBaseUrl(),
-              "description": "마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트됩니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 데일리 툴킷(Draiger)에서 한 번에 만나보세요.",
+              "description": "드라이거(Draiger)는 마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트되는 데일리 툴킷입니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 드라이거에서 한 번에 만나보세요.",
               "author": {
                 "@type": "Person",
                 "name": "박용범",

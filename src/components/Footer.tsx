@@ -66,11 +66,12 @@ export default function Footer() {
                 active:scale-95
                 hidden lg:block
               "
+              aria-label="드라이거 홈으로 이동"
             >
               {/* 노트북/데스크탑 모드 (1024px 이상): DRAIGER_width.jpeg 사용 */}
               <Image
                 src="/DRAIGER_width.jpeg"
-                alt="DRAIGER"
+                alt="드라이거 (Draiger) 로고"
                 width={180}
                 height={50}
                 className="h-12 lg:h-16 w-auto object-contain"
@@ -90,7 +91,7 @@ export default function Footer() {
                 leading-tight
                 font-normal
               ">
-                매일 쌓이는 지식과 꼭 필요한 스마트 도구를 제공하는<br />
+                드라이거 (Draiger) - 매일 쌓이는 지식과 꼭 필요한 스마트 도구를 제공하는<br />
                 데일리 툴킷입니다.
               </p>
               <div className="space-y-1">
@@ -117,7 +118,7 @@ export default function Footer() {
                   text-gray-500 dark:text-gray-500
                   font-light
                 ">
-                  © 2026 Draiger : 데일리 툴킷. All rights reserved.
+                  © 2026 드라이거 (Draiger). All rights reserved.
                 </p>
               </div>
             </div>
@@ -185,7 +186,7 @@ export default function Footer() {
             text-gray-500 dark:text-gray-500
             font-light
           ">
-            © 2026 Draiger : 데일리 툴킷. All rights reserved.
+            © 2026 드라이거 (Draiger). All rights reserved.
           </p>
         </div>
       </div>

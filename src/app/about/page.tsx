@@ -3,11 +3,15 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "사이트 소개",
-  description: "Draiger : 데일리 툴킷은 디지털 마케팅 전문가와 사업자를 위한 종합 비즈니스 솔루션 플랫폼입니다. AI 기반 마케팅 분석 도구, 실용적인 업무 도구, 매일 업데이트되는 전문 인사이트를 한 곳에서 제공합니다.",
+  description: "드라이거 (Draiger)는 디지털 마케팅 전문가와 사업자를 위한 종합 비즈니스 솔루션 플랫폼입니다. AI 기반 마케팅 분석 도구, 실용적인 업무 도구, 매일 업데이트되는 전문 인사이트를 한 곳에서 제공합니다.",
   keywords: [
     "사이트 소개",
     "Draiger",
+    "draiger",
+    "DRAIGER",
+    "드라이거",
     "데일리 툴킷",
+    "Daily Toolkit",
     "마케팅 도구",
     "인사이트",
     "ROI 계산기",
@@ -21,15 +25,15 @@ export const metadata: Metadata = {
     canonical: "/about",
   },
   openGraph: {
-    title: "사이트 소개 - Draiger : 데일리 툴킷",
-    description: "디지털 마케팅 전문가와 사업자를 위한 종합 비즈니스 솔루션 플랫폼. AI 기반 분석 도구와 전문 인사이트를 제공합니다.",
+    title: "사이트 소개 - 드라이거 (Draiger)",
+    description: "드라이거(Draiger)는 디지털 마케팅 전문가와 사업자를 위한 종합 비즈니스 솔루션 플랫폼입니다. AI 기반 분석 도구와 전문 인사이트를 제공합니다.",
     type: "website",
     url: "/about",
   },
   twitter: {
     card: "summary",
-    title: "사이트 소개 - Draiger : 데일리 툴킷",
-    description: "디지털 마케팅 전문가와 사업자를 위한 종합 비즈니스 솔루션 플랫폼. AI 기반 분석 도구와 전문 인사이트를 제공합니다.",
+    title: "사이트 소개 - 드라이거 (Draiger)",
+    description: "드라이거(Draiger)는 디지털 마케팅 전문가와 사업자를 위한 종합 비즈니스 솔루션 플랫폼입니다. AI 기반 분석 도구와 전문 인사이트를 제공합니다.",
   },
 };
 
@@ -72,7 +76,7 @@ export default function AboutPage() {
               font-semibold
               text-gray-900 dark:text-gray-100
             ">
-              Draiger : 데일리 툴킷이란?
+              드라이거 (Draiger)란?
             </h2>
             <div className="
               text-sm sm:text-base
@@ -81,7 +85,7 @@ export default function AboutPage() {
               space-y-4
             ">
               <p>
-                <strong className="text-gray-900 dark:text-gray-100">Draiger : 데일리 툴킷</strong>은 
+                <strong className="text-gray-900 dark:text-gray-100">드라이거 (Draiger)</strong>는 
                 디지털 마케팅 전문가와 사업자를 위한 종합 비즈니스 솔루션 플랫폼입니다. 
                 복잡한 마케팅 데이터 분석부터 일상 업무에 필요한 실용적인 도구까지, 
                 전문적인 지식과 실전 도구를 한 곳에서 제공하여 더 빠르고 정확한 의사결정을 지원합니다.
@@ -346,7 +350,7 @@ export default function AboutPage() {
               space-y-4
             ">
               <p>
-                Draiger : 데일리 툴킷은 단순한 도구 제공을 넘어, 
+                드라이거 (Draiger)는 단순한 도구 제공을 넘어, 
                 <strong className="text-gray-900 dark:text-gray-100"> 데이터 기반 의사결정 문화</strong>를 
                 확산하고자 합니다. 복잡한 분석 과정을 간소화하고, 
                 전문 지식을 쉽게 접근할 수 있도록 하여 모든 사업자가 
@@ -376,7 +380,7 @@ export default function AboutPage() {
               space-y-4
             ">
               <p>
-                Draiger : 데일리 툴킷은 사용자와 함께 성장하는 플랫폼입니다. 
+                드라이거 (Draiger)는 사용자와 함께 성장하는 플랫폼입니다. 
                 궁금한 점, 개선 제안, 새로운 기능 요청 등 어떤 의견이든 환영합니다.
               </p>
               <p>
