@@ -77,6 +77,7 @@ export interface Recipe {
   blogPost?: string; // 선택적
   difficulty?: string;
   cookingTime?: string | number;
+  servingSize?: number; // 인분
   category?: string;
   date?: string;
   tags?: string[];
@@ -764,7 +765,7 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
             },
           ],
           page_size: 100, // 한 번에 100개씩 가져오기
-          start_cursor: cursor,
+          start_cursor: cursor || undefined,
         });
       } catch (filterError) {
         // Published 속성이 없으면 필터 없이 가져오기
@@ -779,7 +780,7 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
               },
             ],
             page_size: 100,
-            start_cursor: cursor,
+            start_cursor: cursor || undefined,
           });
         } else {
           throw filterError;
@@ -817,8 +818,9 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
             slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
             description,
             metaDescription: page.properties.metaDescription?.rich_text?.[0]?.plain_text || description,
+            published: true, // getAllPublishedRecipes는 발행된 레시피만 가져오므로 true
             blogPost: blogPostContent,
-            date: page.properties.date?.date?.start || null,
+            date: page.properties.date?.date?.start || undefined,
             tags: page.properties.tags?.multi_select?.map((tag: { name: string }) => tag.name) || [],
             difficulty: page.properties.difficulty?.select?.name,
             cookingTime: typeof page.properties.cookingtime === 'number' ? page.properties.cookingtime : undefined,
@@ -948,6 +950,14 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
         cookingTime = page.properties.cookingtime.number;
       }
     }
+
+    // servingsize 추출
+    let servingSize: number | undefined = undefined;
+    if (page.properties.servingsize && typeof page.properties.servingsize === 'object' && page.properties.servingsize !== null) {
+      if ('number' in page.properties.servingsize && typeof page.properties.servingsize.number === 'number') {
+        servingSize = page.properties.servingsize.number;
+      }
+    }
     
     const recipe = {
       id: page.id,
@@ -959,6 +969,7 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
       blogPost: blogPostContent || undefined,
       difficulty,
       cookingTime,
+      servingSize,
       category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
       date: page.properties.date?.date?.start || undefined,
       tags: page.properties.tags?.multi_select?.map((tag) => tag.name) || undefined,
