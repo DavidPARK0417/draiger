@@ -724,6 +724,126 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
 }
 
 /**
+ * Sitemap 전용: 모든 발행된 레시피를 가져옵니다 (페이지네이션 없이)
+ * @returns 모든 발행된 레시피 배열
+ */
+export async function getAllPublishedRecipes(): Promise<Recipe[]> {
+  const databaseId = process.env.NOTION_RECIPE_DATABASE_ID;
+  const publishedPropertyName = process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
+
+  if (!databaseId) {
+    throw new Error(
+      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables."
+    );
+  }
+
+  try {
+    let allRecipes: Recipe[] = [];
+    let cursor: string | null | undefined = undefined;
+    let hasMore = true;
+    let useFilter = true;
+
+    // 모든 페이지를 가져올 때까지 반복
+    while (hasMore) {
+      let data;
+      
+      try {
+        // Published 속성이 있는 경우 필터 사용
+        data = await queryNotionRecipeDatabase({
+          database_id: databaseId,
+          filter: {
+            property: publishedPropertyName,
+            checkbox: {
+              equals: true,
+            },
+          },
+          sorts: [
+            {
+              timestamp: "created_time",
+              direction: "descending",
+            },
+          ],
+          page_size: 100, // 한 번에 100개씩 가져오기
+          start_cursor: cursor,
+        });
+      } catch (filterError) {
+        // Published 속성이 없으면 필터 없이 가져오기
+        if (useFilter && filterError instanceof Error && filterError.message.includes("Could not find property")) {
+          useFilter = false;
+          data = await queryNotionRecipeDatabase({
+            database_id: databaseId,
+            sorts: [
+              {
+                timestamp: "created_time",
+                direction: "descending",
+              },
+            ],
+            page_size: 100,
+            start_cursor: cursor,
+          });
+        } else {
+          throw filterError;
+        }
+      }
+
+      // 결과를 Recipe 타입으로 변환
+      const recipes: Recipe[] = await Promise.all(
+        data.results.map(async (page: NotionPage) => {
+          const blogPostContent = page.properties.blogPost?.rich_text
+            ? page.properties.blogPost.rich_text
+                .map((rt: NotionRichText) => rt.plain_text)
+                .join("")
+            : "";
+
+          const description = page.properties.description?.rich_text?.[0]?.plain_text 
+            || page.properties.metaDescription?.rich_text?.[0]?.plain_text 
+            || "";
+
+          // image 속성에서 이미지 URL 추출
+          let featuredImage: string | undefined = undefined;
+          
+          if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'files' in page.properties.image && Array.isArray(page.properties.image.files)) {
+            const imageFile = page.properties.image.files[0];
+            if (imageFile?.file?.url) {
+              featuredImage = imageFile.file.url;
+            }
+          } else if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'url' in page.properties.image && typeof page.properties.image.url === 'string') {
+            featuredImage = page.properties.image.url;
+          }
+
+          return {
+            id: page.id,
+            title: page.properties.title?.title?.[0]?.plain_text || "Untitled",
+            slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+            description,
+            metaDescription: page.properties.metaDescription?.rich_text?.[0]?.plain_text || description,
+            blogPost: blogPostContent,
+            date: page.properties.date?.date?.start || null,
+            tags: page.properties.tags?.multi_select?.map((tag: { name: string }) => tag.name) || [],
+            difficulty: page.properties.difficulty?.select?.name,
+            cookingTime: typeof page.properties.cookingtime === 'number' ? page.properties.cookingtime : undefined,
+            servingSize: typeof page.properties.servingsize === 'number' ? page.properties.servingsize : undefined,
+            featuredImage,
+            category: page.properties.category?.rich_text?.[0]?.plain_text,
+          };
+        })
+      );
+
+      allRecipes = [...allRecipes, ...recipes];
+      
+      // 다음 페이지가 있는지 확인
+      hasMore = data.has_more;
+      cursor = data.next_cursor;
+    }
+
+    return allRecipes;
+  } catch (error) {
+    console.error("레시피 조회 실패:", error);
+    return [];
+  }
+}
+
+/**
  * Slug로 특정 레시피를 가져옵니다
  */
 export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {

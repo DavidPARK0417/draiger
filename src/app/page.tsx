@@ -8,6 +8,7 @@ import GrainOverlay from "@/components/GrainOverlay";
 import Link from "next/link";
 import { UtensilsCrossed, Lightbulb, ArrowRight } from "lucide-react";
 import type { Metadata } from 'next';
+import { getBaseUrl } from "@/lib/site";
 
 // ISR 설정: 60초마다 재검증 (더 빠른 업데이트를 원하면 30초로 조정 가능)
 export const revalidate = 60;
@@ -177,9 +178,70 @@ export default async function Home() {
   }
 
   const hasContent = recipes.length > 0 || posts.length > 0;
+  const baseUrl = getBaseUrl();
+
+  // 구조화된 데이터 (JSON-LD) 생성
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Draiger : 데일리 툴킷",
+    "description": "매일 쌓이는 지식과 꼭 필요한 스마트 도구",
+    "url": baseUrl,
+    "mainEntity": {
+      "@type": "ItemList",
+      "name": "최신 콘텐츠",
+      "description": "오늘의 메뉴와 인사이트 최신 글",
+      "numberOfItems": recipes.length + posts.length,
+      "itemListElement": [
+        ...recipes.map((recipe, index) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": {
+            "@type": "Recipe",
+            "name": recipe.title,
+            "url": `${baseUrl}/menu/${recipe.slug}`,
+            "description": recipe.metaDescription || recipe.description,
+            ...(recipe.featuredImage && { "image": recipe.featuredImage }),
+            ...(recipe.difficulty && { "recipeCategory": recipe.difficulty }),
+            ...(recipe.cookingTime && { "totalTime": `PT${recipe.cookingTime}M` }),
+          }
+        })),
+        ...posts.map((post, index) => ({
+          "@type": "ListItem",
+          "position": recipes.length + index + 1,
+          "item": {
+            "@type": "Article",
+            "headline": post.title,
+            "url": `${baseUrl}/insight/${post.slug}`,
+            "description": post.metaDescription,
+            ...(post.featuredImage && { "image": post.featuredImage }),
+            ...(post.category && { "articleSection": post.category }),
+            "author": {
+              "@type": "Person",
+              "name": "박용범"
+            },
+            "publisher": {
+              "@type": "Person",
+              "name": "박용범"
+            }
+          }
+        }))
+      ]
+    }
+  };
 
   return (
     <SmoothScroll>
+      {/* 구조화된 데이터 (JSON-LD) - SEO 최적화 */}
+      {hasContent && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData),
+          }}
+        />
+      )}
+      
       <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
         <GrainOverlay />
         <main className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">

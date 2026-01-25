@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getPublishedPosts } from '@/lib/notion';
-import { getPublishedRecipesPaginated } from '@/lib/notion-recipe';
+import { getAllPublishedRecipes } from '@/lib/notion-recipe';
 import { getBaseUrl } from '@/lib/site';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -23,9 +23,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 오늘의메뉴 레시피 가져오기
   let menuPosts: MetadataRoute.Sitemap = [];
   try {
-    // 모든 레시피를 가져오기 위해 큰 페이지 사이즈 사용
-    const recipesData = await getPublishedRecipesPaginated(1, 1000);
-    menuPosts = recipesData.recipes.map((recipe) => ({
+    // 모든 레시피를 페이지네이션 없이 가져오기
+    const recipes = await getAllPublishedRecipes();
+    menuPosts = recipes.map((recipe) => ({
       url: `${baseUrl}/menu/${recipe.slug}`,
       lastModified: recipe.date ? new Date(recipe.date) : new Date(),
       changeFrequency: 'weekly' as const,

@@ -6,6 +6,7 @@ import GrainOverlay from "@/components/GrainOverlay";
 import FormattedDate from "@/components/FormattedDate";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { getBaseUrl } from "@/lib/site";
 
 export const revalidate = 60;
 export const dynamicParams = true;
@@ -53,6 +54,8 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
     notFound();
   }
 
+  const baseUrl = getBaseUrl();
+
   const bodyContent = await getRecipeContent(recipe.id);
   let content = recipe.blogPost || bodyContent;
   
@@ -97,11 +100,54 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
     }
   }
 
+  // 구조화된 데이터 (JSON-LD) 생성
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Recipe",
+    "name": recipe.title,
+    "description": recipe.metaDescription || recipe.description,
+    "url": `${baseUrl}/menu/${recipe.slug}`,
+    ...(recipe.featuredImage && {
+      "image": {
+        "@type": "ImageObject",
+        "url": recipe.featuredImage,
+        "width": 1200,
+        "height": 630
+      }
+    }),
+    "datePublished": recipe.date || new Date().toISOString(),
+    "dateModified": recipe.date || new Date().toISOString(),
+    "author": {
+      "@type": "Person",
+      "name": "박용범",
+      "email": "decidepyb@gmail.com"
+    },
+    "publisher": {
+      "@type": "Person",
+      "name": "박용범",
+      "email": "decidepyb@gmail.com"
+    },
+    ...(recipe.difficulty && { "recipeCategory": recipe.difficulty }),
+    ...(recipe.cookingTime && { "totalTime": `PT${recipe.cookingTime}M` }),
+    ...(recipe.servingSize && { "recipeYield": `${recipe.servingSize}인분` }),
+    "inLanguage": "ko-KR",
+    "recipeCuisine": "한식"
+  };
+
   return (
-    <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
-      <GrainOverlay />
-      <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <article>
+    <>
+      {/* 구조화된 데이터 (JSON-LD) - SEO 최적화 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData),
+        }}
+      />
+      
+      <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
+        <GrainOverlay />
+        <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+          <article>
           <header className="mb-12 sm:mb-16">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-serif font-bold mb-6 sm:mb-8 leading-tight text-gray-900 dark:text-white">
               {recipe.title}
@@ -561,6 +607,7 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
         </footer>
       </main>
     </div>
+    </>
   );
 }
 

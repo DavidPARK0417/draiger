@@ -9,6 +9,7 @@ import AdFit from "@/components/AdFit";
 import GiscusComments from "@/components/GiscusComments";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { getBaseUrl } from "@/lib/site";
 
 // ISR 설정: 60초마다 재검증 (더 빠른 업데이트를 원하면 30초로 조정 가능)
 export const revalidate = 60;
@@ -72,6 +73,8 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
     notFound();
   }
 
+  const baseUrl = getBaseUrl();
+
   // Notion 페이지 콘텐츠를 마크다운으로 변환
   const bodyContent = await getPostContent(post.id);
   let content = post.blogPost || bodyContent;
@@ -109,6 +112,41 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
         .trim();
     }
   }
+  
+  // 구조화된 데이터 (JSON-LD) 생성
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": post.title,
+    "description": post.metaDescription,
+    "url": `${baseUrl}/insight/${post.slug}`,
+    ...(post.featuredImage && {
+      "image": {
+        "@type": "ImageObject",
+        "url": post.featuredImage,
+        "width": 1200,
+        "height": 630
+      }
+    }),
+    "datePublished": post.date || new Date().toISOString(),
+    "dateModified": post.date || new Date().toISOString(),
+    "author": {
+      "@type": "Person",
+      "name": "박용범",
+      "email": "decidepyb@gmail.com"
+    },
+    "publisher": {
+      "@type": "Person",
+      "name": "박용범",
+      "email": "decidepyb@gmail.com"
+    },
+    ...(post.category && { "articleSection": post.category }),
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `${baseUrl}/insight/${post.slug}`
+    },
+    "inLanguage": "ko-KR"
+  };
   
   // 디버깅: 마크다운 콘텐츠에 이미지가 포함되어 있는지 확인 (개발 환경에서만)
   if (content && process.env.NODE_ENV === 'development') {
@@ -156,10 +194,19 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
   }
 
   return (
-    <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
-      <GrainOverlay />
-      <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-          <article>
+    <>
+      {/* 구조화된 데이터 (JSON-LD) - SEO 최적화 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData),
+        }}
+      />
+      
+      <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
+        <GrainOverlay />
+        <main className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+            <article>
             <header className="mb-12 sm:mb-16">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-serif font-bold mb-6 sm:mb-8 leading-tight text-gray-900 dark:text-white">
                 {post.title}
@@ -476,6 +523,7 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
           </footer>
       </main>
     </div>
+    </>
   );
 }
 
