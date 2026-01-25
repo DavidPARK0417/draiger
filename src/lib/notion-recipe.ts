@@ -586,6 +586,144 @@ export async function getPublishedRecipesPaginated(
 }
 
 /**
+ * 메인 페이지 전용: 캐시 없이 최신 레시피 N개 가져오기
+ * @param limit 가져올 레시피 개수 (기본값: 3)
+ * @returns 최신 레시피 배열
+ */
+export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
+  const databaseId = process.env.NOTION_RECIPE_DATABASE_ID;
+  const publishedPropertyName = process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
+
+  if (!databaseId) {
+    throw new Error(
+      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables."
+    );
+  }
+
+  try {
+    let data;
+    let useFilter = true;
+
+    try {
+      // Published 속성이 있는 경우 필터 사용
+      data = await queryNotionRecipeDatabase({
+        database_id: databaseId,
+        filter: {
+          property: publishedPropertyName,
+          checkbox: {
+            equals: true,
+          },
+        },
+        sorts: [
+          {
+            timestamp: "created_time",
+            direction: "descending",
+          },
+        ],
+        page_size: limit,
+      });
+    } catch (filterError) {
+      // Published 속성이 없으면 필터 없이 가져오기
+      if (filterError instanceof Error && filterError.message.includes("Could not find property")) {
+        useFilter = false;
+        data = await queryNotionRecipeDatabase({
+          database_id: databaseId,
+          sorts: [
+            {
+              timestamp: "created_time",
+              direction: "descending",
+            },
+          ],
+          page_size: limit,
+        });
+      } else {
+        throw filterError;
+      }
+    }
+
+    const recipes: Recipe[] = await Promise.all(
+      data.results.map(async (page: NotionPage) => {
+        const blogPostContent = page.properties.blogPost?.rich_text
+          ? page.properties.blogPost.rich_text
+              .map((rt: NotionRichText) => rt.plain_text)
+              .join("")
+          : "";
+
+        // description 또는 metaDescription 사용
+        const description = page.properties.description?.rich_text?.[0]?.plain_text 
+          || page.properties.metaDescription?.rich_text?.[0]?.plain_text 
+          || "";
+
+        // image 속성에서 이미지 URL 추출
+        let featuredImage: string | undefined = undefined;
+        
+        // image 속성이 files 배열인 경우
+        if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'files' in page.properties.image && Array.isArray(page.properties.image.files)) {
+          const imageFile = page.properties.image.files[0];
+          if (imageFile?.file?.url) {
+            featuredImage = imageFile.file.url;
+          }
+        }
+        // image 속성이 url인 경우
+        else if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'url' in page.properties.image && typeof page.properties.image.url === 'string') {
+          featuredImage = page.properties.image.url;
+        }
+        
+        // image 속성이 없으면 blogPost나 본문에서 추출
+        if (!featuredImage) {
+          featuredImage = extractFirstImageUrl(blogPostContent);
+          if (!featuredImage) {
+            try {
+              const fullContent = await getRecipeContent(page.id);
+              featuredImage = extractFirstImageUrl(fullContent);
+            } catch (error) {
+              // 이미지 추출 실패는 무시
+            }
+          }
+        }
+
+        // published 속성 확인 (소문자 우선)
+        const publishedValue = (page.properties.published || page.properties.Published) as { checkbox?: boolean } | undefined;
+        const isPublished = publishedValue?.checkbox ?? true;
+
+        // difficulty 추출
+        const difficulty = page.properties.difficulty?.select?.name || undefined;
+
+        // cookingtime 추출 (rich_text 또는 number)
+        let cookingTime: string | number | undefined = undefined;
+        if (page.properties.cookingtime && typeof page.properties.cookingtime === 'object' && page.properties.cookingtime !== null) {
+          if ('rich_text' in page.properties.cookingtime && Array.isArray(page.properties.cookingtime.rich_text) && page.properties.cookingtime.rich_text?.[0]?.plain_text) {
+            cookingTime = page.properties.cookingtime.rich_text[0].plain_text;
+          } else if ('number' in page.properties.cookingtime && typeof page.properties.cookingtime.number === 'number') {
+            cookingTime = page.properties.cookingtime.number;
+          }
+        }
+
+        return {
+          id: page.id,
+          title: page.properties.title?.title[0]?.plain_text || "Untitled",
+          slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+          metaDescription: description,
+          description: description,
+          published: isPublished,
+          blogPost: blogPostContent || undefined,
+          difficulty,
+          cookingTime,
+          category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+          featuredImage,
+          image: featuredImage,
+        };
+      })
+    );
+
+    return recipes;
+  } catch (error) {
+    console.error("Error fetching latest recipes from Notion:", error);
+    throw error;
+  }
+}
+
+/**
  * Slug로 특정 레시피를 가져옵니다
  */
 export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {

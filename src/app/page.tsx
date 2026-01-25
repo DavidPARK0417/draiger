@@ -1,5 +1,5 @@
-import { getPublishedPostsPaginated, type Post } from "@/lib/notion";
-import { getPublishedRecipesPaginated, type Recipe } from "@/lib/notion-recipe";
+import { getLatestPosts, type Post } from "@/lib/notion";
+import { getLatestRecipes, type Recipe } from "@/lib/notion-recipe";
 import PostCard from "@/components/PostCard";
 import SmallPostCard from "@/components/SmallPostCard";
 import MenuCard from "@/components/MenuCard";
@@ -158,22 +158,20 @@ function InsightSection({ posts }: InsightSectionProps) {
 }
 
 export default async function Home() {
-  // 최신 레시피 3개와 최신 인사이트 3개 가져오기
+  // 캐시 없이 최신 레시피 3개와 최신 인사이트 3개 가져오기
   let recipes: Recipe[] = [];
   let posts: Post[] = [];
 
   try {
-    // 최신 레시피 3개 가져오기
-    const recipesData = await getPublishedRecipesPaginated(1, 3);
-    recipes = recipesData.recipes;
+    // 캐시 없이 최신 레시피 3개 가져오기
+    recipes = await getLatestRecipes(3);
   } catch (error) {
     console.error("레시피 조회 실패:", error);
   }
 
   try {
-    // 최신 인사이트 글 3개 가져오기
-    const postsData = await getPublishedPostsPaginated(1, 3);
-    posts = postsData.posts;
+    // 캐시 없이 최신 인사이트 3개 가져오기
+    posts = await getLatestPosts(3);
   } catch (error) {
     console.error("인사이트 글 조회 실패:", error);
   }

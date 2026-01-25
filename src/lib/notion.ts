@@ -764,6 +764,81 @@ export async function getPublishedPostsPaginated(
 }
 
 /**
+ * 메인 페이지 전용: 캐시 없이 최신 인사이트 N개 가져오기
+ * @param limit 가져올 인사이트 개수 (기본값: 3)
+ * @returns 최신 인사이트 배열
+ */
+export async function getLatestPosts(limit: number = 3): Promise<Post[]> {
+  const databaseId = process.env.NOTION_DATABASE_ID;
+
+  if (!databaseId) {
+    throw new Error(
+      "NOTION_DATABASE_ID is not defined in environment variables. " +
+        "Please add NOTION_DATABASE_ID to your .env.local file."
+    );
+  }
+
+  try {
+    const data = await queryNotionDatabase({
+      database_id: databaseId,
+      filter: {
+        property: "Published",
+        checkbox: {
+          equals: true,
+        },
+      },
+      sorts: [
+        {
+          timestamp: "created_time",
+          direction: "descending",
+        },
+      ],
+      page_size: limit,
+    });
+
+    const posts: Post[] = await Promise.all(
+      data.results.map(async (page: NotionPage) => {
+        const blogPostContent = page.properties.blogPost?.rich_text
+          ? page.properties.blogPost.rich_text
+              .map((rt: NotionRichText) => rt.plain_text)
+              .join("")
+          : "";
+
+        // blogPost 필드에서 이미지 추출 시도
+        let featuredImage = extractFirstImageUrl(blogPostContent);
+
+        // blogPost에 이미지가 없으면 본문 콘텐츠에서 추출
+        if (!featuredImage) {
+          try {
+            const fullContent = await getPostContent(page.id);
+            featuredImage = extractFirstImageUrl(fullContent);
+          } catch (error) {
+            // 이미지 추출 실패는 무시
+          }
+        }
+
+        return {
+          id: page.id,
+          title: page.properties.title?.title[0]?.plain_text || "Untitled",
+          slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+          metaDescription:
+            page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
+          published: page.properties.Published?.checkbox || false,
+          blogPost: blogPostContent,
+          category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+          featuredImage,
+        };
+      })
+    );
+
+    return posts;
+  } catch (error) {
+    console.error("Error fetching latest posts from Notion:", error);
+    throw error;
+  }
+}
+
+/**
  * 카테고리별 Published 게시글의 총 개수를 가져옵니다
  */
 export async function getTotalPostsCountByCategory(
