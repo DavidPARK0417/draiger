@@ -3,6 +3,10 @@ import { getPublishedPosts } from '@/lib/notion';
 import { getAllPublishedRecipes } from '@/lib/notion-recipe';
 import { getBaseUrl } from '@/lib/site';
 
+// ISR 설정: 3600초(1시간)마다 재검증
+// Google 크롤러가 빠르게 사이트맵에 접근할 수 있도록 캐시 적용
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getBaseUrl();
 
@@ -18,6 +22,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   } catch (error) {
     console.error('Error fetching insight posts for sitemap:', error);
+    // Notion API 실패 시 insight 메인 페이지라도 추가 (폴백)
+    insightPosts = [
+      {
+        url: `${baseUrl}/insight`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      },
+    ];
   }
 
   // 오늘의메뉴 레시피 가져오기
@@ -33,6 +46,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   } catch (error) {
     console.error('Error fetching menu recipes for sitemap:', error);
+    // Notion API 실패 시 menu 메인 페이지라도 추가 (폴백)
+    menuPosts = [
+      {
+        url: `${baseUrl}/menu`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      },
+    ];
   }
 
   // 카테고리 페이지 추가

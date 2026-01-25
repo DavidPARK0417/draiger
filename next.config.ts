@@ -58,12 +58,23 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // 모든 페이지에 적용
+        // 사이트맵과 robots.txt는 1시간 캐싱 (Google 크롤러 최적화)
+        source: '/(sitemap.xml|robots.txt)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
+        // 모든 페이지에 적용 (사이트맵 제외)
         source: '/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, s-maxage=10, stale-while-revalidate=59',
+            // CDN 캐시를 5분으로 증가하여 서버 부하 감소
+            value: 'public, s-maxage=300, stale-while-revalidate=600',
           },
         ],
       },
