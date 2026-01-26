@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import React from "react";
-import { getPostBySlug, getPostContent, getPublishedPosts } from "@/lib/notion";
+import { getPostBySlug, getPostContent, getPublishedPosts, getLatestPosts } from "@/lib/notion";
+import { getLatestRecipes } from "@/lib/notion-recipe";
 import ReactMarkdown from "react-markdown";
 import GrainOverlay from "@/components/GrainOverlay";
 import TextToSpeech from "@/components/TextToSpeech";
@@ -10,9 +11,10 @@ import GiscusComments from "@/components/GiscusComments";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getBaseUrl } from "@/lib/site";
+import { UtensilsCrossed, ArrowRight } from "lucide-react";
 
-// ISR 설정: 60초마다 재검증 (더 빠른 업데이트를 원하면 30초로 조정 가능)
-export const revalidate = 60;
+// ISR 설정: 30초마다 재검증 (색인 속도 개선을 위해 더 빠른 업데이트)
+export const revalidate = 30;
 
 // 동적 라우트 설정: 새로운 slug가 추가되면 자동으로 생성
 export const dynamicParams = true;
@@ -112,6 +114,50 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
         .trim();
     }
   }
+
+  // 내부 링크 강화: 본문 중간에 관련된 오늘의 메뉴 링크 삽입
+  // 본문의 중간 지점(약 40-60% 지점)에 링크 삽입
+  const insertInternalLinks = (markdownContent: string): string => {
+    if (!markdownContent) return markdownContent;
+    
+    // 이미 내부 링크가 있는지 확인 (중복 방지)
+    if (markdownContent.includes('[관련된 오늘의 메뉴 보러가기]') || 
+        markdownContent.includes('관련된 오늘의 메뉴 보러가기')) {
+      return markdownContent;
+    }
+
+    // 본문을 단락으로 분리
+    const paragraphs = markdownContent.split(/\n\n+/);
+    const totalParagraphs = paragraphs.length;
+    
+    // 중간 지점 계산 (40-60% 사이)
+    const insertPosition = Math.floor(totalParagraphs * 0.5); // 50% 지점
+    
+    // 삽입할 링크 마크다운 생성
+    const internalLinkMarkdown = `\n\n> **🍽️ 관련된 오늘의 메뉴 보러가기**\n> \n> 다양한 요리 레시피와 메뉴 아이디어를 확인해보세요: [오늘의 메뉴 보러가기 →](${baseUrl}/menu)\n\n`;
+    
+    // 적절한 위치에 링크 삽입 (너무 앞이나 뒤가 아닌 위치)
+    if (totalParagraphs > 4 && insertPosition > 2 && insertPosition < totalParagraphs - 2) {
+      paragraphs.splice(insertPosition, 0, internalLinkMarkdown.trim());
+      return paragraphs.join('\n\n');
+    }
+    
+    return markdownContent;
+  };
+
+  // 내부 링크 삽입
+  content = insertInternalLinks(content);
+
+  // 관련 인사이트 글 가져오기 (현재 글 제외, 최신 3개)
+  let relatedPosts: Awaited<ReturnType<typeof getPublishedPosts>> = [];
+  try {
+    const allPosts = await getPublishedPosts();
+    relatedPosts = allPosts
+      .filter((p) => p.id !== post.id && p.slug)
+      .slice(0, 3);
+  } catch (error) {
+    // 에러 발생 시 빈 배열 유지
+  }
   
   // 구조화된 데이터 (JSON-LD) 생성
   const structuredData = {
@@ -145,7 +191,20 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
       "@type": "WebPage",
       "@id": `${baseUrl}/insight/${post.slug}`
     },
-    "inLanguage": "ko-KR"
+    "inLanguage": "ko-KR",
+    // 내부 링크 정보 추가 (SEO 개선)
+    "mentions": [
+      {
+        "@type": "WebPage",
+        "name": "오늘의 메뉴",
+        "url": `${baseUrl}/menu`
+      },
+      ...relatedPosts.map((relatedPost) => ({
+        "@type": "Article",
+        "headline": relatedPost.title,
+        "url": `${baseUrl}/insight/${relatedPost.slug}`
+      }))
+    ]
   };
   
   // 디버깅: 마크다운 콘텐츠에 이미지가 포함되어 있는지 확인 (개발 환경에서만)
@@ -489,6 +548,64 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 italic leading-relaxed whitespace-pre-line">
                   {noticeContent}
                 </p>
+              </div>
+            )}
+
+            {/* 관련 인사이트 글 섹션 */}
+            {relatedPosts.length > 0 && (
+              <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-200 dark:border-white/10">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold mb-6 sm:mb-8 text-gray-900 dark:text-white">
+                  관련 인사이트
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {relatedPosts.map((relatedPost) => (
+                    <Link
+                      key={relatedPost.id}
+                      href={`/insight/${relatedPost.slug}`}
+                      className="
+                        group
+                        block
+                        p-4 sm:p-6
+                        bg-white dark:bg-gray-800
+                        border border-gray-100 dark:border-gray-700
+                        rounded-lg
+                        shadow-sm dark:shadow-gray-900/30
+                        hover:shadow-md dark:hover:shadow-gray-900/50
+                        hover:-translate-y-1
+                        transition-all duration-300
+                      "
+                    >
+                      <h3 className="
+                        text-base sm:text-lg lg:text-xl
+                        font-semibold
+                        text-gray-900 dark:text-white
+                        mb-2 sm:mb-3
+                        line-clamp-2
+                        group-hover:text-emerald-600 dark:group-hover:text-emerald-400
+                        transition-colors duration-300
+                      ">
+                        {relatedPost.title}
+                      </h3>
+                      {relatedPost.metaDescription && (
+                        <p className="
+                          text-sm sm:text-base
+                          text-gray-600 dark:text-gray-400
+                          line-clamp-2
+                          mb-3 sm:mb-4
+                        ">
+                          {relatedPost.metaDescription}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                        <span>자세히 보기</span>
+                        <ArrowRight 
+                          className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" 
+                          strokeWidth={2}
+                        />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
           </article>

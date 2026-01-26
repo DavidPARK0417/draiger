@@ -3,9 +3,9 @@ import { getPublishedPosts } from '@/lib/notion';
 import { getAllPublishedRecipes } from '@/lib/notion-recipe';
 import { getBaseUrl } from '@/lib/site';
 
-// ISR 설정: 3600초(1시간)마다 재검증
-// Google 크롤러가 빠르게 사이트맵에 접근할 수 있도록 캐시 적용
-export const revalidate = 3600;
+// ISR 설정: 1800초(30분)마다 재검증
+// 색인 속도 개선을 위해 더 자주 업데이트 (Google 크롤러가 새로운 콘텐츠를 빠르게 발견)
+export const revalidate = 1800;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getBaseUrl();
