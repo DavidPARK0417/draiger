@@ -2,6 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { ArrowUp } from "lucide-react";
+import type Lenis from "lenis";
+
+// Window 인터페이스 확장 (Lenis 타입 지원)
+declare global {
+  interface Window {
+    lenis?: Lenis;
+  }
+}
 
 export default function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
@@ -32,7 +40,7 @@ export default function ScrollToTop() {
   // 페이지 최상단으로 부드럽게 스크롤
   const scrollToTop = () => {
     // Lenis 인스턴스가 있는지 확인하고 사용 (SmoothScroll 컴포넌트와 호환)
-    const lenis = (window as any).lenis;
+    const lenis = window.lenis;
     
     if (lenis) {
       // Lenis를 사용하는 페이지 (예: 홈페이지)
