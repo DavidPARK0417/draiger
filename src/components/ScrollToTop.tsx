@@ -31,10 +31,22 @@ export default function ScrollToTop() {
 
   // 페이지 최상단으로 부드럽게 스크롤
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    // Lenis 인스턴스가 있는지 확인하고 사용 (SmoothScroll 컴포넌트와 호환)
+    const lenis = (window as any).lenis;
+    
+    if (lenis) {
+      // Lenis를 사용하는 페이지 (예: 홈페이지)
+      lenis.scrollTo(0, {
+        duration: 1.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      });
+    } else {
+      // Lenis를 사용하지 않는 페이지 (예: 다른 페이지)
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
   };
 
   return (

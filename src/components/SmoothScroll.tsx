@@ -20,6 +20,9 @@ export default function SmoothScroll({
       infinite: false,
     });
 
+    // Lenis 인스턴스를 전역으로 접근 가능하게 설정 (ScrollToTop 버튼 호환성)
+    (window as any).lenis = lenis;
+
     function raf(time: number) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -29,6 +32,8 @@ export default function SmoothScroll({
 
     return () => {
       lenis.destroy();
+      // 클린업 시 전역 참조 제거
+      (window as any).lenis = null;
     };
   }, []);
 
