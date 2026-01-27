@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Post } from "@/lib/notion";
 import Image from "next/image";
@@ -50,6 +51,7 @@ function getProxyImageUrl(imageUrl: string | undefined): string | undefined {
 }
 
 export default function SmallPostCard({ post, index }: SmallPostCardProps) {
+  const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
   const [retryWithOriginal, setRetryWithOriginal] = useState(false);
@@ -66,6 +68,12 @@ export default function SmallPostCard({ post, index }: SmallPostCardProps) {
     }
   }, [post.featuredImage]);
 
+  // 카드 클릭 핸들러 - 즉시 네비게이션 시작
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push(`/insight/${post.slug}`);
+  };
+
   return (
     <motion.div
       initial={{ y: 30, opacity: 0 }}
@@ -76,14 +84,18 @@ export default function SmallPostCard({ post, index }: SmallPostCardProps) {
         delay: index * 0.1,
         ease: [0.16, 1, 0.3, 1],
       }}
-      className="group relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors h-full shadow-sm dark:shadow-gray-900/30"
+      className="group relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors h-full shadow-sm dark:shadow-gray-900/30 cursor-pointer"
       suppressHydrationWarning
     >
-      <span suppressHydrationWarning className="absolute inset-0 z-10">
-        <Link href={`/insight/${post.slug}`} className="absolute inset-0" aria-label={post.title}>
-          <span className="sr-only">{post.title}</span>
-        </Link>
-      </span>
+      <Link 
+        href={`/insight/${post.slug}`}
+        prefetch={true}
+        onClick={handleCardClick}
+        className="absolute inset-0 z-10"
+        aria-label={post.title}
+      >
+        <span className="sr-only">{post.title}</span>
+      </Link>
 
       <div className="flex flex-col h-full gap-3 sm:gap-4">
         {/* 이미지가 있을 때 작은 이미지 표시 */}
