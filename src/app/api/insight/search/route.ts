@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchPosts } from "@/lib/notion";
 
+// 동적 렌더링 강제 (searchParams 사용으로 인해 정적 렌더링 불가)
+export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
 export async function GET(request: NextRequest) {

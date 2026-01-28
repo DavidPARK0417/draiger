@@ -20,7 +20,7 @@ export async function generateStaticParams() {
     // 모든 레시피를 가져와서 slug 생성
     // 간단하게 빈 배열 반환 (동적 생성으로 대체)
     return [];
-  } catch (error) {
+  } catch {
     return [];
   }
 }

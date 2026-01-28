@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import React from "react";
-import { getPostBySlug, getPostContent, getPublishedPosts, getLatestPosts, getPublishedPostsByCategory } from "@/lib/notion";
-import { getLatestRecipes } from "@/lib/notion-recipe";
+import { getPostBySlug, getPostContent, getPublishedPosts, getPublishedPostsByCategory } from "@/lib/notion";
 import ReactMarkdown from "react-markdown";
 import GrainOverlay from "@/components/GrainOverlay";
 import TextToSpeech from "@/components/TextToSpeech";
@@ -11,7 +10,7 @@ import GiscusComments from "@/components/GiscusComments";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getBaseUrl } from "@/lib/site";
-import { UtensilsCrossed, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 // ISR 설정: 30초마다 재검증 (색인 속도 개선을 위해 더 빠른 업데이트)
 export const revalidate = 30;

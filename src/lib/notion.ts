@@ -265,7 +265,8 @@ type QueuedRequest = {
 const requestQueue: QueuedRequest[] = [];
 let isProcessingQueue = false;
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 500; // 최소 요청 간격 (밀리초) - 350ms에서 500ms로 증가
+// 빌드 시 rate limiting 방지를 위해 요청 간격 증가 (1초)
+const MIN_REQUEST_INTERVAL = process.env.NODE_ENV === 'production' ? 1000 : 500;
 
 /**
  * 요청 큐를 순차적으로 처리하는 함수

@@ -97,7 +97,7 @@ export default function MenuCard({ recipe, index, isLarge = false }: MenuCardPro
                 objectFit: 'cover',
                 objectPosition: 'center',
               }}
-              onError={(e) => {
+              onError={() => {
                 if (imageSrc?.startsWith('/api/proxy-image') && !retryWithOriginal && recipe.featuredImage) {
                   setRetryWithOriginal(true);
                   setImageSrc(recipe.featuredImage);

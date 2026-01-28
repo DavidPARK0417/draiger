@@ -1,6 +1,6 @@
 import { Client } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
-import cache, { CacheKeys } from "./cache";
+import cache from "./cache";
 
 // Notion API 타입 정의
 interface NotionFilter {
@@ -150,7 +150,8 @@ type QueuedRequest = {
 const requestQueue: QueuedRequest[] = [];
 let isProcessingQueue = false;
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 500;
+// 빌드 시 rate limiting 방지를 위해 요청 간격 증가 (1초)
+const MIN_REQUEST_INTERVAL = process.env.NODE_ENV === 'production' ? 1000 : 500;
 
 /**
  * 요청 큐를 순차적으로 처리하는 함수

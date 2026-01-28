@@ -498,7 +498,6 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
       /\b(\d+)\.(\d+)\s*%/g,
       (match, intPart, decPart) => {
         const intNum = parseInt(intPart, 10);
-        const decNum = parseInt(decPart, 10);
         
         // 정수 부분 변환
         let intStr = '';
@@ -1432,9 +1431,6 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
                               isRateChangingRef.current = false;
                               // 재생이 끝나면 다음 문장부터 문장 단위로 재생
                               if (originalPlayNextPart) {
-                                // 전체 텍스트 길이 계산
-                                const fullTextLength = textPartsRef.current.join(' ').length;
-                                
                                 // 재생이 끝난 위치 계산
                                 let endCharIndex = 0;
                                 for (let i = 0; i <= startIndex; i++) {
@@ -1773,7 +1769,6 @@ export default function TextToSpeech({ content, title, metaDescription }: TextTo
                     nextUtterance.onend = () => {
                       isRateChangingRef.current = false;
                       if (originalPlayNextPart) {
-                        const fullTextLength = textPartsRef.current.join(' ').length;
                         let endCharIndex = 0;
                         for (let i = 0; i <= startIndex; i++) {
                           if (i < textPartsRef.current.length) {

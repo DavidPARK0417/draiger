@@ -62,6 +62,7 @@ export default function GiscusComments({ slug }: GiscusCommentsProps) {
       }
       isMountedRef.current = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, theme, systemTheme]);
 
   return (
