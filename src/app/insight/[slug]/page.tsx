@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import React from "react";
-import { getPostBySlug, getPostContent, getPublishedPosts, getLatestPosts } from "@/lib/notion";
+import { getPostBySlug, getPostContent, getPublishedPosts, getLatestPosts, getPublishedPostsByCategory } from "@/lib/notion";
 import { getLatestRecipes } from "@/lib/notion-recipe";
 import ReactMarkdown from "react-markdown";
 import GrainOverlay from "@/components/GrainOverlay";
@@ -115,13 +115,35 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
     }
   }
 
-  // 관련 인사이트 글 가져오기 (현재 글 제외, 최신 3개)
+  // 관련 인사이트 글 가져오기 (현재 글과 같은 카테고리 내에서 현재 글 제외, 최신 3개)
   let relatedPosts: Awaited<ReturnType<typeof getPublishedPosts>> = [];
   try {
-    const allPosts = await getPublishedPosts();
-    relatedPosts = allPosts
-      .filter((p) => p.id !== post.id && p.slug)
-      .slice(0, 3);
+    // 현재 글에 카테고리가 있으면 같은 카테고리 내에서 가져오기
+    if (post.category) {
+      const categoryPosts = await getPublishedPostsByCategory(post.category);
+      relatedPosts = categoryPosts
+        .filter((p) => p.id !== post.id && p.slug)
+        .slice(0, 3);
+      
+      // 같은 카테고리 내에 다른 글이 3개 미만이면 전체에서 보완
+      if (relatedPosts.length < 3) {
+        const allPosts = await getPublishedPosts();
+        const additionalPosts = allPosts
+          .filter((p) => 
+            p.id !== post.id && 
+            p.slug && 
+            !relatedPosts.some((rp) => rp.id === p.id)
+          )
+          .slice(0, 3 - relatedPosts.length);
+        relatedPosts = [...relatedPosts, ...additionalPosts];
+      }
+    } else {
+      // 카테고리가 없으면 전체에서 가져오기
+      const allPosts = await getPublishedPosts();
+      relatedPosts = allPosts
+        .filter((p) => p.id !== post.id && p.slug)
+        .slice(0, 3);
+    }
   } catch (error) {
     // 에러 발생 시 빈 배열 유지
   }
