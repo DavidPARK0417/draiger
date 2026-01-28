@@ -44,7 +44,9 @@ function getProxyImageUrl(imageUrl: string | undefined): string | undefined {
         return proxyUrl;
       }
     } catch (error) {
-      console.error('[PostCard] URL 파싱 오류:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[PostCard] URL 파싱 오류:', error);
+      }
     }
   }
   
@@ -143,7 +145,9 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
                   setImageSrc(post.featuredImage);
                   setImageError(false);
                 } else {
-                  console.error('[PostCard] 이미지 로드 실패:', errorInfo);
+                  if (process.env.NODE_ENV === 'development') {
+                    console.error('[PostCard] 이미지 로드 실패:', errorInfo);
+                  }
                   setImageError(true);
                 }
               }}
