@@ -714,41 +714,78 @@ export async function getPublishedPostsPaginated(
     // 현재 페이지에 해당하는 데이터만 추출
     const pageResults = allResults.slice(targetStartIndex, targetEndIndex);
 
-    const posts: Post[] = await Promise.all(
-      pageResults.map(async (page: NotionPage) => {
-        const blogPostContent = page.properties.blogPost?.rich_text
-          ? page.properties.blogPost.rich_text
-              .map((rt: NotionRichText) => rt.plain_text)
-              .join("")
-          : "";
+    // 1단계: 먼저 기본 정보만 빠르게 가져오기 (이미지 추출 없이)
+    const postsWithoutImages: Post[] = pageResults.map((page: NotionPage) => {
+      const blogPostContent = page.properties.blogPost?.rich_text
+        ? page.properties.blogPost.rich_text
+            .map((rt: NotionRichText) => rt.plain_text)
+            .join("")
+        : "";
 
-        // blogPost 필드에서 이미지 추출 시도
-        let featuredImage = extractFirstImageUrl(blogPostContent);
+      // blogPost 필드에서만 이미지 추출 시도 (빠른 방법)
+      const featuredImage = extractFirstImageUrl(blogPostContent);
 
-        // blogPost에 이미지가 없으면 본문 콘텐츠에서 추출
-        if (!featuredImage) {
-          try {
-            const fullContent = await getPostContent(page.id);
-            featuredImage = extractFirstImageUrl(fullContent);
-          } catch (error) {
-            // 이미지 추출 실패는 무시 (로그만 남김)
-            console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
-          }
+      return {
+        id: page.id,
+        title: page.properties.title?.title[0]?.plain_text || "Untitled",
+        slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+        metaDescription:
+          page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
+        published: page.properties.Published?.checkbox || false,
+        blogPost: blogPostContent,
+        category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+        featuredImage, // blogPost에서 추출한 이미지만 (없으면 undefined)
+      };
+    });
+
+    // 2단계: 상단 2개 항목의 이미지를 먼저 가져오기 (우선순위)
+    const priorityPosts = postsWithoutImages.slice(0, 2);
+    const priorityImagePromises = priorityPosts.map(async (post, index) => {
+      // 이미 이미지가 있으면 스킵
+      if (post.featuredImage) {
+        return post;
+      }
+
+      try {
+        const fullContent = await getPostContent(post.id);
+        const featuredImage = extractFirstImageUrl(fullContent);
+        return { ...post, featuredImage };
+      } catch (error) {
+        // 이미지 추출 실패는 무시
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`이미지 추출 실패 (postId: ${post.id}):`, error);
         }
+        return post;
+      }
+    });
 
-        return {
-          id: page.id,
-          title: page.properties.title?.title[0]?.plain_text || "Untitled",
-          slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-          metaDescription:
-            page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
-          published: page.properties.Published?.checkbox || false,
-          blogPost: blogPostContent,
-          category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
-          featuredImage,
-        };
-      })
-    );
+    // 상단 2개 항목의 이미지 로드 완료 대기
+    const postsWithPriorityImages = await Promise.all(priorityImagePromises);
+
+    // 3단계: 나머지 항목의 이미지를 점진적으로 로드 (백그라운드)
+    const remainingPosts = postsWithoutImages.slice(2);
+    const remainingImagePromises = remainingPosts.map(async (post) => {
+      // 이미 이미지가 있으면 스킵
+      if (post.featuredImage) {
+        return post;
+      }
+
+      try {
+        const fullContent = await getPostContent(post.id);
+        const featuredImage = extractFirstImageUrl(fullContent);
+        return { ...post, featuredImage };
+      } catch (error) {
+        // 이미지 추출 실패는 무시
+        return post;
+      }
+    });
+
+    // 나머지 항목의 이미지는 백그라운드에서 로드 (기다리지 않음)
+    // 하지만 결과를 반환하기 위해 Promise.all로 처리
+    const postsWithRemainingImages = await Promise.all(remainingImagePromises);
+
+    // 최종 결과: 우선순위 항목 + 나머지 항목
+    const posts = [...postsWithPriorityImages, ...postsWithRemainingImages];
 
     return {
       posts,
