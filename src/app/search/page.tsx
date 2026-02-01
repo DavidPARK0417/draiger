@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getPublishedPosts, Post } from "@/lib/notion";
+import { getAllPublishedRecipes, Recipe } from "@/lib/notion-recipe";
 import { Search } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import DateRangeFilter from "@/components/DateRangeFilter";
@@ -31,7 +32,7 @@ interface SearchPageProps {
 }
 
 interface SearchResult {
-  type: "insight" | "tool";
+  type: "insight" | "tool" | "menu";
   title: string;
   description?: string;
   href: string;
@@ -40,7 +41,7 @@ interface SearchResult {
 }
 
 // 검색 함수
-function searchContent(query: string, posts: Post[]): SearchResult[] {
+function searchContent(query: string, posts: Post[], recipes: Recipe[]): SearchResult[] {
   const results: SearchResult[] = [];
   const lowerQuery = query.toLowerCase().trim();
 
@@ -111,6 +112,52 @@ function searchContent(query: string, posts: Post[]): SearchResult[] {
 
   results.push(...toolResults);
 
+  // 메뉴(레시피) 검색
+  const menuResults = recipes
+    .filter((recipe) => {
+      const lowerTitle = recipe.title.toLowerCase();
+      const lowerDescription = recipe.metaDescription?.toLowerCase() || "";
+      const lowerContent = recipe.blogPost?.toLowerCase() || "";
+      const lowerCategory = recipe.category?.toLowerCase() || "";
+      const lowerTags = (recipe.tags || []).join(" ").toLowerCase();
+
+      // 전체 검색어로 검색
+      const fullQueryMatch =
+        lowerTitle.includes(lowerQuery) ||
+        lowerDescription.includes(lowerQuery) ||
+        lowerContent.includes(lowerQuery) ||
+        lowerCategory.includes(lowerQuery) ||
+        lowerTags.includes(lowerQuery);
+
+      // 단어 단위로 검색
+      const wordMatch = queryWords.some((word) => {
+        return (
+          lowerTitle.includes(word) ||
+          lowerDescription.includes(word) ||
+          lowerContent.includes(word) ||
+          lowerCategory.includes(word) ||
+          lowerTags.includes(word)
+        );
+      });
+
+      // 제목에 대해서는 더 유연한 검색
+      const titleWordMatch = queryWords.every((word) =>
+        lowerTitle.includes(word)
+      );
+
+      return fullQueryMatch || wordMatch || titleWordMatch;
+    })
+    .map((recipe) => ({
+      type: "menu" as const,
+      title: recipe.title,
+      description: recipe.metaDescription,
+      href: `/menu/${recipe.slug}`,
+      category: recipe.category,
+      date: recipe.date,
+    }));
+
+  results.push(...menuResults);
+
   return results;
 }
 
@@ -156,7 +203,7 @@ function filterByDateRange(
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const query = params.q || "";
-  const searchType = params.type || "all"; // all, insight, tool
+  const searchType = params.type || "all"; // all, insight, tool, menu
   const fromDate = params.fromDate || "";
   const toDate = params.toDate || "";
   const currentPage = parseInt(params.page || "1", 10) || 1;
@@ -171,8 +218,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     console.error("검색: 인사이트 글 가져오기 오류:", error);
   }
 
+  // 메뉴(레시피) 가져오기
+  let allRecipes: Recipe[] = [];
+  try {
+    allRecipes = await getAllPublishedRecipes();
+    console.log("검색: 메뉴 가져오기 완료, 총", allRecipes.length, "개");
+  } catch (error) {
+    console.error("검색: 메뉴 가져오기 오류:", error);
+  }
+
   // 검색 실행
-  const allResults = searchContent(query, allPosts);
+  const allResults = searchContent(query, allPosts, allRecipes);
   console.log("검색 결과:", allResults.length, "개");
 
   // 타입별 필터링
@@ -181,7 +237,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       ? allResults
       : searchType === "insight"
       ? allResults.filter((r) => r.type === "insight")
-      : allResults.filter((r) => r.type === "tool");
+      : searchType === "tool"
+      ? allResults.filter((r) => r.type === "tool")
+      : allResults.filter((r) => r.type === "menu");
 
   // 기간 필터링 (인사이트 글만)
   const filteredResults = filterByDateRange(
@@ -202,10 +260,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   const insightResults = paginatedResults.filter((r) => r.type === "insight");
   const toolResults = paginatedResults.filter((r) => r.type === "tool");
+  const menuResults = paginatedResults.filter((r) => r.type === "menu");
 
   // 전체 결과 수 (필터링 전)
   const allInsightResults = filteredResults.filter((r) => r.type === "insight");
   const allToolResults = filteredResults.filter((r) => r.type === "tool");
+  const allMenuResults = filteredResults.filter((r) => r.type === "menu");
 
   // URL 생성 헬퍼 함수
   const buildSearchUrl = (options?: { type?: string; page?: number; fromDate?: string; toDate?: string }) => {
@@ -292,6 +352,20 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 `}
               >
                 도구 ({allToolResults.length})
+              </Link>
+              <Link
+                href={buildSearchUrl({ type: "menu" })}
+                className={`
+                  px-4 py-2 rounded-xl text-sm font-medium
+                  transition-all duration-300
+                  ${
+                    searchType === "menu"
+                      ? "bg-emerald-500 text-white shadow-md hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-700"
+                  }
+                `}
+              >
+                메뉴 ({allMenuResults.length})
               </Link>
             </div>
 
@@ -408,6 +482,47 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                           <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                             {result.title}
                           </h3>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+              {/* 메뉴 결과 */}
+              {(searchType === "all" || searchType === "menu") &&
+                menuResults.length > 0 && (
+                  <section>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      메뉴 ({allMenuResults.length})
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {menuResults.map((result, index) => (
+                        <Link
+                          key={`${result.href}-${index}`}
+                          href={result.href}
+                          className="
+                          block p-6 rounded-lg
+                          bg-white dark:bg-gray-800
+                          border border-gray-200 dark:border-gray-700
+                          shadow-sm hover:shadow-md
+                          dark:shadow-gray-900/30 dark:hover:shadow-gray-900/50
+                          transition-all duration-300
+                          hover:-translate-y-1
+                        "
+                        >
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+                            {result.title}
+                          </h3>
+                          {result.description && (
+                            <p className="text-gray-600 dark:text-gray-400 text-sm mb-2 line-clamp-2">
+                              {result.description}
+                            </p>
+                          )}
+                          {result.category && (
+                            <span className="inline-block px-2 py-1 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400">
+                              {result.category}
+                            </span>
+                          )}
                         </Link>
                       ))}
                     </div>

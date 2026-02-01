@@ -67,6 +67,15 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Array<{
+    type: "insight" | "tool" | "menu";
+    title: string;
+    description?: string;
+    href: string;
+    category?: string;
+  }>>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(48); // 기본값: min-h-12 (48px)
   const [mounted, setMounted] = useState(false); // Hydration 오류 방지
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
@@ -79,6 +88,7 @@ export default function Header() {
   const mobileMenuPanelRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchResultsRef = useRef<HTMLDivElement>(null);
 
   // Hydration 오류 방지: 클라이언트에서만 마운트
   useEffect(() => {
@@ -247,6 +257,61 @@ export default function Header() {
     return () => window.removeEventListener("resize", updateHeaderHeight);
   }, []);
 
+  // 실시간 검색 결과 가져오기
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      const query = searchQuery.trim();
+      
+      if (!query || query.length < 2) {
+        setSearchResults([]);
+        setShowSearchResults(false);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=8`);
+        if (response.ok) {
+          const data = await response.json();
+          setSearchResults(data.results || []);
+          setShowSearchResults(true);
+        } else {
+          setSearchResults([]);
+          setShowSearchResults(false);
+        }
+      } catch (error) {
+        console.error("검색 결과 가져오기 오류:", error);
+        setSearchResults([]);
+        setShowSearchResults(false);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    // 디바운싱: 300ms 후에 검색 실행
+    const timeoutId = setTimeout(fetchSearchResults, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  // 검색 결과 드롭다운 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchResultsRef.current &&
+        !searchResultsRef.current.contains(event.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchResults(false);
+      }
+    };
+
+    if (isSearchOpen && showSearchResults) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isSearchOpen, showSearchResults]);
+
   // 현재 경로가 블로그 관련인지 확인 (Hydration 오류 방지: mounted 후에만 확인)
   const isBlogActive = mounted && (
     pathname === "/insight" ||
@@ -357,7 +422,16 @@ export default function Header() {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setIsSearchOpen(false);
       setSearchQuery("");
+      setShowSearchResults(false);
     }
+  };
+
+  // 검색 결과 클릭 핸들러
+  const handleSearchResultClick = (href: string) => {
+    router.push(href);
+    setIsSearchOpen(false);
+    setSearchQuery("");
+    setShowSearchResults(false);
   };
 
   return (
@@ -419,45 +493,150 @@ export default function Header() {
                 <Search size={20} />
               </button>
             ) : (
-              <form
-                onSubmit={handleSearch}
-                className="flex items-center gap-2 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 px-3 py-2 shadow-md"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Search size={18} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="검색어를 입력하세요..."
-                  className="
-                    w-48 sm:w-64 lg:w-80
-                    bg-transparent
-                    text-gray-900 dark:text-gray-100
-                    placeholder:text-gray-400 dark:placeholder:text-gray-500
-                    focus:outline-none
-                    text-sm
-                  "
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSearchOpen(false);
-                    setSearchQuery("");
-                  }}
-                  className="
-                    p-1 rounded-lg
-                    text-gray-400 hover:text-gray-600
-                    dark:text-gray-500 dark:hover:text-gray-300
-                    transition-colors duration-150
-                    flex-shrink-0
-                  "
-                  aria-label="닫기"
+              <div className="relative" ref={searchResultsRef}>
+                <form
+                  onSubmit={handleSearch}
+                  className="flex items-center gap-2 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 px-3 py-2 shadow-md"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <X size={16} />
-                </button>
-              </form>
+                  <Search size={18} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSearchResults(true);
+                    }}
+                    onFocus={() => {
+                      if (searchQuery.trim().length >= 2 && searchResults.length > 0) {
+                        setShowSearchResults(true);
+                      }
+                    }}
+                    placeholder="검색어를 입력하세요..."
+                    className="
+                      w-48 sm:w-64 lg:w-80
+                      bg-transparent
+                      text-gray-900 dark:text-gray-100
+                      placeholder:text-gray-400 dark:placeholder:text-gray-500
+                      focus:outline-none
+                      text-sm
+                    "
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSearchOpen(false);
+                      setSearchQuery("");
+                      setShowSearchResults(false);
+                    }}
+                    className="
+                      p-1 rounded-lg
+                      text-gray-400 hover:text-gray-600
+                      dark:text-gray-500 dark:hover:text-gray-300
+                      transition-colors duration-150
+                      flex-shrink-0
+                    "
+                    aria-label="닫기"
+                  >
+                    <X size={16} />
+                  </button>
+                </form>
+
+                {/* 검색 결과 드롭다운 */}
+                {showSearchResults && searchQuery.trim().length >= 2 && (
+                  <div
+                    className="
+                      absolute top-full left-0 mt-2
+                      w-96 sm:w-[500px] lg:w-[600px]
+                      max-h-[500px] overflow-y-auto
+                      bg-white dark:bg-gray-800
+                      border border-gray-200 dark:border-gray-700
+                      rounded-lg shadow-lg dark:shadow-gray-900/50
+                      z-[9999]
+                    "
+                  >
+                    {isSearching ? (
+                      <div className="p-4 text-center text-gray-600 dark:text-gray-400 text-sm">
+                        검색 중...
+                      </div>
+                    ) : searchResults.length === 0 ? (
+                      <div className="p-4 text-center text-gray-600 dark:text-gray-400 text-sm">
+                        검색 결과가 없습니다.
+                      </div>
+                    ) : (
+                      <div className="py-2">
+                        {searchResults.map((result, index) => {
+                          const typeLabels = {
+                            insight: "인사이트",
+                            tool: "도구",
+                            menu: "메뉴",
+                          };
+                          const typeColors = {
+                            insight: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400",
+                            tool: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400",
+                            menu: "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400",
+                          };
+
+                          return (
+                            <button
+                              key={`${result.href}-${index}`}
+                              onClick={() => handleSearchResultClick(result.href)}
+                              className="
+                                w-full px-4 py-3 text-left
+                                hover:bg-gray-50 dark:hover:bg-gray-700
+                                transition-colors duration-150
+                                border-b border-gray-100 dark:border-gray-700 last:border-b-0
+                              "
+                            >
+                              <div className="flex items-start gap-3">
+                                <span
+                                  className={`
+                                    px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap flex-shrink-0 mt-0.5
+                                    ${typeColors[result.type]}
+                                  `}
+                                >
+                                  {typeLabels[result.type]}
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-gray-900 dark:text-gray-100 text-sm mb-1 line-clamp-1">
+                                    {result.title}
+                                  </div>
+                                  {result.description && (
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                                      {result.description}
+                                    </div>
+                                  )}
+                                  {result.category && (
+                                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                      {result.category}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                        {searchResults.length >= 8 && (
+                          <button
+                            onClick={handleSearch}
+                            className="
+                              w-full px-4 py-3 text-center
+                              text-emerald-600 dark:text-emerald-400
+                              hover:bg-emerald-50 dark:hover:bg-emerald-900/20
+                              font-medium text-sm
+                              transition-colors duration-150
+                              border-t border-gray-200 dark:border-gray-700
+                            "
+                          >
+                            전체 검색 결과 보기
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* 오늘의메뉴 메뉴 (드롭다운 없이) */}
@@ -834,45 +1013,149 @@ export default function Header() {
                 <Search size={20} />
               </button>
             ) : (
-              <form
-                onSubmit={handleSearch}
-                className="flex items-center gap-2 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 px-2 py-1.5 shadow-md flex-1 max-w-xs"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Search size={16} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="검색..."
-                  className="
-                    flex-1 min-w-0
-                    bg-transparent
-                    text-gray-900 dark:text-gray-100
-                    placeholder:text-gray-400 dark:placeholder:text-gray-500
-                    focus:outline-none
-                    text-sm
-                  "
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSearchOpen(false);
-                    setSearchQuery("");
-                  }}
-                  className="
-                    p-1 rounded-lg
-                    text-gray-400 hover:text-gray-600
-                    dark:text-gray-500 dark:hover:text-gray-300
-                    transition-colors duration-150
-                    flex-shrink-0
-                  "
-                  aria-label="닫기"
+              <div className="relative flex-1 max-w-xs">
+                <form
+                  onSubmit={handleSearch}
+                  className="flex items-center gap-2 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 px-2 py-1.5 shadow-md"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <X size={14} />
-                </button>
-              </form>
+                  <Search size={16} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSearchResults(true);
+                    }}
+                    onFocus={() => {
+                      if (searchQuery.trim().length >= 2 && searchResults.length > 0) {
+                        setShowSearchResults(true);
+                      }
+                    }}
+                    placeholder="검색..."
+                    className="
+                      flex-1 min-w-0
+                      bg-transparent
+                      text-gray-900 dark:text-gray-100
+                      placeholder:text-gray-400 dark:placeholder:text-gray-500
+                      focus:outline-none
+                      text-sm
+                    "
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSearchOpen(false);
+                      setSearchQuery("");
+                      setShowSearchResults(false);
+                    }}
+                    className="
+                      p-1 rounded-lg
+                      text-gray-400 hover:text-gray-600
+                      dark:text-gray-500 dark:hover:text-gray-300
+                      transition-colors duration-150
+                      flex-shrink-0
+                    "
+                    aria-label="닫기"
+                  >
+                    <X size={14} />
+                  </button>
+                </form>
+
+                {/* 모바일 검색 결과 드롭다운 */}
+                {showSearchResults && searchQuery.trim().length >= 2 && (
+                  <div
+                    className="
+                      absolute top-full left-0 right-0 mt-2
+                      max-h-[400px] overflow-y-auto
+                      bg-white dark:bg-gray-800
+                      border border-gray-200 dark:border-gray-700
+                      rounded-lg shadow-lg dark:shadow-gray-900/50
+                      z-[9999]
+                    "
+                  >
+                    {isSearching ? (
+                      <div className="p-4 text-center text-gray-600 dark:text-gray-400 text-sm">
+                        검색 중...
+                      </div>
+                    ) : searchResults.length === 0 ? (
+                      <div className="p-4 text-center text-gray-600 dark:text-gray-400 text-sm">
+                        검색 결과가 없습니다.
+                      </div>
+                    ) : (
+                      <div className="py-2">
+                        {searchResults.map((result, index) => {
+                          const typeLabels = {
+                            insight: "인사이트",
+                            tool: "도구",
+                            menu: "메뉴",
+                          };
+                          const typeColors = {
+                            insight: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400",
+                            tool: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400",
+                            menu: "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400",
+                          };
+
+                          return (
+                            <button
+                              key={`${result.href}-${index}`}
+                              onClick={() => handleSearchResultClick(result.href)}
+                              className="
+                                w-full px-4 py-3 text-left
+                                hover:bg-gray-50 dark:hover:bg-gray-700
+                                transition-colors duration-150
+                                border-b border-gray-100 dark:border-gray-700 last:border-b-0
+                              "
+                            >
+                              <div className="flex items-start gap-3">
+                                <span
+                                  className={`
+                                    px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap flex-shrink-0 mt-0.5
+                                    ${typeColors[result.type]}
+                                  `}
+                                >
+                                  {typeLabels[result.type]}
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-gray-900 dark:text-gray-100 text-sm mb-1 line-clamp-1">
+                                    {result.title}
+                                  </div>
+                                  {result.description && (
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                                      {result.description}
+                                    </div>
+                                  )}
+                                  {result.category && (
+                                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                      {result.category}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                        {searchResults.length >= 8 && (
+                          <button
+                            onClick={handleSearch}
+                            className="
+                              w-full px-4 py-3 text-center
+                              text-emerald-600 dark:text-emerald-400
+                              hover:bg-emerald-50 dark:hover:bg-emerald-900/20
+                              font-medium text-sm
+                              transition-colors duration-150
+                              border-t border-gray-200 dark:border-gray-700
+                            "
+                          >
+                            전체 검색 결과 보기
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* 모바일 햄버거 메뉴 버튼 */}
