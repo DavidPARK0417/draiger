@@ -144,7 +144,7 @@ export default function RootLayout({
         {/* Naver Site Verification */}
         <meta name="naver-site-verification" content="25126cf83b729c9a888938b4ca47df111ba24c08" />
       </head>
-      <body className="antialiased text-gray-900 dark:text-white bg-[#F8F9FA] dark:bg-gray-900" suppressHydrationWarning>
+      <body className="antialiased text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900" suppressHydrationWarning>
         {/* 구조화된 데이터 (JSON-LD) - SEO 최적화 */}
         <script
           type="application/ld+json"

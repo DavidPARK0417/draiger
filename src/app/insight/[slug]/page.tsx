@@ -58,6 +58,9 @@ export async function generateMetadata({
   return {
     title: `${post.title} | DRAIGER 인사이트`,
     description: post.metaDescription,
+    alternates: {
+      canonical: `/insight/${slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.metaDescription,
@@ -194,6 +197,46 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
       }))
     ]
   };
+
+  // BreadcrumbList 구조화된 데이터 (SEO 개선)
+  const breadcrumbItems = [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "홈",
+      "item": baseUrl
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "인사이트",
+      "item": `${baseUrl}/insight`
+    }
+  ];
+
+  // 카테고리가 있으면 추가
+  if (post.category) {
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      "position": 3,
+      "name": post.category,
+      "item": `${baseUrl}/insight/category/${encodeURIComponent(post.category)}`
+    });
+  }
+
+  // 현재 글 추가
+  breadcrumbItems.push({
+    "@type": "ListItem",
+    "position": post.category ? 4 : 3,
+    "name": post.title,
+    "item": `${baseUrl}/insight/${post.slug}`
+  });
+
+  const breadcrumbData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": breadcrumbItems
+  };
   
   // 디버깅: 마크다운 콘텐츠에 이미지가 포함되어 있는지 확인 (개발 환경에서만)
   if (content && process.env.NODE_ENV === 'development') {
@@ -247,6 +290,13 @@ export default async function InsightPostPage({ params }: InsightPostPageProps) 
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(structuredData),
+        }}
+      />
+      {/* BreadcrumbList 구조화된 데이터 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbData),
         }}
       />
       

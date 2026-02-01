@@ -10,7 +10,6 @@ import Link from "next/link";
 import { UtensilsCrossed, Lightbulb, ArrowRight } from "lucide-react";
 import type { Post } from "@/lib/notion";
 import type { Recipe } from "@/lib/notion-recipe";
-import { getBaseUrl } from "@/lib/site";
 
 interface RecipeSectionProps {
   recipes: Recipe[];
@@ -156,7 +155,11 @@ export default function Home() {
   }, []);
 
   const hasContent = recipes.length > 0 || posts.length > 0;
-  const baseUrl = getBaseUrl();
+  
+  // 클라이언트에서 baseUrl 가져오기 (서버 사이드 함수 대신)
+  const baseUrl = typeof window !== 'undefined' 
+    ? window.location.origin 
+    : (process.env.NEXT_PUBLIC_SITE_URL || 'https://draiger.vercel.app');
 
   // 구조화된 데이터 (JSON-LD) 생성 - 클라이언트에서 동적으로 추가
   useEffect(() => {

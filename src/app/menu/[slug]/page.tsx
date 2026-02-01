@@ -38,6 +38,9 @@ export async function generateMetadata({
   return {
     title: `${recipe.title} | DRAIGER 오늘의메뉴`,
     description: recipe.metaDescription,
+    alternates: {
+      canonical: `/menu/${slug}`,
+    },
     openGraph: {
       title: recipe.title,
       description: recipe.metaDescription,
@@ -134,6 +137,32 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
     "recipeCuisine": "한식"
   };
 
+  // BreadcrumbList 구조화된 데이터 (SEO 개선)
+  const breadcrumbData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "홈",
+        "item": baseUrl
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "오늘의 메뉴",
+        "item": `${baseUrl}/menu`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": recipe.title,
+        "item": `${baseUrl}/menu/${recipe.slug}`
+      }
+    ]
+  };
+
   return (
     <>
       {/* 구조화된 데이터 (JSON-LD) - SEO 최적화 */}
@@ -141,6 +170,13 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(structuredData),
+        }}
+      />
+      {/* BreadcrumbList 구조화된 데이터 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbData),
         }}
       />
       
