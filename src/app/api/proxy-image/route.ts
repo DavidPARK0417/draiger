@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`)
     );
 
-    if (!isAllowed) {
+    if (!isAllowed && process.env.NODE_ENV === 'development') {
       console.warn(`[proxy-image] 허용되지 않은 도메인: ${urlObj.hostname}`);
       // 보안상 엄격하게 하지 않고, 경고만 출력하고 진행
       // 필요시 return NextResponse.json({ error: '허용되지 않은 도메인' }, { status: 403 });
@@ -72,7 +72,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (!imageResponse.ok) {
-      console.error(`[proxy-image] 이미지 가져오기 실패: ${imageResponse.status} ${imageResponse.statusText}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`[proxy-image] 이미지 가져오기 실패: ${imageResponse.status} ${imageResponse.statusText}`);
+      }
       return NextResponse.json(
         { error: `이미지를 가져올 수 없습니다: ${imageResponse.status}` },
         { status: imageResponse.status }
@@ -94,7 +96,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[proxy-image] 오류:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[proxy-image] 오류:', error);
+    }
     return NextResponse.json(
       { error: '이미지 프록시 오류가 발생했습니다' },
       { status: 500 }

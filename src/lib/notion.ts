@@ -211,7 +211,9 @@ function getNotionToMarkdown() {
       
       // URL이 없으면 빈 문자열 반환
       if (!imageUrl) {
-        console.warn("[getNotionToMarkdown] 이미지 URL을 찾을 수 없습니다:", JSON.stringify(block, null, 2).substring(0, 300));
+        if (process.env.NODE_ENV === 'development') {
+          console.warn("[getNotionToMarkdown] 이미지 URL을 찾을 수 없습니다:", JSON.stringify(block, null, 2).substring(0, 300));
+        }
         return "";
       }
       
@@ -232,7 +234,9 @@ function getNotionToMarkdown() {
         return `![](${imageUrl})`;
       }
     } catch (error) {
-      console.error("[getNotionToMarkdown] 이미지 변환 오류:", error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error("[getNotionToMarkdown] 이미지 변환 오류:", error);
+      }
       return "";
     }
   });
@@ -555,7 +559,9 @@ export async function getTotalPostsCount(): Promise<number> {
 
     return totalCount;
   } catch (error) {
-    console.error("Error fetching total posts count:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error fetching total posts count:", error);
+    }
     throw error;
   }
 }
@@ -643,7 +649,9 @@ export async function getPublishedPosts(): Promise<Post[]> {
 
       return posts;
   } catch (error) {
-    console.error("Error fetching posts from Notion:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error fetching posts from Notion:", error);
+    }
     throw error;
   }
 }
@@ -871,7 +879,9 @@ export async function getLatestPosts(limit: number = 3): Promise<Post[]> {
 
     return posts;
   } catch (error) {
-    console.error("Error fetching latest posts from Notion:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error fetching latest posts from Notion:", error);
+    }
     throw error;
   }
 }
@@ -962,7 +972,9 @@ export async function getTotalPostsCountByCategory(
       throw categoryError;
     }
   } catch (error) {
-    console.error("Error fetching total posts count by category:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error fetching total posts count by category:", error);
+    }
     throw error;
   }
 }
@@ -1097,7 +1109,9 @@ export async function getPublishedPostsByCategory(
       throw categoryError;
     }
   } catch (error) {
-    console.error("Error fetching posts by category from Notion:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error fetching posts by category from Notion:", error);
+    }
     throw error;
   }
 }
@@ -1252,15 +1266,14 @@ export async function getPublishedPostsByCategoryPaginated(
         let featuredImage = extractFirstImageUrl(blogPostContent);
 
         // blogPost에 이미지가 없으면 본문 콘텐츠에서 추출
-        if (!featuredImage) {
-          try {
-            const fullContent = await getPostContent(page.id);
-            featuredImage = extractFirstImageUrl(fullContent);
-          } catch (error) {
-            // 이미지 추출 실패는 무시 (로그만 남김)
-            console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
+          if (!featuredImage) {
+            try {
+              const fullContent = await getPostContent(page.id);
+              featuredImage = extractFirstImageUrl(fullContent);
+            } catch (error) {
+              // 이미지 추출 실패는 무시
+            }
           }
-        }
 
         return {
           id: page.id,
@@ -1285,10 +1298,12 @@ export async function getPublishedPostsByCategoryPaginated(
       hasPrevPage: currentPage > 1,
     };
   } catch (error) {
-    console.error(
-      "Error fetching paginated posts by category from Notion:",
-      error
-    );
+    if (process.env.NODE_ENV === 'development') {
+      console.error(
+        "Error fetching paginated posts by category from Notion:",
+        error
+      );
+    }
     throw error;
   }
 }
@@ -1398,7 +1413,9 @@ async function getImageUrlFromNotionBlock(blockId: string): Promise<string | nul
     
     return null;
   } catch (error) {
-    console.error(`[getImageUrlFromNotionBlock] 이미지 블록 조회 실패 (${blockId}):`, error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`[getImageUrlFromNotionBlock] 이미지 블록 조회 실패 (${blockId}):`, error);
+    }
     return null;
   }
 }
@@ -1465,7 +1482,9 @@ async function extractImageUrlsFromPage(pageId: string): Promise<Map<string, str
       hasMore = response.has_more;
     }
   } catch (error) {
-    console.error(`[extractImageUrlsFromPage] 페이지 블록 조회 실패 (${pageId}):`, error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`[extractImageUrlsFromPage] 페이지 블록 조회 실패 (${pageId}):`, error);
+    }
   }
   
   return imageUrlMap;
@@ -1507,18 +1526,10 @@ export async function getPostContent(pageId: string): Promise<string> {
     const mdString = n2m.toMarkdownString(mdblocks);
     let markdownContent = mdString.parent || "";
     
-    // 디버깅: 원본 마크다운 콘텐츠 확인
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[getPostContent] 원본 마크다운 길이: ${markdownContent.length}자`);
-      const imageFilenameInContent = markdownContent.match(/news_1756856273_1543672_m_1\.png/);
-      if (imageFilenameInContent) {
-        console.log(`[getPostContent] ⚠️ 이미지 파일명 발견: ${imageFilenameInContent[0]}`);
-        console.log(`[getPostContent] 파일명 주변 텍스트:`, markdownContent.substring(
-          Math.max(0, markdownContent.indexOf(imageFilenameInContent[0]) - 50),
-          Math.min(markdownContent.length, markdownContent.indexOf(imageFilenameInContent[0]) + imageFilenameInContent[0].length + 50)
-        ));
+      // 디버깅: 원본 마크다운 콘텐츠 확인 (개발 환경에서만)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[getPostContent] 원본 마크다운 길이: ${markdownContent.length}자`);
       }
-    }
     
     // 이미지 파일명만 있는 경우 (URL이 없는 경우) Notion API에서 가져온 URL로 대체
     // 패턴: 이미지 파일명만 있는 경우 (예: "news_1756856273_1543672_m_1.png")
@@ -1542,7 +1553,7 @@ export async function getPostContent(pageId: string): Promise<string> {
       const specificFilename = 'news_1756856273_1543672_m_1.png';
       const hasSpecificFile = markdownContent.includes(specificFilename);
       
-      if (hasSpecificFile) {
+      if (hasSpecificFile && process.env.NODE_ENV === 'development') {
         console.log(`[getPostContent] 🎯 특정 파일명 발견: ${specificFilename}`);
         const filenameIndex = markdownContent.indexOf(specificFilename);
         const beforeText = markdownContent.substring(Math.max(0, filenameIndex - 20), filenameIndex);
@@ -1567,6 +1578,25 @@ export async function getPostContent(pageId: string): Promise<string> {
           console.log(`[getPostContent] ✅ 특정 파일명 대체 성공: "${specificFilename}" -> "${imageUrl.substring(0, 80)}..."`);
         } else {
           console.log(`[getPostContent] ⚠️ 이미 마크다운 형식이거나 URL이 없음: isMarkdown=${isAlreadyMarkdown}, hasUrl=${imageUrls.length > 0}`);
+        }
+      } else if (hasSpecificFile) {
+        // 프로덕션 환경: 로그 없이 처리만 수행
+        const filenameIndex = markdownContent.indexOf(specificFilename);
+        const beforeText = markdownContent.substring(Math.max(0, filenameIndex - 20), filenameIndex);
+        const afterText = markdownContent.substring(
+          filenameIndex + specificFilename.length,
+          Math.min(markdownContent.length, filenameIndex + specificFilename.length + 20)
+        );
+        
+        const isAlreadyMarkdown = beforeText.includes('![') || beforeText.includes('](') || 
+                                  afterText.includes('](') || afterText.includes(')');
+        
+        if (!isAlreadyMarkdown && imageUrls.length > 0) {
+          const imageUrl = imageUrls[0];
+          const replacement = `![${specificFilename}](${imageUrl})`;
+          markdownContent = markdownContent.substring(0, filenameIndex) + 
+                            replacement + 
+                            markdownContent.substring(filenameIndex + specificFilename.length);
         }
       }
       
@@ -1613,7 +1643,9 @@ export async function getPostContent(pageId: string): Promise<string> {
                                 replacement + 
                                 markdownContent.substring(matchIndex + fullMatch.length);
               
-              console.log(`[getPostContent] ✅ 이미지 대체 성공: "${filename}" -> "${imageUrl.substring(0, 80)}..."`);
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`[getPostContent] ✅ 이미지 대체 성공: "${filename}" -> "${imageUrl.substring(0, 80)}..."`);
+              }
               imageIndex++;
               replacementCount++;
             }
@@ -1621,12 +1653,14 @@ export async function getPostContent(pageId: string): Promise<string> {
         }
       }
       
-      if (replacementCount > 0) {
-        console.log(`[getPostContent] ✅ 이미지 URL로 대체 완료: ${replacementCount}개`);
-      } else {
-        console.log(`[getPostContent] ⚠️ 이미지 대체 실패: 파일명을 찾지 못했거나 이미 마크다운 형식임`);
+      if (process.env.NODE_ENV === 'development') {
+        if (replacementCount > 0) {
+          console.log(`[getPostContent] ✅ 이미지 URL로 대체 완료: ${replacementCount}개`);
+        } else {
+          console.log(`[getPostContent] ⚠️ 이미지 대체 실패: 파일명을 찾지 못했거나 이미 마크다운 형식임`);
+        }
       }
-    } else {
+    } else if (process.env.NODE_ENV === 'development') {
       console.log(`[getPostContent] ⚠️ 이미지 URL 맵이 비어있음: ${imageUrlMap.size}개`);
     }
     
@@ -1660,7 +1694,9 @@ export async function getPostContent(pageId: string): Promise<string> {
         const newAlt = currentAlt ? `${currentAlt} | ${displaySource}` : displaySource;
         const newImageMarkdown = `![${newAlt}](${imageUrl})`;
         
-        console.log(`[getPostContent] ✅ 출처를 이미지 alt로 이동: "${displaySource.substring(0, 50)}..."`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[getPostContent] ✅ 출처를 이미지 alt로 이동: "${displaySource.substring(0, 50)}..."`);
+        }
         sourceReplacementCount++;
         
         // 이미지만 반환 (출처 텍스트와 공백은 제거)
@@ -1669,31 +1705,35 @@ export async function getPostContent(pageId: string): Promise<string> {
       return match;
     });
     
-    if (sourceReplacementCount > 0) {
-      console.log(`[getPostContent] ✅ 출처를 이미지 alt로 이동 완료: ${sourceReplacementCount}개`);
-    }
-    
-    // 디버깅: 변환된 마크다운에서 이미지 확인
-    const imagePatterns = [
-      /!\[.*?\]\([^\)]+\)/g,  // 마크다운 이미지
-      /<img[^>]+>/g,           // HTML 이미지 태그
-      /https:\/\/[^\s\)]+\.(png|jpg|jpeg|gif|webp|svg)/gi  // 이미지 URL
-    ];
-    
-    imagePatterns.forEach((pattern, index) => {
-      const patternMatches = markdownContent.match(pattern);
-      if (patternMatches && patternMatches.length > 0) {
-        console.log(`[getPostContent] 패턴 ${index + 1} 매칭: ${patternMatches.length}개`);
-        console.log(`[getPostContent] 예시:`, patternMatches.slice(0, 2));
+    if (process.env.NODE_ENV === 'development') {
+      if (sourceReplacementCount > 0) {
+        console.log(`[getPostContent] ✅ 출처를 이미지 alt로 이동 완료: ${sourceReplacementCount}개`);
       }
-    });
+      
+      // 디버깅: 변환된 마크다운에서 이미지 확인
+      const imagePatterns = [
+        /!\[.*?\]\([^\)]+\)/g,  // 마크다운 이미지
+        /<img[^>]+>/g,           // HTML 이미지 태그
+        /https:\/\/[^\s\)]+\.(png|jpg|jpeg|gif|webp|svg)/gi  // 이미지 URL
+      ];
+      
+      imagePatterns.forEach((pattern, index) => {
+        const patternMatches = markdownContent.match(pattern);
+        if (patternMatches && patternMatches.length > 0) {
+          console.log(`[getPostContent] 패턴 ${index + 1} 매칭: ${patternMatches.length}개`);
+          console.log(`[getPostContent] 예시:`, patternMatches.slice(0, 2));
+        }
+      });
+    }
     
     // 캐시에 저장 (60초)
     cache.set(cacheKey, markdownContent, 60000);
     
     return markdownContent;
   } catch (error) {
-    console.error("Error converting Notion page to markdown:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error converting Notion page to markdown:", error);
+    }
     throw error;
   }
 }
@@ -1747,7 +1787,9 @@ export async function searchPosts(
       hasPrevPage: currentPage > 1,
     };
   } catch (error) {
-    console.error("Error searching posts:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error searching posts:", error);
+    }
     throw error;
   }
 }
