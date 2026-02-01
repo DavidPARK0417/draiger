@@ -1,5 +1,6 @@
-import { getLatestPosts, type Post } from "@/lib/notion";
-import { getLatestRecipes, type Recipe } from "@/lib/notion-recipe";
+"use client";
+
+import { useEffect, useState } from "react";
 import PostCard from "@/components/PostCard";
 import SmallPostCard from "@/components/SmallPostCard";
 import MenuCard from "@/components/MenuCard";
@@ -7,51 +8,9 @@ import SmoothScroll from "@/components/SmoothScroll";
 import GrainOverlay from "@/components/GrainOverlay";
 import Link from "next/link";
 import { UtensilsCrossed, Lightbulb, ArrowRight } from "lucide-react";
-import type { Metadata } from 'next';
+import type { Post } from "@/lib/notion";
+import type { Recipe } from "@/lib/notion-recipe";
 import { getBaseUrl } from "@/lib/site";
-
-// ISR 설정: 60초마다 재검증 (더 빠른 업데이트를 원하면 30초로 조정 가능)
-export const revalidate = 60;
-
-export const metadata: Metadata = {
-  title: '드라이거 (Draiger) - 데일리 툴킷 | 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
-  description: '드라이거(Draiger)는 마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트되는 데일리 툴킷입니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 드라이거에서 한 번에 만나보세요.',
-  keywords: [
-    'Draiger',
-    'draiger',
-    'DRAIGER',
-    '드라이거',
-    '데일리 툴킷',
-    'Daily Toolkit',
-    '마케팅 도구',
-    'ROI 계산기',
-    '광고 예산 계산기',
-    '키워드 분석',
-    '손익분기점 계산',
-    '광고 성과 분석',
-    '마케팅 분석',
-    '디지털 마케팅',
-    '광고 최적화',
-    'CRO 계산기',
-    '스마트 도구',
-    '인사이트',
-    '트렌드',
-  ],
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
-    title: '드라이거 (Draiger) - 데일리 툴킷 | 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
-    description: '드라이거(Draiger)는 마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트되는 데일리 툴킷입니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 드라이거에서 한 번에 만나보세요.',
-    url: '/',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: '드라이거 (Draiger) - 데일리 툴킷 | 매일 쌓이는 지식과 꼭 필요한 스마트 도구',
-    description: '드라이거(Draiger)는 마케팅, 트렌드, 일상의 유용한 정보가 매일 자동으로 업데이트되는 데일리 툴킷입니다. 지식을 채워주는 전문 인사이트 콘텐츠와 이를 즉시 실행에 옮길 수 있는 스마트 도구들을 드라이거에서 한 번에 만나보세요.',
-  },
-};
 
 interface RecipeSectionProps {
   recipes: Recipe[];
@@ -162,91 +121,130 @@ function InsightSection({ posts }: InsightSectionProps) {
   );
 }
 
-export default async function Home() {
-  // 캐시 없이 최신 레시피 3개와 최신 인사이트 3개 가져오기
-  let recipes: Recipe[] = [];
-  let posts: Post[] = [];
+export default function Home() {
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  try {
-    // 캐시 없이 최신 레시피 3개 가져오기
-    recipes = await getLatestRecipes(3);
-  } catch (error) {
-    console.error("레시피 조회 실패:", error);
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/home/latest', {
+          cache: 'no-store', // 캐시 비활성화
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+          setRecipes(data.recipes || []);
+          setPosts(data.posts || []);
+        } else {
+          console.error("홈 페이지 데이터 조회 실패:", data.error);
+          setRecipes([]);
+          setPosts([]);
+        }
+      } catch (error) {
+        console.error("홈 페이지 데이터 조회 오류:", error);
+        setRecipes([]);
+        setPosts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  try {
-    // 캐시 없이 최신 인사이트 3개 가져오기
-    posts = await getLatestPosts(3);
-  } catch (error) {
-    console.error("인사이트 글 조회 실패:", error);
-  }
+    fetchData();
+  }, []);
 
   const hasContent = recipes.length > 0 || posts.length > 0;
   const baseUrl = getBaseUrl();
 
-  // 구조화된 데이터 (JSON-LD) 생성
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "name": "드라이거 (Draiger) - 데일리 툴킷",
-    "alternateName": ["드라이거", "Draiger", "DRAIGER", "draiger", "데일리 툴킷", "Daily Toolkit"],
-    "description": "매일 쌓이는 지식과 꼭 필요한 스마트 도구",
-    "url": baseUrl,
-    "mainEntity": {
-      "@type": "ItemList",
-      "name": "최신 콘텐츠",
-      "description": "오늘의 메뉴와 인사이트 최신 글",
-      "numberOfItems": recipes.length + posts.length,
-      "itemListElement": [
-        ...recipes.map((recipe, index) => ({
-          "@type": "ListItem",
-          "position": index + 1,
-          "item": {
-            "@type": "Recipe",
-            "name": recipe.title,
-            "url": `${baseUrl}/menu/${recipe.slug}`,
-            "description": recipe.metaDescription || recipe.description,
-            ...(recipe.featuredImage && { "image": recipe.featuredImage }),
-            ...(recipe.difficulty && { "recipeCategory": recipe.difficulty }),
-            ...(recipe.cookingTime && { "totalTime": `PT${recipe.cookingTime}M` }),
-          }
-        })),
-        ...posts.map((post, index) => ({
-          "@type": "ListItem",
-          "position": recipes.length + index + 1,
-          "item": {
-            "@type": "Article",
-            "headline": post.title,
-            "url": `${baseUrl}/insight/${post.slug}`,
-            "description": post.metaDescription,
-            ...(post.featuredImage && { "image": post.featuredImage }),
-            ...(post.category && { "articleSection": post.category }),
-            "author": {
-              "@type": "Person",
-              "name": "박용범"
-            },
-            "publisher": {
-              "@type": "Person",
-              "name": "박용범"
+  // 구조화된 데이터 (JSON-LD) 생성 - 클라이언트에서 동적으로 추가
+  useEffect(() => {
+    if (!hasContent) return;
+
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "드라이거 (Draiger) - 데일리 툴킷",
+      "alternateName": ["드라이거", "Draiger", "DRAIGER", "draiger", "데일리 툴킷", "Daily Toolkit"],
+      "description": "매일 쌓이는 지식과 꼭 필요한 스마트 도구",
+      "url": baseUrl,
+      "mainEntity": {
+        "@type": "ItemList",
+        "name": "최신 콘텐츠",
+        "description": "오늘의 메뉴와 인사이트 최신 글",
+        "numberOfItems": recipes.length + posts.length,
+        "itemListElement": [
+          ...recipes.map((recipe, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "item": {
+              "@type": "Recipe",
+              "name": recipe.title,
+              "url": `${baseUrl}/menu/${recipe.slug}`,
+              "description": recipe.metaDescription || recipe.description,
+              ...(recipe.featuredImage && { "image": recipe.featuredImage }),
+              ...(recipe.difficulty && { "recipeCategory": recipe.difficulty }),
+              ...(recipe.cookingTime && { "totalTime": `PT${recipe.cookingTime}M` }),
             }
-          }
-        }))
-      ]
+          })),
+          ...posts.map((post, index) => ({
+            "@type": "ListItem",
+            "position": recipes.length + index + 1,
+            "item": {
+              "@type": "Article",
+              "headline": post.title,
+              "url": `${baseUrl}/insight/${post.slug}`,
+              "description": post.metaDescription,
+              ...(post.featuredImage && { "image": post.featuredImage }),
+              ...(post.category && { "articleSection": post.category }),
+              "author": {
+                "@type": "Person",
+                "name": "박용범"
+              },
+              "publisher": {
+                "@type": "Person",
+                "name": "박용범"
+              }
+            }
+          }))
+        ]
+      }
+    };
+
+    // 기존 스크립트 제거
+    const existingScript = document.querySelector('script[data-home-structured-data]');
+    if (existingScript) {
+      existingScript.remove();
     }
-  };
+
+    // 새로운 스크립트 추가
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.setAttribute('data-home-structured-data', 'true');
+    script.textContent = JSON.stringify(structuredData);
+    document.head.appendChild(script);
+  }, [hasContent, recipes, posts, baseUrl]);
+
+  if (loading) {
+    return (
+      <SmoothScroll>
+        <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
+          <GrainOverlay />
+          <main className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <div className="text-center py-20">
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                로딩 중...
+              </p>
+            </div>
+          </main>
+        </div>
+      </SmoothScroll>
+    );
+  }
 
   return (
     <SmoothScroll>
-      {/* 구조화된 데이터 (JSON-LD) - SEO 최적화 */}
-      {hasContent && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(structuredData),
-          }}
-        />
-      )}
-      
       <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
         <GrainOverlay />
         <main className="min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
