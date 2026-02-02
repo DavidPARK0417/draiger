@@ -273,7 +273,7 @@ export default function AboutPage() {
                   📖 전문 인사이트 콘텐츠
                 </h3>
                 <p className="mb-3">
-                  Notion과 연동하여 <strong className="text-gray-900 dark:text-gray-100">매일 자동으로 업데이트</strong>되는 
+                  <strong className="text-gray-900 dark:text-gray-100">매일 자동으로 업데이트</strong>되는 
                   전문 인사이트 콘텐츠를 제공합니다. 7가지 카테고리로 분류된 
                   고품질 콘텐츠를 통해 최신 트렌드와 실전 노하우를 습득할 수 있습니다.
                 </p>
@@ -311,7 +311,7 @@ export default function AboutPage() {
                   🍽️ 오늘의메뉴
                 </h3>
                 <p className="mb-3">
-                  Notion과 연동하여 <strong className="text-gray-900 dark:text-gray-100">매일 자동으로 업데이트</strong>되는 
+                  <strong className="text-gray-900 dark:text-gray-100">매일 자동으로 업데이트</strong>되는 
                   요리 레시피를 제공합니다. 다양한 요리 방법과 재료 정보를 통해 
                   일상의 식사 준비를 더욱 쉽고 즐겁게 만들어드립니다.
                 </p>
@@ -327,9 +327,7 @@ export default function AboutPage() {
                   <li><strong>단계별 요리 가이드</strong>: 초보자도 따라할 수 있는 상세한 요리 방법</li>
                   <li><strong>검색 기능</strong>: 원하는 메뉴를 빠르게 찾을 수 있는 검색 기능 제공</li>
                 </ul>
-                <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                  ✨ 모든 레시피는 Notion 데이터베이스와 연동되어 자동으로 업데이트됩니다.
-                </p>
+                {/* 레시피 데이터 업데이트 방식 안내 문구는 기획에 따라 추후 다시 추가할 수 있습니다. */}
               </div>
             </div>
           </section>

@@ -127,7 +127,7 @@ export default function PrivacyPage() {
                   </strong>
                 </p>
                 <p className="ml-4">
-                  Notion과 연동하여 요리 레시피를 제공하기 위해 개인정보를 처리합니다.
+                  요리 레시피를 제공하기 위해 개인정보를 처리합니다.
                 </p>
                 <p>
                   <strong className="text-gray-900 dark:text-gray-100">
@@ -135,7 +135,7 @@ export default function PrivacyPage() {
                   </strong>
                 </p>
                 <p className="ml-4">
-                  Notion과 연동하여 전문 인사이트 콘텐츠를 제공하기 위해 개인정보를 처리합니다.
+                  전문 인사이트 콘텐츠를 제공하기 위해 개인정보를 처리합니다.
                 </p>
               </div>
             </div>
