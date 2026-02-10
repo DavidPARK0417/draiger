@@ -16,7 +16,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getBaseUrl } from "@/lib/site";
 import { ArrowRight } from "lucide-react";
-import TagCopySection from "@/components/TagCopySection";
 import ClientInsightContent from "@/components/ClientInsightContent";
 
 // ISR 설정: 30초마다 재검증 (색인 속도 개선을 위해 더 빠른 업데이트)
@@ -167,7 +166,7 @@ export default async function InsightPostPage({
         .filter((p) => p.id !== post.id && p.slug)
         .slice(0, 3);
     }
-  } catch (error) {
+  } catch {
     // 에러 발생 시 빈 배열 유지
   }
 

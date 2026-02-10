@@ -7,7 +7,6 @@ import FormattedDate from "@/components/FormattedDate";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getBaseUrl } from "@/lib/site";
-import TagCopySection from "@/components/TagCopySection";
 import ClientRecipeContent from "@/components/ClientRecipeContent";
 
 export const revalidate = 60;

@@ -476,14 +476,14 @@ export async function getPublishedRecipesPaginated(
     let hasMore = true;
     const targetStartIndex = (currentPage - 1) * pageSize;
     const targetEndIndex = targetStartIndex + pageSize;
-    let useFilter = true; // 필터 사용 여부
+    let useFilterVar = true; // 필터 사용 여부
 
     while (hasMore && allResults.length < targetEndIndex) {
       let data;
       try {
         data = await queryNotionRecipeDatabase({
           database_id: databaseId,
-          filter: useFilter
+          filter: useFilterVar
             ? {
                 property: publishedPropertyName,
                 checkbox: {
@@ -509,7 +509,7 @@ export async function getPublishedRecipesPaginated(
           console.warn(
             `⚠️ "${publishedPropertyName}" 속성을 찾을 수 없습니다. 필터 없이 모든 레시피를 가져옵니다.`,
           );
-          useFilter = false;
+          useFilterVar = false;
           data = await queryNotionRecipeDatabase({
             database_id: databaseId,
             sorts: [
@@ -644,7 +644,7 @@ export async function getPublishedRecipesPaginated(
         const fullContent = await getRecipeContent(recipe.id);
         const featuredImage = extractFirstImageUrl(fullContent);
         return { ...recipe, featuredImage, image: featuredImage };
-      } catch (error) {
+      } catch {
         // 이미지 추출 실패는 무시
         return recipe;
       }
@@ -665,7 +665,7 @@ export async function getPublishedRecipesPaginated(
         const fullContent = await getRecipeContent(recipe.id);
         const featuredImage = extractFirstImageUrl(fullContent);
         return { ...recipe, featuredImage, image: featuredImage };
-      } catch (error) {
+      } catch {
         // 이미지 추출 실패는 무시
         return recipe;
       }
@@ -774,12 +774,22 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
       let featuredImage: string | undefined = undefined;
 
       // 1. featuredImage 속성 확인
-      const fImg = p.featuredImage as any;
+      const fImg = p.featuredImage as
+        | {
+            type: "files";
+            files: Array<{
+              type: "external" | "file";
+              external?: { url: string };
+              file?: { url: string };
+            }>;
+          }
+        | { type: "url"; url: string }
+        | undefined;
       if (fImg) {
-        if (fImg.type === "files" && fImg.files?.length > 0) {
+        if (fImg.type === "files" && fImg.files && fImg.files.length > 0) {
           const file = fImg.files[0];
           featuredImage =
-            file.type === "external" ? file.external.url : file.file.url;
+            file.type === "external" ? file.external?.url : file.file?.url;
         } else if (fImg.type === "url" && fImg.url) {
           featuredImage = fImg.url;
         }
@@ -787,7 +797,16 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
 
       // 2. image 속성 확인
       if (!featuredImage) {
-        const img = p.image as any;
+        const img = p.image as
+          | {
+              type: "files";
+              files: Array<{
+                type: "external" | "file";
+                external?: { url: string };
+                file?: { url: string };
+              }>;
+            }
+          | undefined;
         if (img && typeof img === "object") {
           if (
             "files" in img &&
@@ -796,7 +815,7 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
           ) {
             const file = img.files[0];
             featuredImage =
-              file.type === "external" ? file.external.url : file.file.url;
+              file.type === "external" ? file.external?.url : file.file?.url;
           } else if ("url" in img && typeof img.url === "string") {
             featuredImage = img.url;
           }
@@ -816,7 +835,10 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
 
       let cookingTime: string | number | undefined = undefined;
       if (p.cookingtime && typeof p.cookingtime === "object") {
-        const ct = p.cookingtime as any;
+        const ct = p.cookingtime as {
+          rich_text?: Array<{ plain_text: string }>;
+          number?: number;
+        };
         if (ct.rich_text?.[0]?.plain_text) {
           cookingTime = ct.rich_text[0].plain_text;
         } else if (typeof ct.number === "number") {
@@ -934,12 +956,22 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
         let featuredImage: string | undefined = undefined;
 
         // 1. featuredImage 속성 확인
-        const fImg = p.featuredImage as any;
+        const fImg = p.featuredImage as
+          | {
+              type: "files";
+              files: Array<{
+                type: "external" | "file";
+                external?: { url: string };
+                file?: { url: string };
+              }>;
+            }
+          | { type: "url"; url: string }
+          | undefined;
         if (fImg) {
-          if (fImg.type === "files" && fImg.files?.length > 0) {
+          if (fImg.type === "files" && fImg.files && fImg.files.length > 0) {
             const file = fImg.files[0];
             featuredImage =
-              file.type === "external" ? file.external.url : file.file.url;
+              file.type === "external" ? file.external?.url : file.file?.url;
           } else if (fImg.type === "url" && fImg.url) {
             featuredImage = fImg.url;
           }
@@ -947,7 +979,17 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
 
         // 2. image 속성 확인
         if (!featuredImage) {
-          const img = p.image as any;
+          const img = p.image as
+            | {
+                type: "files";
+                files: Array<{
+                  type: "external" | "file";
+                  external?: { url: string };
+                  file?: { url: string };
+                }>;
+              }
+            | { type: "url"; url: string }
+            | undefined;
           if (img && typeof img === "object") {
             if (
               "files" in img &&
@@ -956,7 +998,7 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
             ) {
               const file = img.files[0];
               featuredImage =
-                file.type === "external" ? file.external.url : file.file.url;
+                file.type === "external" ? file.external?.url : file.file?.url;
             } else if ("url" in img && typeof img.url === "string") {
               featuredImage = img.url;
             }

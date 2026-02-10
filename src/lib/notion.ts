@@ -508,12 +508,23 @@ export async function mapNotionPageToPost(
   let featuredImage: string | undefined = undefined;
 
   // 1. featuredImage 속성 확인
-  const fImg = p.featuredImage as any;
+  const fImg = p.featuredImage as
+    | {
+        type: "files";
+        files: Array<{
+          type: "external" | "file";
+          external?: { url: string };
+          file?: { url: string };
+        }>;
+      }
+    | { type: "url"; url: string }
+    | undefined;
+
   if (fImg) {
-    if (fImg.type === "files" && fImg.files?.length > 0) {
+    if (fImg.type === "files" && fImg.files && fImg.files.length > 0) {
       const file = fImg.files[0];
       featuredImage =
-        file.type === "external" ? file.external.url : file.file.url;
+        file.type === "external" ? file.external?.url : file.file?.url;
     } else if (fImg.type === "url" && fImg.url) {
       featuredImage = fImg.url;
     }
@@ -521,11 +532,20 @@ export async function mapNotionPageToPost(
 
   // 2. image 속성 확인
   if (!featuredImage) {
-    const img = p.image as any;
-    if (img && img.type === "files" && img.files?.length > 0) {
+    const img = p.image as
+      | {
+          type: "files";
+          files: Array<{
+            type: "external" | "file";
+            external?: { url: string };
+            file?: { url: string };
+          }>;
+        }
+      | undefined;
+    if (img && img.type === "files" && img.files && img.files.length > 0) {
       const file = img.files[0];
       featuredImage =
-        file.type === "external" ? file.external.url : file.file.url;
+        file.type === "external" ? file.external?.url : file.file?.url;
     }
   }
 
@@ -539,7 +559,7 @@ export async function mapNotionPageToPost(
     try {
       const fullContent = await getPostContent(page.id);
       featuredImage = extractFirstImageUrl(fullContent);
-    } catch (error) {
+    } catch {
       // 이미지 추출 실패는 무시
     }
   }
@@ -1761,8 +1781,8 @@ export async function searchPosts(
             if (featuredImage) {
               return { ...post, featuredImage };
             }
-          } catch (error) {
-            // 이미지 추출 실패는 무시
+          } catch {
+            // 캐시 삭제 오류는 무시
           }
         }
         return post;

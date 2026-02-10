@@ -37,7 +37,6 @@ async function InsightPageContent({
   }
 
   const posts = data.posts || [];
-  const totalCount = data.totalCount || 0;
   const totalPages = data.totalPages || 0;
   const hasNextPage = data.hasNextPage || false;
   const hasPrevPage = data.hasPrevPage || false;

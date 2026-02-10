@@ -40,7 +40,6 @@ async function MenuPageContent({
   }
 
   const recipes = data.recipes || [];
-  const totalCount = data.totalCount || 0;
   const totalPages = data.totalPages || 0;
   const hasNextPage = data.hasNextPage || false;
   const hasPrevPage = data.hasPrevPage || false;

@@ -5,14 +5,14 @@ import SmoothScroll from "@/components/SmoothScroll";
 import GrainOverlay from "@/components/GrainOverlay";
 import Link from "next/link";
 import { UtensilsCrossed, Lightbulb, ArrowRight } from "lucide-react";
-import { getLatestPosts } from "@/lib/notion";
-import { getLatestRecipes } from "@/lib/notion-recipe";
+import { getLatestPosts, Post } from "@/lib/notion";
+import { getLatestRecipes, Recipe } from "@/lib/notion-recipe";
 
 // ISR 설정 (60초마다 갱신)
 export const revalidate = 60;
 
 interface RecipeSectionProps {
-  recipes: any[];
+  recipes: Recipe[];
 }
 
 function RecipeSection({ recipes }: RecipeSectionProps) {
@@ -67,7 +67,7 @@ function RecipeSection({ recipes }: RecipeSectionProps) {
 }
 
 interface InsightSectionProps {
-  posts: any[];
+  posts: Post[];
 }
 
 function InsightSection({ posts }: InsightSectionProps) {
