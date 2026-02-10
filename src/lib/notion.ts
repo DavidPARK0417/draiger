@@ -53,9 +53,9 @@ interface NotionQueryResponse {
 
 // Notion 블록 타입 정의
 interface NotionImageBlock {
-  type: 'image';
+  type: "image";
   image: {
-    type: 'external' | 'file';
+    type: "external" | "file";
     external?: {
       url: string;
     };
@@ -97,7 +97,7 @@ function getNotionClient(): Client {
   if (!apiKey) {
     throw new Error(
       "NOTION_API_KEY is not defined in environment variables. " +
-        "Please add NOTION_API_KEY to your .env.local file."
+        "Please add NOTION_API_KEY to your .env.local file.",
     );
   }
 
@@ -105,7 +105,7 @@ function getNotionClient(): Client {
   apiKey = apiKey.trim().replace(/^["']|["']$/g, "");
 
   // API 키 형식 검증 및 로깅 (개발 환경에서만)
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     console.log("🔑 API 키 확인:", {
       keyPrefix: apiKey.substring(0, 10) + "...",
       keyLength: apiKey.length,
@@ -120,7 +120,7 @@ function getNotionClient(): Client {
         "일반적으로 'secret_' 또는 'ntn_'으로 시작해야 합니다. " +
         "현재 키: " +
         apiKey.substring(0, 10) +
-        "..."
+        "...",
     );
   }
 
@@ -138,16 +138,16 @@ function getNotionClient(): Client {
     if (!client.databases) {
       throw new Error(
         "Notion Client 생성 실패: 'databases' 속성이 없습니다. " +
-          "SDK 버전이나 초기화 방식에 문제가 있을 수 있습니다."
+          "SDK 버전이나 초기화 방식에 문제가 있을 수 있습니다.",
       );
     }
 
     // 사용 가능한 메서드 확인 및 로깅 (개발 환경에서만)
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       const databasesKeys = Object.keys(client.databases);
       console.log("📋 사용 가능한 databases 메서드:", databasesKeys);
       console.log(
-        "✅ Notion Client가 생성되었습니다. (HTTP API를 직접 사용합니다)"
+        "✅ Notion Client가 생성되었습니다. (HTTP API를 직접 사용합니다)",
       );
     }
 
@@ -164,19 +164,19 @@ function getNotionClient(): Client {
 function getNotionToMarkdown() {
   const notion = getNotionClient();
   const n2m = new NotionToMarkdown({ notionClient: notion });
-  
+
   // 이미지 블록에 대한 커스텀 변환기 설정
   // Notion API에서 직접 이미지 URL을 가져와서 사용
   n2m.setCustomTransformer("image", async (block) => {
     try {
       const imageBlock = block as NotionImageBlock;
       const { image } = imageBlock;
-      
+
       // 이미지 URL 추출
       let imageUrl = "";
       let caption = "";
       let imageType = "";
-      
+
       if (image) {
         // External 이미지 (외부 URL)
         if (image.type === "external" && image.external?.url) {
@@ -188,19 +188,21 @@ function getNotionToMarkdown() {
           imageUrl = image.file.url;
           imageType = "file";
         }
-        
-         // URL 정규화: thumbnews URL은 원본 그대로 사용 (실제로 작동함)
-         // 참고: thumbnews.nateimg.co.kr/view610///news.nateimg.co.kr/... 형식도 실제로 작동함
-         if (imageUrl) {
-           // 단순히 앞뒤 공백만 제거 (URL 변환하지 않음)
-           imageUrl = imageUrl.trim();
-           
-           // 디버깅: 원본 URL 유지 확인 (개발 환경에서만)
-           if (process.env.NODE_ENV === 'development') {
-             console.log(`[getNotionToMarkdown] 이미지 URL (원본 유지): ${imageUrl.substring(0, 100)}...`);
-           }
-         }
-        
+
+        // URL 정규화: thumbnews URL은 원본 그대로 사용 (실제로 작동함)
+        // 참고: thumbnews.nateimg.co.kr/view610///news.nateimg.co.kr/... 형식도 실제로 작동함
+        if (imageUrl) {
+          // 단순히 앞뒤 공백만 제거 (URL 변환하지 않음)
+          imageUrl = imageUrl.trim();
+
+          // 디버깅: 원본 URL 유지 확인 (개발 환경에서만)
+          if (process.env.NODE_ENV === "development") {
+            console.log(
+              `[getNotionToMarkdown] 이미지 URL (원본 유지): ${imageUrl.substring(0, 100)}...`,
+            );
+          }
+        }
+
         // 캡션 추출
         if (image.caption && image.caption.length > 0) {
           caption = image.caption
@@ -208,25 +210,28 @@ function getNotionToMarkdown() {
             .join("");
         }
       }
-      
+
       // URL이 없으면 빈 문자열 반환
       if (!imageUrl) {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn("[getNotionToMarkdown] 이미지 URL을 찾을 수 없습니다:", JSON.stringify(block, null, 2).substring(0, 300));
+        if (process.env.NODE_ENV === "development") {
+          console.warn(
+            "[getNotionToMarkdown] 이미지 URL을 찾을 수 없습니다:",
+            JSON.stringify(block, null, 2).substring(0, 300),
+          );
         }
         return "";
       }
-      
+
       // 디버깅: 이미지 URL 로그 (개발 환경에서만)
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.log(`[getNotionToMarkdown] 이미지 변환 성공:`, {
           type: imageType,
           url: imageUrl.substring(0, 100) + "...",
           hasCaption: !!caption,
-          captionLength: caption.length
+          captionLength: caption.length,
         });
       }
-      
+
       // 마크다운 이미지 형식으로 반환
       if (caption) {
         return `![${caption}](${imageUrl})`;
@@ -234,13 +239,13 @@ function getNotionToMarkdown() {
         return `![](${imageUrl})`;
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.error("[getNotionToMarkdown] 이미지 변환 오류:", error);
       }
       return "";
     }
   });
-  
+
   return n2m;
 }
 
@@ -270,7 +275,7 @@ const requestQueue: QueuedRequest[] = [];
 let isProcessingQueue = false;
 let lastRequestTime = 0;
 // 빌드 시 rate limiting 방지를 위해 요청 간격 증가 (1초)
-const MIN_REQUEST_INTERVAL = process.env.NODE_ENV === 'production' ? 1000 : 500;
+const MIN_REQUEST_INTERVAL = process.env.NODE_ENV === "production" ? 1000 : 500;
 
 /**
  * 요청 큐를 순차적으로 처리하는 함수
@@ -290,28 +295,37 @@ async function processRequestQueue(): Promise<void> {
       // 요청 간 최소 지연 시간 (Rate limit 방지)
       const now = Date.now();
       const timeSinceLastRequest = now - lastRequestTime;
-      
+
       if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
         const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
         await delay(waitTime);
       }
 
-      const result = await executeNotionRequest(request.params, request.retryCount);
+      const result = await executeNotionRequest(
+        request.params,
+        request.retryCount,
+      );
       lastRequestTime = Date.now();
       request.resolve(result);
     } catch (error) {
       // Rate limit 오류인 경우 재시도
-      if (error instanceof Error && error.message.includes('Rate Limit (429)')) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Rate Limit (429)")
+      ) {
         const maxRetries = 5;
         if (request.retryCount < maxRetries) {
           // 재시도를 위해 큐의 앞에 다시 추가
           request.retryCount++;
           requestQueue.unshift(request);
-          
+
           // 에러 메시지에서 대기 시간 추출 시도
           // 패턴: "XXX초 후 재시도 필요" 또는 "XXXms 후 재시도"
-          let waitTime = Math.min(Math.pow(2, request.retryCount) * 1000, 60000);
-          
+          let waitTime = Math.min(
+            Math.pow(2, request.retryCount) * 1000,
+            60000,
+          );
+
           // 초 단위 추출 (예: "124초 후")
           const secondsMatch = error.message.match(/(\d+)초/);
           if (secondsMatch) {
@@ -331,16 +345,16 @@ async function processRequestQueue(): Promise<void> {
               }
             }
           }
-          
+
           // 최대 대기 시간 제한 (5분)
           waitTime = Math.min(waitTime, 300000);
-          
-          if (process.env.NODE_ENV === 'development') {
+
+          if (process.env.NODE_ENV === "development") {
             console.warn(
-              `⚠️ Notion API Rate Limit (429). ${Math.round(waitTime / 1000)}초 후 재시도... (${request.retryCount}/${maxRetries})`
+              `⚠️ Notion API Rate Limit (429). ${Math.round(waitTime / 1000)}초 후 재시도... (${request.retryCount}/${maxRetries})`,
             );
           }
-          
+
           await delay(waitTime);
         } else {
           request.reject(error);
@@ -357,13 +371,16 @@ async function processRequestQueue(): Promise<void> {
 /**
  * 실제 Notion API 요청을 실행하는 함수
  */
-async function executeNotionRequest(params: {
-  database_id: string;
-  filter?: NotionFilter;
-  sorts?: NotionSort[];
-  page_size?: number;
-  start_cursor?: string;
-}, retryCount: number = 0): Promise<NotionQueryResponse> {
+async function executeNotionRequest(
+  params: {
+    database_id: string;
+    filter?: NotionFilter;
+    sorts?: NotionSort[];
+    page_size?: number;
+    start_cursor?: string;
+  },
+  retryCount: number = 0,
+): Promise<NotionQueryResponse> {
   const apiKey = process.env.NOTION_API_KEY?.trim().replace(/^["']|["']$/g, "");
 
   if (!apiKey) {
@@ -398,14 +415,14 @@ async function executeNotionRequest(params: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
-    }
+    },
   );
 
   // Rate limit 오류 처리 (429)
   if (response.status === 429) {
     const retryAfter = response.headers.get("Retry-After");
     const errorText = await response.text();
-    
+
     // Retry-After 헤더가 있으면 해당 시간만큼 대기, 없으면 지수 백오프 사용
     let waitTime: number;
     if (retryAfter) {
@@ -415,7 +432,9 @@ async function executeNotionRequest(params: {
       waitTime = Math.min(Math.pow(2, retryCount) * 1000, 60000);
     }
 
-    throw new Error(`Notion API Rate Limit (429): ${waitTime / 1000}초 후 재시도 필요. ${errorText}`);
+    throw new Error(
+      `Notion API Rate Limit (429): ${waitTime / 1000}초 후 재시도 필요. ${errorText}`,
+    );
   }
 
   if (!response.ok) {
@@ -432,13 +451,16 @@ async function executeNotionRequest(params: {
  * Rate limit 오류 시 자동 재시도 로직 포함
  * 요청 큐를 통해 순차적으로 처리됩니다
  */
-async function queryNotionDatabase(params: {
-  database_id: string;
-  filter?: NotionFilter;
-  sorts?: NotionSort[];
-  page_size?: number;
-  start_cursor?: string;
-}, retryCount: number = 0): Promise<NotionQueryResponse> {
+async function queryNotionDatabase(
+  params: {
+    database_id: string;
+    filter?: NotionFilter;
+    sorts?: NotionSort[];
+    page_size?: number;
+    start_cursor?: string;
+  },
+  retryCount: number = 0,
+): Promise<NotionQueryResponse> {
   return new Promise((resolve, reject) => {
     // 요청을 큐에 추가
     requestQueue.push({
@@ -467,6 +489,73 @@ export interface Post {
   date?: string; // 날짜 추가
   tags?: string[]; // 태그 추가
   featuredImage?: string; // 대표 이미지 추가
+}
+
+/**
+ * Notion 페이지 데이터를 Post 객체로 변환합니다
+ * @param page Notion 페이지 데이터
+ * @param fetchContent 본문 콘텐츠에서 이미지를 추출할지 여부
+ */
+export async function mapNotionPageToPost(
+  page: NotionPage,
+  fetchContent: boolean = false,
+): Promise<Post> {
+  const p = page.properties;
+  const blogPostContent = p.blogPost?.rich_text
+    ? p.blogPost.rich_text.map((rt: NotionRichText) => rt.plain_text).join("")
+    : "";
+
+  let featuredImage: string | undefined = undefined;
+
+  // 1. featuredImage 속성 확인
+  const fImg = p.featuredImage as any;
+  if (fImg) {
+    if (fImg.type === "files" && fImg.files?.length > 0) {
+      const file = fImg.files[0];
+      featuredImage =
+        file.type === "external" ? file.external.url : file.file.url;
+    } else if (fImg.type === "url" && fImg.url) {
+      featuredImage = fImg.url;
+    }
+  }
+
+  // 2. image 속성 확인
+  if (!featuredImage) {
+    const img = p.image as any;
+    if (img && img.type === "files" && img.files?.length > 0) {
+      const file = img.files[0];
+      featuredImage =
+        file.type === "external" ? file.external.url : file.file.url;
+    }
+  }
+
+  // 3. blogPost 필드에서 추출
+  if (!featuredImage) {
+    featuredImage = extractFirstImageUrl(blogPostContent);
+  }
+
+  // 4. 본문 콘텐츠에서 추출 (추가 요청 시)
+  if (!featuredImage && fetchContent) {
+    try {
+      const fullContent = await getPostContent(page.id);
+      featuredImage = extractFirstImageUrl(fullContent);
+    } catch (error) {
+      // 이미지 추출 실패는 무시
+    }
+  }
+
+  return {
+    id: page.id,
+    title: p.title?.title[0]?.plain_text || "Untitled",
+    slug: p.slug?.rich_text?.[0]?.plain_text || "",
+    metaDescription: p.metaDescription?.rich_text?.[0]?.plain_text || "",
+    published: p.Published?.checkbox || false,
+    blogPost: blogPostContent,
+    category: p.category?.rich_text?.[0]?.plain_text || undefined,
+    date: p.date?.date?.start || undefined,
+    tags: p.tags?.multi_select?.map((tag) => tag.name) || undefined,
+    featuredImage,
+  };
 }
 
 /**
@@ -517,7 +606,7 @@ export async function getTotalPostsCount(): Promise<number> {
   if (!databaseId) {
     throw new Error(
       "NOTION_DATABASE_ID is not defined in environment variables. " +
-        "Please add NOTION_DATABASE_ID to your .env.local file."
+        "Please add NOTION_DATABASE_ID to your .env.local file.",
     );
   }
 
@@ -559,7 +648,7 @@ export async function getTotalPostsCount(): Promise<number> {
 
     return totalCount;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.error("Error fetching total posts count:", error);
     }
     throw error;
@@ -583,7 +672,7 @@ export async function getPublishedPosts(): Promise<Post[]> {
   if (!databaseId) {
     throw new Error(
       "NOTION_DATABASE_ID is not defined in environment variables. " +
-        "Please add NOTION_DATABASE_ID to your .env.local file."
+        "Please add NOTION_DATABASE_ID to your .env.local file.",
     );
   }
 
@@ -605,51 +694,16 @@ export async function getPublishedPosts(): Promise<Post[]> {
       ],
     });
 
-      const posts: Post[] = await Promise.all(
-        data.results.map(async (page: NotionPage) => {
-          const blogPostContent = page.properties.blogPost?.rich_text
-            ? page.properties.blogPost.rich_text
-                .map((rt: NotionRichText) => rt.plain_text)
-                .join("")
-            : "";
+    const posts: Post[] = await Promise.all(
+      data.results.map((page: NotionPage) => mapNotionPageToPost(page, true)),
+    );
 
-          // blogPost 필드에서 이미지 추출 시도
-          let featuredImage = extractFirstImageUrl(blogPostContent);
+    // 캐시에 저장 (60초)
+    cache.set(cacheKey, posts, 60000);
 
-          // blogPost에 이미지가 없으면 본문 콘텐츠에서 추출
-          if (!featuredImage) {
-            try {
-              const fullContent = await getPostContent(page.id);
-              featuredImage = extractFirstImageUrl(fullContent);
-            } catch (error) {
-              // 이미지 추출 실패는 무시 (개발 환경에서만 로그 남김)
-              if (process.env.NODE_ENV === 'development') {
-                console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
-              }
-            }
-          }
-
-          return {
-            id: page.id,
-            title: page.properties.title?.title[0]?.plain_text || "Untitled",
-            slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-            metaDescription:
-              page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
-            published: page.properties.Published?.checkbox || false,
-            blogPost: blogPostContent,
-            category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
-            date: page.properties.date?.date?.start || undefined,
-            featuredImage,
-          };
-        })
-      );
-
-      // 캐시에 저장 (60초)
-      cache.set(cacheKey, posts, 60000);
-
-      return posts;
+    return posts;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.error("Error fetching posts from Notion:", error);
     }
     throw error;
@@ -663,14 +717,15 @@ export async function getPublishedPosts(): Promise<Post[]> {
  */
 export async function getPublishedPostsPaginated(
   page: number = 1,
-  pageSize: number = 12
+  pageSize: number = 12,
+  includeContentImages: boolean = true,
 ): Promise<PaginatedPosts> {
   const databaseId = process.env.NOTION_DATABASE_ID;
 
   if (!databaseId) {
     throw new Error(
       "NOTION_DATABASE_ID is not defined in environment variables. " +
-        "Please add NOTION_DATABASE_ID to your .env.local file."
+        "Please add NOTION_DATABASE_ID to your .env.local file.",
     );
   }
 
@@ -722,78 +777,12 @@ export async function getPublishedPostsPaginated(
     // 현재 페이지에 해당하는 데이터만 추출
     const pageResults = allResults.slice(targetStartIndex, targetEndIndex);
 
-    // 1단계: 먼저 기본 정보만 빠르게 가져오기 (이미지 추출 없이)
-    const postsWithoutImages: Post[] = pageResults.map((page: NotionPage) => {
-      const blogPostContent = page.properties.blogPost?.rich_text
-        ? page.properties.blogPost.rich_text
-            .map((rt: NotionRichText) => rt.plain_text)
-            .join("")
-        : "";
-
-      // blogPost 필드에서만 이미지 추출 시도 (빠른 방법)
-      const featuredImage = extractFirstImageUrl(blogPostContent);
-
-      return {
-        id: page.id,
-        title: page.properties.title?.title[0]?.plain_text || "Untitled",
-        slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-        metaDescription:
-          page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
-        published: page.properties.Published?.checkbox || false,
-        blogPost: blogPostContent,
-        category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
-        featuredImage, // blogPost에서 추출한 이미지만 (없으면 undefined)
-      };
-    });
-
-    // 2단계: 상단 2개 항목의 이미지를 먼저 가져오기 (우선순위)
-    const priorityPosts = postsWithoutImages.slice(0, 2);
-    const priorityImagePromises = priorityPosts.map(async (post, index) => {
-      // 이미 이미지가 있으면 스킵
-      if (post.featuredImage) {
-        return post;
-      }
-
-      try {
-        const fullContent = await getPostContent(post.id);
-        const featuredImage = extractFirstImageUrl(fullContent);
-        return { ...post, featuredImage };
-      } catch (error) {
-        // 이미지 추출 실패는 무시
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`이미지 추출 실패 (postId: ${post.id}):`, error);
-        }
-        return post;
-      }
-    });
-
-    // 상단 2개 항목의 이미지 로드 완료 대기
-    const postsWithPriorityImages = await Promise.all(priorityImagePromises);
-
-    // 3단계: 나머지 항목의 이미지를 점진적으로 로드 (백그라운드)
-    const remainingPosts = postsWithoutImages.slice(2);
-    const remainingImagePromises = remainingPosts.map(async (post) => {
-      // 이미 이미지가 있으면 스킵
-      if (post.featuredImage) {
-        return post;
-      }
-
-      try {
-        const fullContent = await getPostContent(post.id);
-        const featuredImage = extractFirstImageUrl(fullContent);
-        return { ...post, featuredImage };
-      } catch (error) {
-        // 이미지 추출 실패는 무시
-        return post;
-      }
-    });
-
-    // 나머지 항목의 이미지는 백그라운드에서 로드 (기다리지 않음)
-    // 하지만 결과를 반환하기 위해 Promise.all로 처리
-    const postsWithRemainingImages = await Promise.all(remainingImagePromises);
-
-    // 최종 결과: 우선순위 항목 + 나머지 항목
-    const posts = [...postsWithPriorityImages, ...postsWithRemainingImages];
+    // 성능 최적화: 이미지 추출 로직 개선 (속성 우선, 본문은 필요할 때만)
+    const posts: Post[] = await Promise.all(
+      pageResults.map((page: NotionPage) =>
+        mapNotionPageToPost(page, includeContentImages),
+      ),
+    );
 
     return {
       posts,
@@ -820,7 +809,7 @@ export async function getLatestPosts(limit: number = 3): Promise<Post[]> {
   if (!databaseId) {
     throw new Error(
       "NOTION_DATABASE_ID is not defined in environment variables. " +
-        "Please add NOTION_DATABASE_ID to your .env.local file."
+        "Please add NOTION_DATABASE_ID to your .env.local file.",
     );
   }
 
@@ -843,43 +832,12 @@ export async function getLatestPosts(limit: number = 3): Promise<Post[]> {
     });
 
     const posts: Post[] = await Promise.all(
-      data.results.map(async (page: NotionPage) => {
-        const blogPostContent = page.properties.blogPost?.rich_text
-          ? page.properties.blogPost.rich_text
-              .map((rt: NotionRichText) => rt.plain_text)
-              .join("")
-          : "";
-
-        // blogPost 필드에서 이미지 추출 시도
-        let featuredImage = extractFirstImageUrl(blogPostContent);
-
-        // blogPost에 이미지가 없으면 본문 콘텐츠에서 추출
-        if (!featuredImage) {
-          try {
-            const fullContent = await getPostContent(page.id);
-            featuredImage = extractFirstImageUrl(fullContent);
-          } catch (error) {
-            // 이미지 추출 실패는 무시
-          }
-        }
-
-        return {
-          id: page.id,
-          title: page.properties.title?.title[0]?.plain_text || "Untitled",
-          slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-          metaDescription:
-            page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
-          published: page.properties.Published?.checkbox || false,
-          blogPost: blogPostContent,
-          category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
-          featuredImage,
-        };
-      })
+      data.results.map((page: NotionPage) => mapNotionPageToPost(page, true)),
     );
 
     return posts;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.error("Error fetching latest posts from Notion:", error);
     }
     throw error;
@@ -890,14 +848,14 @@ export async function getLatestPosts(limit: number = 3): Promise<Post[]> {
  * 카테고리별 Published 게시글의 총 개수를 가져옵니다
  */
 export async function getTotalPostsCountByCategory(
-  category: string
+  category: string,
 ): Promise<number> {
   const databaseId = process.env.NOTION_DATABASE_ID;
 
   if (!databaseId) {
     throw new Error(
       "NOTION_DATABASE_ID is not defined in environment variables. " +
-        "Please add NOTION_DATABASE_ID to your .env.local file."
+        "Please add NOTION_DATABASE_ID to your .env.local file.",
     );
   }
 
@@ -938,12 +896,12 @@ export async function getTotalPostsCountByCategory(
                   equals: true,
                 },
               },
-            {
-              property: "category",
-              rich_text: {
-                equals: category,
+              {
+                property: "category",
+                rich_text: {
+                  equals: category,
+                },
               },
-            },
             ],
           },
           page_size: 100,
@@ -966,13 +924,13 @@ export async function getTotalPostsCountByCategory(
         // category 속성이 없으면 전체에서 필터링
         const allPosts = await getPublishedPosts();
         return allPosts.filter(
-          (post) => post.category && post.category === category
+          (post) => post.category && post.category === category,
         ).length;
       }
       throw categoryError;
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.error("Error fetching total posts count by category:", error);
     }
     throw error;
@@ -981,12 +939,12 @@ export async function getTotalPostsCountByCategory(
 
 /**
  * 카테고리별 Published 게시글을 가져옵니다
- * 
+ *
  * 주의: Notion 데이터베이스에 'category' 속성이 없을 경우,
  * 모든 Published 게시글을 가져온 후 클라이언트 측에서 필터링합니다.
  */
 export async function getPublishedPostsByCategory(
-  category: string
+  category: string,
 ): Promise<Post[]> {
   // 캐시 확인
   const cacheKey = CacheKeys.postsByCategory(category);
@@ -1000,7 +958,7 @@ export async function getPublishedPostsByCategory(
   if (!databaseId) {
     throw new Error(
       "NOTION_DATABASE_ID is not defined in environment variables. " +
-        "Please add NOTION_DATABASE_ID to your .env.local file."
+        "Please add NOTION_DATABASE_ID to your .env.local file.",
     );
   }
 
@@ -1035,41 +993,7 @@ export async function getPublishedPostsByCategory(
       });
 
       const posts: Post[] = await Promise.all(
-        data.results.map(async (page: NotionPage) => {
-          const blogPostContent = page.properties.blogPost?.rich_text
-            ? page.properties.blogPost.rich_text
-                .map((rt: NotionRichText) => rt.plain_text)
-                .join("")
-            : "";
-
-          // blogPost 필드에서 이미지 추출 시도
-          let featuredImage = extractFirstImageUrl(blogPostContent);
-
-          // blogPost에 이미지가 없으면 본문 콘텐츠에서 추출
-          if (!featuredImage) {
-            try {
-              const fullContent = await getPostContent(page.id);
-              featuredImage = extractFirstImageUrl(fullContent);
-            } catch (error) {
-              // 이미지 추출 실패는 무시 (개발 환경에서만 로그 남김)
-              if (process.env.NODE_ENV === 'development') {
-                console.log(`이미지 추출 실패 (postId: ${page.id}):`, error);
-              }
-            }
-          }
-
-          return {
-            id: page.id,
-            title: page.properties.title?.title[0]?.plain_text || "Untitled",
-            slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-            metaDescription:
-              page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
-            published: page.properties.Published?.checkbox || false,
-            blogPost: blogPostContent,
-            category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
-            featuredImage,
-          };
-        })
+        data.results.map((page: NotionPage) => mapNotionPageToPost(page, true)),
       );
 
       // 캐시에 저장 (60초)
@@ -1088,15 +1012,15 @@ export async function getPublishedPostsByCategory(
       ) {
         console.warn(
           "⚠️ Notion 데이터베이스에 'category' 속성이 없습니다. " +
-            "모든 게시글을 가져온 후 클라이언트 측에서 필터링합니다."
+            "모든 게시글을 가져온 후 클라이언트 측에서 필터링합니다.",
         );
 
         // 모든 Published 게시글을 가져온 후 클라이언트 측에서 필터링
         const allPosts = await getPublishedPosts();
-        
+
         // category 속성이 있는 게시글만 필터링
         const filteredPosts = allPosts.filter(
-          (post) => post.category && post.category === category
+          (post) => post.category && post.category === category,
         );
 
         // 캐시에 저장 (60초)
@@ -1104,12 +1028,12 @@ export async function getPublishedPostsByCategory(
 
         return filteredPosts;
       }
-      
+
       // 다른 에러는 그대로 throw
       throw categoryError;
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.error("Error fetching posts by category from Notion:", error);
     }
     throw error;
@@ -1123,7 +1047,7 @@ export async function getPublishedPostsByCategory(
  */
 export async function getLatestPostsByCategory(
   category: string,
-  limit: number = 3
+  limit: number = 3,
 ): Promise<Post[]> {
   // 캐시 확인
   const cacheKey = CacheKeys.latestPostsByCategory(category, limit);
@@ -1150,14 +1074,14 @@ export async function getLatestPostsByCategory(
 export async function getPublishedPostsByCategoryPaginated(
   category: string,
   page: number = 1,
-  pageSize: number = 12
+  pageSize: number = 12,
 ): Promise<PaginatedPosts> {
   const databaseId = process.env.NOTION_DATABASE_ID;
 
   if (!databaseId) {
     throw new Error(
       "NOTION_DATABASE_ID is not defined in environment variables. " +
-        "Please add NOTION_DATABASE_ID to your .env.local file."
+        "Please add NOTION_DATABASE_ID to your .env.local file.",
     );
   }
 
@@ -1189,12 +1113,12 @@ export async function getPublishedPostsByCategoryPaginated(
                   equals: true,
                 },
               },
-            {
-              property: "category",
-              rich_text: {
-                equals: category,
+              {
+                property: "category",
+                rich_text: {
+                  equals: category,
+                },
               },
-            },
             ],
           },
           sorts: [
@@ -1227,13 +1151,13 @@ export async function getPublishedPostsByCategoryPaginated(
         // category 속성이 없으면 전체에서 필터링
         const allPosts = await getPublishedPosts();
         const filteredPosts = allPosts.filter(
-          (post) => post.category && post.category === category
+          (post) => post.category && post.category === category,
         );
         const totalCountFiltered = filteredPosts.length;
         const totalPagesFiltered = Math.ceil(totalCountFiltered / pageSize);
         const currentPageFiltered = Math.max(
           1,
-          Math.min(page, totalPagesFiltered || 1)
+          Math.min(page, totalPagesFiltered || 1),
         );
         const startIndex = (currentPageFiltered - 1) * pageSize;
         const endIndex = startIndex + pageSize;
@@ -1255,38 +1179,7 @@ export async function getPublishedPostsByCategoryPaginated(
     const pageResults = allResults.slice(targetStartIndex, targetEndIndex);
 
     const posts: Post[] = await Promise.all(
-      pageResults.map(async (page: NotionPage) => {
-        const blogPostContent = page.properties.blogPost?.rich_text
-          ? page.properties.blogPost.rich_text
-              .map((rt: NotionRichText) => rt.plain_text)
-              .join("")
-          : "";
-
-        // blogPost 필드에서 이미지 추출 시도
-        let featuredImage = extractFirstImageUrl(blogPostContent);
-
-        // blogPost에 이미지가 없으면 본문 콘텐츠에서 추출
-          if (!featuredImage) {
-            try {
-              const fullContent = await getPostContent(page.id);
-              featuredImage = extractFirstImageUrl(fullContent);
-            } catch (error) {
-              // 이미지 추출 실패는 무시
-            }
-          }
-
-        return {
-          id: page.id,
-          title: page.properties.title?.title[0]?.plain_text || "Untitled",
-          slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-          metaDescription:
-            page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
-          published: page.properties.Published?.checkbox || false,
-          blogPost: blogPostContent,
-          category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
-          featuredImage,
-        };
-      })
+      pageResults.map((page: NotionPage) => mapNotionPageToPost(page, true)),
     );
 
     return {
@@ -1298,10 +1191,10 @@ export async function getPublishedPostsByCategoryPaginated(
       hasPrevPage: currentPage > 1,
     };
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.error(
         "Error fetching paginated posts by category from Notion:",
-        error
+        error,
       );
     }
     throw error;
@@ -1325,7 +1218,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
   if (!databaseId) {
     throw new Error(
       "NOTION_DATABASE_ID is not defined in environment variables. " +
-        "Please add NOTION_DATABASE_ID to your .env.local file."
+        "Please add NOTION_DATABASE_ID to your .env.local file.",
     );
   }
 
@@ -1357,29 +1250,14 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     }
 
     const page: NotionPage = data.results[0];
-    const post = {
-      id: page.id,
-      title: page.properties.title?.title[0]?.plain_text || "Untitled",
-      slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-      metaDescription:
-        page.properties.metaDescription?.rich_text?.[0]?.plain_text || "",
-      published: page.properties.Published?.checkbox || false,
-      blogPost: page.properties.blogPost?.rich_text
-        ? page.properties.blogPost.rich_text
-            .map((rt: NotionRichText) => rt.plain_text)
-            .join("")
-        : "",
-      category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
-      date: page.properties.date?.date?.start || undefined,
-      tags: page.properties.tags?.multi_select?.map((tag) => tag.name) || undefined,
-    };
+    const post = await mapNotionPageToPost(page, true);
 
     // 캐시에 저장 (60초)
     cache.set(cacheKey, post, 60000);
 
     return post;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.error("Error fetching post by slug:", error);
     }
     throw error;
@@ -1391,30 +1269,38 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
  * @deprecated 현재 사용되지 않음 - extractImageUrlsFromPage에서 직접 처리
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function getImageUrlFromNotionBlock(blockId: string): Promise<string | null> {
+async function getImageUrlFromNotionBlock(
+  blockId: string,
+): Promise<string | null> {
   try {
     const notion = getNotionClient();
     const block = await notion.blocks.retrieve({ block_id: blockId });
-    
+
     // 타입 가드: block이 type 속성을 가지고 있고 'image' 타입인지 확인
-    if ('type' in block && block.type === 'image') {
+    if ("type" in block && block.type === "image") {
       const imageBlock = block as NotionImageBlock;
       if (imageBlock.image) {
         // External 이미지
-        if (imageBlock.image.type === 'external' && imageBlock.image.external?.url) {
+        if (
+          imageBlock.image.type === "external" &&
+          imageBlock.image.external?.url
+        ) {
           return imageBlock.image.external.url;
         }
         // File 이미지
-        if (imageBlock.image.type === 'file' && imageBlock.image.file?.url) {
+        if (imageBlock.image.type === "file" && imageBlock.image.file?.url) {
           return imageBlock.image.file.url;
         }
       }
     }
-    
+
     return null;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[getImageUrlFromNotionBlock] 이미지 블록 조회 실패 (${blockId}):`, error);
+    if (process.env.NODE_ENV === "development") {
+      console.error(
+        `[getImageUrlFromNotionBlock] 이미지 블록 조회 실패 (${blockId}):`,
+        error,
+      );
     }
     return null;
   }
@@ -1423,53 +1309,63 @@ async function getImageUrlFromNotionBlock(blockId: string): Promise<string | nul
 /**
  * Notion 페이지의 모든 블록을 가져와서 이미지 URL을 추출합니다
  */
-async function extractImageUrlsFromPage(pageId: string): Promise<Map<string, string>> {
+async function extractImageUrlsFromPage(
+  pageId: string,
+): Promise<Map<string, string>> {
   const imageUrlMap = new Map<string, string>();
-  
+
   try {
     const notion = getNotionClient();
     let cursor: string | undefined = undefined;
     let hasMore = true;
-    
+
     while (hasMore) {
       const response = await notion.blocks.children.list({
         block_id: pageId,
         start_cursor: cursor,
         page_size: 100,
       });
-      
+
       // 이미지 블록 찾기
       for (const block of response.results) {
         // 타입 가드: block이 type 속성을 가지고 있고 'image' 타입인지 확인
-        if ('type' in block && block.type === 'image') {
+        if ("type" in block && block.type === "image") {
           const imageBlock = block as NotionImageBlock;
-          let imageUrl = '';
-          
+          let imageUrl = "";
+
           if (imageBlock.image) {
             // External 이미지
-            if (imageBlock.image.type === 'external' && imageBlock.image.external?.url) {
+            if (
+              imageBlock.image.type === "external" &&
+              imageBlock.image.external?.url
+            ) {
               imageUrl = imageBlock.image.external.url;
             }
             // File 이미지
-            else if (imageBlock.image.type === 'file' && imageBlock.image.file?.url) {
+            else if (
+              imageBlock.image.type === "file" &&
+              imageBlock.image.file?.url
+            ) {
               imageUrl = imageBlock.image.file.url;
             }
-            
-             if (imageUrl) {
-               // URL 정규화: thumbnews URL은 원본 그대로 사용 (실제로 작동함)
-               // 참고: thumbnews.nateimg.co.kr/view610///news.nateimg.co.kr/... 형식도 실제로 작동함
-               const normalizedUrl = imageUrl.trim();
-               
-               // 디버깅: 원본 URL 유지 확인
-               if (process.env.NODE_ENV === 'development') {
-                 console.log(`[extractImageUrlsFromPage] 이미지 발견: ${block.id} -> ${normalizedUrl.substring(0, 100)}...`);
-               }
-               
-               imageUrlMap.set(block.id, normalizedUrl);
-             }
+
+            if (imageUrl) {
+              // URL 정규화: thumbnews URL은 원본 그대로 사용 (실제로 작동함)
+              // 참고: thumbnews.nateimg.co.kr/view610///news.nateimg.co.kr/... 형식도 실제로 작동함
+              const normalizedUrl = imageUrl.trim();
+
+              // 디버깅: 원본 URL 유지 확인
+              if (process.env.NODE_ENV === "development") {
+                console.log(
+                  `[extractImageUrlsFromPage] 이미지 발견: ${block.id} -> ${normalizedUrl.substring(0, 100)}...`,
+                );
+              }
+
+              imageUrlMap.set(block.id, normalizedUrl);
+            }
           }
         }
-        
+
         // 중첩된 블록도 확인 (예: column, callout 등)
         const blockWithChildren = block as NotionBlock;
         if (blockWithChildren.has_children) {
@@ -1477,16 +1373,19 @@ async function extractImageUrlsFromPage(pageId: string): Promise<Map<string, str
           nestedImages.forEach((url, id) => imageUrlMap.set(id, url));
         }
       }
-      
+
       cursor = response.next_cursor || undefined;
       hasMore = response.has_more;
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[extractImageUrlsFromPage] 페이지 블록 조회 실패 (${pageId}):`, error);
+    if (process.env.NODE_ENV === "development") {
+      console.error(
+        `[extractImageUrlsFromPage] 페이지 블록 조회 실패 (${pageId}):`,
+        error,
+      );
     }
   }
-  
+
   return imageUrlMap;
 }
 
@@ -1504,147 +1403,198 @@ export async function getPostContent(pageId: string): Promise<string> {
   try {
     // 먼저 Notion API에서 직접 이미지 URL 추출
     const imageUrlMap = await extractImageUrlsFromPage(pageId);
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[getPostContent] Notion API에서 추출한 이미지: ${imageUrlMap.size}개`);
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `[getPostContent] Notion API에서 추출한 이미지: ${imageUrlMap.size}개`,
+      );
     }
-    
+
     const n2m = getNotionToMarkdown();
     const mdblocks = await n2m.pageToMarkdown(pageId);
-    
+
     // 디버깅: 마크다운 블록에서 이미지 확인
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       const imageBlocks = mdblocks.filter(
-        (block: { type?: string; parent?: string }) => 
-          block.type === 'image' || block.parent?.includes('image')
+        (block: { type?: string; parent?: string }) =>
+          block.type === "image" || block.parent?.includes("image"),
       );
-      
+
       if (imageBlocks.length > 0) {
-        console.log(`[getPostContent] notion-to-md에서 발견된 이미지 블록: ${imageBlocks.length}개`);
+        console.log(
+          `[getPostContent] notion-to-md에서 발견된 이미지 블록: ${imageBlocks.length}개`,
+        );
       }
     }
-    
+
     const mdString = n2m.toMarkdownString(mdblocks);
     let markdownContent = mdString.parent || "";
-    
-      // 디버깅: 원본 마크다운 콘텐츠 확인 (개발 환경에서만)
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[getPostContent] 원본 마크다운 길이: ${markdownContent.length}자`);
-      }
-    
+
+    // 디버깅: 원본 마크다운 콘텐츠 확인 (개발 환경에서만)
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `[getPostContent] 원본 마크다운 길이: ${markdownContent.length}자`,
+      );
+    }
+
     // 이미지 파일명만 있는 경우 (URL이 없는 경우) Notion API에서 가져온 URL로 대체
     // 패턴: 이미지 파일명만 있는 경우 (예: "news_1756856273_1543672_m_1.png")
     if (imageUrlMap.size > 0) {
       const imageUrls = Array.from(imageUrlMap.values());
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[getPostContent] 사용 가능한 이미지 URL: ${imageUrls.length}개`);
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `[getPostContent] 사용 가능한 이미지 URL: ${imageUrls.length}개`,
+        );
         imageUrls.forEach((url, index) => {
-          console.log(`[getPostContent] 이미지 URL ${index + 1}: ${url.substring(0, 100)}...`);
+          console.log(
+            `[getPostContent] 이미지 URL ${index + 1}: ${url.substring(0, 100)}...`,
+          );
         });
-        
+
         // 이미 마크다운 형식인 이미지가 있는지 확인
-        const existingMarkdownImages = markdownContent.match(/!\[.*?\]\([^\)]+\)/g) || [];
-        console.log(`[getPostContent] 기존 마크다운 이미지: ${existingMarkdownImages.length}개`);
+        const existingMarkdownImages =
+          markdownContent.match(/!\[.*?\]\([^\)]+\)/g) || [];
+        console.log(
+          `[getPostContent] 기존 마크다운 이미지: ${existingMarkdownImages.length}개`,
+        );
       }
-      
+
       // 이미지 파일명 패턴 찾기 (더 포괄적이고 정확한 패턴)
       // 1. 단독 줄에 있는 파일명: "news_1756856273_1543672_m_1.png"
       // 2. 앞뒤에 공백/줄바꿈이 있는 파일명
       // 3. 특정 파일명을 직접 찾기 (디버깅용)
-      const specificFilename = 'news_1756856273_1543672_m_1.png';
+      const specificFilename = "news_1756856273_1543672_m_1.png";
       const hasSpecificFile = markdownContent.includes(specificFilename);
-      
-      if (hasSpecificFile && process.env.NODE_ENV === 'development') {
-        console.log(`[getPostContent] 🎯 특정 파일명 발견: ${specificFilename}`);
+
+      if (hasSpecificFile && process.env.NODE_ENV === "development") {
+        console.log(
+          `[getPostContent] 🎯 특정 파일명 발견: ${specificFilename}`,
+        );
         const filenameIndex = markdownContent.indexOf(specificFilename);
-        const beforeText = markdownContent.substring(Math.max(0, filenameIndex - 20), filenameIndex);
+        const beforeText = markdownContent.substring(
+          Math.max(0, filenameIndex - 20),
+          filenameIndex,
+        );
         const afterText = markdownContent.substring(
           filenameIndex + specificFilename.length,
-          Math.min(markdownContent.length, filenameIndex + specificFilename.length + 20)
+          Math.min(
+            markdownContent.length,
+            filenameIndex + specificFilename.length + 20,
+          ),
         );
         console.log(`[getPostContent] 파일명 앞 텍스트: "${beforeText}"`);
         console.log(`[getPostContent] 파일명 뒤 텍스트: "${afterText}"`);
-        
+
         // 이미 마크다운 형식인지 확인
-        const isAlreadyMarkdown = beforeText.includes('![') || beforeText.includes('](') || 
-                                  afterText.includes('](') || afterText.includes(')');
-        
+        const isAlreadyMarkdown =
+          beforeText.includes("![") ||
+          beforeText.includes("](") ||
+          afterText.includes("](") ||
+          afterText.includes(")");
+
         if (!isAlreadyMarkdown && imageUrls.length > 0) {
           const imageUrl = imageUrls[0];
           const replacement = `![${specificFilename}](${imageUrl})`;
-          markdownContent = markdownContent.substring(0, filenameIndex) + 
-                            replacement + 
-                            markdownContent.substring(filenameIndex + specificFilename.length);
-          
-          console.log(`[getPostContent] ✅ 특정 파일명 대체 성공: "${specificFilename}" -> "${imageUrl.substring(0, 80)}..."`);
+          markdownContent =
+            markdownContent.substring(0, filenameIndex) +
+            replacement +
+            markdownContent.substring(filenameIndex + specificFilename.length);
+
+          console.log(
+            `[getPostContent] ✅ 특정 파일명 대체 성공: "${specificFilename}" -> "${imageUrl.substring(0, 80)}..."`,
+          );
         } else {
-          console.log(`[getPostContent] ⚠️ 이미 마크다운 형식이거나 URL이 없음: isMarkdown=${isAlreadyMarkdown}, hasUrl=${imageUrls.length > 0}`);
+          console.log(
+            `[getPostContent] ⚠️ 이미 마크다운 형식이거나 URL이 없음: isMarkdown=${isAlreadyMarkdown}, hasUrl=${imageUrls.length > 0}`,
+          );
         }
       } else if (hasSpecificFile) {
         // 프로덕션 환경: 로그 없이 처리만 수행
         const filenameIndex = markdownContent.indexOf(specificFilename);
-        const beforeText = markdownContent.substring(Math.max(0, filenameIndex - 20), filenameIndex);
+        const beforeText = markdownContent.substring(
+          Math.max(0, filenameIndex - 20),
+          filenameIndex,
+        );
         const afterText = markdownContent.substring(
           filenameIndex + specificFilename.length,
-          Math.min(markdownContent.length, filenameIndex + specificFilename.length + 20)
+          Math.min(
+            markdownContent.length,
+            filenameIndex + specificFilename.length + 20,
+          ),
         );
-        
-        const isAlreadyMarkdown = beforeText.includes('![') || beforeText.includes('](') || 
-                                  afterText.includes('](') || afterText.includes(')');
-        
+
+        const isAlreadyMarkdown =
+          beforeText.includes("![") ||
+          beforeText.includes("](") ||
+          afterText.includes("](") ||
+          afterText.includes(")");
+
         if (!isAlreadyMarkdown && imageUrls.length > 0) {
           const imageUrl = imageUrls[0];
           const replacement = `![${specificFilename}](${imageUrl})`;
-          markdownContent = markdownContent.substring(0, filenameIndex) + 
-                            replacement + 
-                            markdownContent.substring(filenameIndex + specificFilename.length);
+          markdownContent =
+            markdownContent.substring(0, filenameIndex) +
+            replacement +
+            markdownContent.substring(filenameIndex + specificFilename.length);
         }
       }
-      
+
       // 일반적인 이미지 파일명 패턴 찾기 (다른 이미지들도 처리)
       const imageFilenamePatterns = [
-        /^([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))$/gm,  // 단독 줄
-        /(?:^|\n|\r)([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))(?:\n|\r|$)/gm,  // 줄 시작/끝
-        /(?:^|\s)([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))(?:\s|$)/g,  // 공백으로 구분
+        /^([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))$/gm, // 단독 줄
+        /(?:^|\n|\r)([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))(?:\n|\r|$)/gm, // 줄 시작/끝
+        /(?:^|\s)([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))(?:\s|$)/g, // 공백으로 구분
       ];
-      
+
       let imageIndex = hasSpecificFile ? 1 : 0; // 특정 파일명을 이미 처리했으면 인덱스 증가
       let replacementCount = hasSpecificFile ? 1 : 0;
-      
+
       // 각 패턴으로 파일명 찾기 및 대체 (특정 파일명 제외)
       for (const pattern of imageFilenamePatterns) {
         const matches = Array.from(markdownContent.matchAll(pattern));
-        
+
         for (const match of matches) {
           const filename = match[1] || match[0];
           const fullMatch = match[0];
           const matchIndex = match.index!;
-          
+
           // 특정 파일명은 이미 처리했으므로 건너뛰기
           if (filename === specificFilename) continue;
-          
+
           // 이미 마크다운 형식인지 확인
-          const beforeText = markdownContent.substring(Math.max(0, matchIndex - 10), matchIndex);
+          const beforeText = markdownContent.substring(
+            Math.max(0, matchIndex - 10),
+            matchIndex,
+          );
           const afterText = markdownContent.substring(
             matchIndex + fullMatch.length,
-            Math.min(markdownContent.length, matchIndex + fullMatch.length + 10)
+            Math.min(
+              markdownContent.length,
+              matchIndex + fullMatch.length + 10,
+            ),
           );
-          
-          const isAlreadyMarkdown = beforeText.includes('![') || beforeText.includes('](') || 
-                                    afterText.includes('](') || afterText.includes(')');
-          
+
+          const isAlreadyMarkdown =
+            beforeText.includes("![") ||
+            beforeText.includes("](") ||
+            afterText.includes("](") ||
+            afterText.includes(")");
+
           // 이미 마크다운 형식이 아니고, 이미지 URL이 있는 경우
           if (!isAlreadyMarkdown && imageIndex < imageUrls.length) {
             const imageUrl = imageUrls[imageIndex];
-            
+
             if (imageUrl) {
               // 파일명을 마크다운 이미지 형식으로 변환
               const replacement = `![${filename}](${imageUrl})`;
-              markdownContent = markdownContent.substring(0, matchIndex) + 
-                                replacement + 
-                                markdownContent.substring(matchIndex + fullMatch.length);
-              
-              if (process.env.NODE_ENV === 'development') {
-                console.log(`[getPostContent] ✅ 이미지 대체 성공: "${filename}" -> "${imageUrl.substring(0, 80)}..."`);
+              markdownContent =
+                markdownContent.substring(0, matchIndex) +
+                replacement +
+                markdownContent.substring(matchIndex + fullMatch.length);
+
+              if (process.env.NODE_ENV === "development") {
+                console.log(
+                  `[getPostContent] ✅ 이미지 대체 성공: "${filename}" -> "${imageUrl.substring(0, 80)}..."`,
+                );
               }
               imageIndex++;
               replacementCount++;
@@ -1652,86 +1602,108 @@ export async function getPostContent(pageId: string): Promise<string> {
           }
         }
       }
-      
-      if (process.env.NODE_ENV === 'development') {
+
+      if (process.env.NODE_ENV === "development") {
         if (replacementCount > 0) {
-          console.log(`[getPostContent] ✅ 이미지 URL로 대체 완료: ${replacementCount}개`);
+          console.log(
+            `[getPostContent] ✅ 이미지 URL로 대체 완료: ${replacementCount}개`,
+          );
         } else {
-          console.log(`[getPostContent] ⚠️ 이미지 대체 실패: 파일명을 찾지 못했거나 이미 마크다운 형식임`);
+          console.log(
+            `[getPostContent] ⚠️ 이미지 대체 실패: 파일명을 찾지 못했거나 이미 마크다운 형식임`,
+          );
         }
       }
-    } else if (process.env.NODE_ENV === 'development') {
-      console.log(`[getPostContent] ⚠️ 이미지 URL 맵이 비어있음: ${imageUrlMap.size}개`);
+    } else if (process.env.NODE_ENV === "development") {
+      console.log(
+        `[getPostContent] ⚠️ 이미지 URL 맵이 비어있음: ${imageUrlMap.size}개`,
+      );
     }
-    
+
     // 이미지 다음에 출처 텍스트가 있는 경우, 출처를 이미지의 alt로 이동
     // 패턴 1: ![alt](url) 다음에 "출처: ..." 텍스트가 오는 경우 (빈 줄 포함)
     // 패턴 2: ![alt](url) 다음에 "< 이미지 출처 : ... >" 텍스트가 오는 경우 (빈 줄 포함)
-    const imageWithSourcePattern = /(!\[.*?\]\([^\)]+\))(\s*\n\s*)((?:출처\s*[:：]\s*[^\n]+)|(?:<[^>]*이미지\s*출처\s*[:：]\s*[^>]+>))/g;
+    const imageWithSourcePattern =
+      /(!\[.*?\]\([^\)]+\))(\s*\n\s*)((?:출처\s*[:：]\s*[^\n]+)|(?:<[^>]*이미지\s*출처\s*[:：]\s*[^>]+>))/g;
     let sourceReplacementCount = 0;
-    
-    markdownContent = markdownContent.replace(imageWithSourcePattern, (match, imageMarkdown, whitespace, sourceText) => {
-      // 이미지 마크다운에서 alt와 url 추출
-      const imageMatch = imageMarkdown.match(/!\[(.*?)\]\((.*?)\)/);
-      if (imageMatch) {
-        const currentAlt = imageMatch[1] || '';
-        const imageUrl = imageMatch[2];
-        
-        // 출처 텍스트 추출 및 정리
-        let displaySource = '';
-        
-        // 새로운 형식: "< 이미지 출처 : 머니투데이 >" - 원본 그대로 유지
-        const newFormatMatch = sourceText.match(/<[^>]*이미지\s*출처\s*[:：]\s*[^>]+>/i);
-        if (newFormatMatch) {
-          displaySource = sourceText.trim(); // 원본 형식 그대로 유지
-        } else {
-          // 기존 형식: "출처: ..." - 기존 형식 유지
-          const cleanSource = sourceText.replace(/^출처\s*[:：]\s*/i, '').trim();
-          displaySource = `출처: ${cleanSource}`;
+
+    markdownContent = markdownContent.replace(
+      imageWithSourcePattern,
+      (match, imageMarkdown, whitespace, sourceText) => {
+        // 이미지 마크다운에서 alt와 url 추출
+        const imageMatch = imageMarkdown.match(/!\[(.*?)\]\((.*?)\)/);
+        if (imageMatch) {
+          const currentAlt = imageMatch[1] || "";
+          const imageUrl = imageMatch[2];
+
+          // 출처 텍스트 추출 및 정리
+          let displaySource = "";
+
+          // 새로운 형식: "< 이미지 출처 : 머니투데이 >" - 원본 그대로 유지
+          const newFormatMatch = sourceText.match(
+            /<[^>]*이미지\s*출처\s*[:：]\s*[^>]+>/i,
+          );
+          if (newFormatMatch) {
+            displaySource = sourceText.trim(); // 원본 형식 그대로 유지
+          } else {
+            // 기존 형식: "출처: ..." - 기존 형식 유지
+            const cleanSource = sourceText
+              .replace(/^출처\s*[:：]\s*/i, "")
+              .trim();
+            displaySource = `출처: ${cleanSource}`;
+          }
+
+          // 출처를 alt로 설정 (기존 alt가 있으면 유지하고 출처 추가)
+          const newAlt = currentAlt
+            ? `${currentAlt} | ${displaySource}`
+            : displaySource;
+          const newImageMarkdown = `![${newAlt}](${imageUrl})`;
+
+          if (process.env.NODE_ENV === "development") {
+            console.log(
+              `[getPostContent] ✅ 출처를 이미지 alt로 이동: "${displaySource.substring(0, 50)}..."`,
+            );
+          }
+          sourceReplacementCount++;
+
+          // 이미지만 반환 (출처 텍스트와 공백은 제거)
+          return newImageMarkdown;
         }
-        
-        // 출처를 alt로 설정 (기존 alt가 있으면 유지하고 출처 추가)
-        const newAlt = currentAlt ? `${currentAlt} | ${displaySource}` : displaySource;
-        const newImageMarkdown = `![${newAlt}](${imageUrl})`;
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[getPostContent] ✅ 출처를 이미지 alt로 이동: "${displaySource.substring(0, 50)}..."`);
-        }
-        sourceReplacementCount++;
-        
-        // 이미지만 반환 (출처 텍스트와 공백은 제거)
-        return newImageMarkdown;
-      }
-      return match;
-    });
-    
-    if (process.env.NODE_ENV === 'development') {
+        return match;
+      },
+    );
+
+    if (process.env.NODE_ENV === "development") {
       if (sourceReplacementCount > 0) {
-        console.log(`[getPostContent] ✅ 출처를 이미지 alt로 이동 완료: ${sourceReplacementCount}개`);
+        console.log(
+          `[getPostContent] ✅ 출처를 이미지 alt로 이동 완료: ${sourceReplacementCount}개`,
+        );
       }
-      
+
       // 디버깅: 변환된 마크다운에서 이미지 확인
       const imagePatterns = [
-        /!\[.*?\]\([^\)]+\)/g,  // 마크다운 이미지
-        /<img[^>]+>/g,           // HTML 이미지 태그
-        /https:\/\/[^\s\)]+\.(png|jpg|jpeg|gif|webp|svg)/gi  // 이미지 URL
+        /!\[.*?\]\([^\)]+\)/g, // 마크다운 이미지
+        /<img[^>]+>/g, // HTML 이미지 태그
+        /https:\/\/[^\s\)]+\.(png|jpg|jpeg|gif|webp|svg)/gi, // 이미지 URL
       ];
-      
+
       imagePatterns.forEach((pattern, index) => {
         const patternMatches = markdownContent.match(pattern);
         if (patternMatches && patternMatches.length > 0) {
-          console.log(`[getPostContent] 패턴 ${index + 1} 매칭: ${patternMatches.length}개`);
+          console.log(
+            `[getPostContent] 패턴 ${index + 1} 매칭: ${patternMatches.length}개`,
+          );
           console.log(`[getPostContent] 예시:`, patternMatches.slice(0, 2));
         }
       });
     }
-    
+
     // 캐시에 저장 (60초)
     cache.set(cacheKey, markdownContent, 60000);
-    
+
     return markdownContent;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.error("Error converting Notion page to markdown:", error);
     }
     throw error;
@@ -1744,21 +1716,22 @@ export async function getPostContent(pageId: string): Promise<string> {
 export async function searchPosts(
   searchQuery: string,
   page: number = 1,
-  pageSize: number = 12
+  pageSize: number = 12,
 ): Promise<PaginatedPosts> {
   const databaseId = process.env.NOTION_DATABASE_ID;
 
   if (!databaseId) {
     throw new Error(
       "NOTION_DATABASE_ID is not defined in environment variables. " +
-        "Please add NOTION_DATABASE_ID to your .env.local file."
+        "Please add NOTION_DATABASE_ID to your .env.local file.",
     );
   }
 
   try {
     // 먼저 모든 Published 포스트를 가져온 후 클라이언트 측에서 필터링
     const searchLower = searchQuery.toLowerCase();
-    const allData = await getPublishedPostsPaginated(1, 1000);
+    // 성능을 위해 본문 이미지 추출은 나중에 함
+    const allData = await getPublishedPostsPaginated(1, 1000, false);
 
     // 검색어로 필터링 (제목, 설명, 카테고리, 태그에서 검색)
     const filteredPosts = allData.posts.filter(
@@ -1766,7 +1739,7 @@ export async function searchPosts(
         post.title.toLowerCase().includes(searchLower) ||
         post.metaDescription.toLowerCase().includes(searchLower) ||
         post.category?.toLowerCase().includes(searchLower) ||
-        post.tags?.some((tag) => tag.toLowerCase().includes(searchLower))
+        post.tags?.some((tag) => tag.toLowerCase().includes(searchLower)),
     );
 
     const totalCount = filteredPosts.length;
@@ -1778,8 +1751,26 @@ export async function searchPosts(
     const endIndex = startIndex + pageSize;
     const pagePosts = filteredPosts.slice(startIndex, endIndex);
 
+    // 현재 페이지 포스트들에 대해 이미지가 없으면 본문에서 추출 시도
+    const posts = await Promise.all(
+      pagePosts.map(async (post) => {
+        if (!post.featuredImage) {
+          try {
+            const fullContent = await getPostContent(post.id);
+            const featuredImage = extractFirstImageUrl(fullContent);
+            if (featuredImage) {
+              return { ...post, featuredImage };
+            }
+          } catch (error) {
+            // 이미지 추출 실패는 무시
+          }
+        }
+        return post;
+      }),
+    );
+
     return {
-      posts: pagePosts,
+      posts,
       totalCount,
       currentPage,
       totalPages,
@@ -1787,7 +1778,7 @@ export async function searchPosts(
       hasPrevPage: currentPage > 1,
     };
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.error("Error searching posts:", error);
     }
     throw error;

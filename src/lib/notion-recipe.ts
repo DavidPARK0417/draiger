@@ -95,7 +95,7 @@ function getNotionRecipeClient(): Client {
   if (!apiKey) {
     throw new Error(
       "NOTION_RECIPE_API_KEY is not defined in environment variables. " +
-        "Please add NOTION_RECIPE_API_KEY to your .env.local file."
+        "Please add NOTION_RECIPE_API_KEY to your .env.local file.",
     );
   }
 
@@ -151,7 +151,7 @@ const requestQueue: QueuedRequest[] = [];
 let isProcessingQueue = false;
 let lastRequestTime = 0;
 // 빌드 시 rate limiting 방지를 위해 요청 간격 증가 (1초)
-const MIN_REQUEST_INTERVAL = process.env.NODE_ENV === 'production' ? 1000 : 500;
+const MIN_REQUEST_INTERVAL = process.env.NODE_ENV === "production" ? 1000 : 500;
 
 /**
  * 요청 큐를 순차적으로 처리하는 함수
@@ -170,23 +170,32 @@ async function processRequestQueue(): Promise<void> {
     try {
       const now = Date.now();
       const timeSinceLastRequest = now - lastRequestTime;
-      
+
       if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
         const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
         await delay(waitTime);
       }
 
-      const result = await executeNotionRecipeRequest(request.params, request.retryCount);
+      const result = await executeNotionRecipeRequest(
+        request.params,
+        request.retryCount,
+      );
       lastRequestTime = Date.now();
       request.resolve(result);
     } catch (error) {
-      if (error instanceof Error && error.message.includes('Rate Limit (429)')) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Rate Limit (429)")
+      ) {
         const maxRetries = 5;
         if (request.retryCount < maxRetries) {
           request.retryCount++;
           requestQueue.unshift(request);
-          
-          let waitTime = Math.min(Math.pow(2, request.retryCount) * 1000, 60000);
+
+          let waitTime = Math.min(
+            Math.pow(2, request.retryCount) * 1000,
+            60000,
+          );
           const secondsMatch = error.message.match(/(\d+)초/);
           if (secondsMatch) {
             waitTime = parseInt(secondsMatch[1], 10) * 1000;
@@ -196,7 +205,7 @@ async function processRequestQueue(): Promise<void> {
               waitTime = parseInt(msMatch[1], 10);
             }
           }
-          
+
           waitTime = Math.min(waitTime, 300000);
           await delay(waitTime);
         } else {
@@ -214,14 +223,20 @@ async function processRequestQueue(): Promise<void> {
 /**
  * 실제 Notion Recipe API 요청을 실행하는 함수
  */
-async function executeNotionRecipeRequest(params: {
-  database_id: string;
-  filter?: NotionFilter;
-  sorts?: NotionSort[];
-  page_size?: number;
-  start_cursor?: string;
-}, retryCount: number = 0): Promise<NotionQueryResponse> {
-  const apiKey = process.env.NOTION_RECIPE_API_KEY?.trim().replace(/^["']|["']$/g, "");
+async function executeNotionRecipeRequest(
+  params: {
+    database_id: string;
+    filter?: NotionFilter;
+    sorts?: NotionSort[];
+    page_size?: number;
+    start_cursor?: string;
+  },
+  retryCount: number = 0,
+): Promise<NotionQueryResponse> {
+  const apiKey = process.env.NOTION_RECIPE_API_KEY?.trim().replace(
+    /^["']|["']$/g,
+    "",
+  );
 
   if (!apiKey) {
     throw new Error("NOTION_RECIPE_API_KEY is not defined");
@@ -255,13 +270,13 @@ async function executeNotionRecipeRequest(params: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
-    }
+    },
   );
 
   if (response.status === 429) {
     const retryAfter = response.headers.get("Retry-After");
     const errorText = await response.text();
-    
+
     let waitTime: number;
     if (retryAfter) {
       waitTime = parseInt(retryAfter, 10) * 1000;
@@ -269,12 +284,16 @@ async function executeNotionRecipeRequest(params: {
       waitTime = Math.min(Math.pow(2, retryCount) * 1000, 60000);
     }
 
-    throw new Error(`Notion API Rate Limit (429): ${waitTime / 1000}초 후 재시도 필요. ${errorText}`);
+    throw new Error(
+      `Notion API Rate Limit (429): ${waitTime / 1000}초 후 재시도 필요. ${errorText}`,
+    );
   }
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Notion Recipe API 오류 (${response.status}): ${errorText}`);
+    throw new Error(
+      `Notion Recipe API 오류 (${response.status}): ${errorText}`,
+    );
   }
 
   return await response.json();
@@ -283,13 +302,16 @@ async function executeNotionRecipeRequest(params: {
 /**
  * Notion Recipe API를 직접 호출하여 데이터베이스를 쿼리합니다
  */
-async function queryNotionRecipeDatabase(params: {
-  database_id: string;
-  filter?: NotionFilter;
-  sorts?: NotionSort[];
-  page_size?: number;
-  start_cursor?: string;
-}, retryCount: number = 0): Promise<NotionQueryResponse> {
+async function queryNotionRecipeDatabase(
+  params: {
+    database_id: string;
+    filter?: NotionFilter;
+    sorts?: NotionSort[];
+    page_size?: number;
+    start_cursor?: string;
+  },
+  retryCount: number = 0,
+): Promise<NotionQueryResponse> {
   return new Promise((resolve, reject) => {
     requestQueue.push({
       resolve,
@@ -342,11 +364,12 @@ export async function getTotalRecipesCount(): Promise<number> {
   }
 
   const databaseId = process.env.NOTION_RECIPE_DATABASE_ID;
-  const publishedPropertyName = process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
+  const publishedPropertyName =
+    process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
 
   if (!databaseId) {
     throw new Error(
-      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables."
+      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables.",
     );
   }
 
@@ -366,8 +389,13 @@ export async function getTotalRecipesCount(): Promise<number> {
       });
     } catch (filterError) {
       // Published 속성이 없으면 필터 없이 모든 레시피 가져오기
-      if (filterError instanceof Error && filterError.message.includes("Could not find property")) {
-        console.warn(`⚠️ "${publishedPropertyName}" 속성을 찾을 수 없습니다. 모든 레시피를 가져옵니다.`);
+      if (
+        filterError instanceof Error &&
+        filterError.message.includes("Could not find property")
+      ) {
+        console.warn(
+          `⚠️ "${publishedPropertyName}" 속성을 찾을 수 없습니다. 모든 레시피를 가져옵니다.`,
+        );
         data = await queryNotionRecipeDatabase({
           database_id: databaseId,
           page_size: 100,
@@ -396,7 +424,10 @@ export async function getTotalRecipesCount(): Promise<number> {
         });
       } catch (filterError) {
         // Published 속성이 없으면 필터 없이 가져오기
-        if (filterError instanceof Error && filterError.message.includes("Could not find property")) {
+        if (
+          filterError instanceof Error &&
+          filterError.message.includes("Could not find property")
+        ) {
           nextData = await queryNotionRecipeDatabase({
             database_id: databaseId,
             page_size: 100,
@@ -423,14 +454,15 @@ export async function getTotalRecipesCount(): Promise<number> {
  */
 export async function getPublishedRecipesPaginated(
   page: number = 1,
-  pageSize: number = 12
+  pageSize: number = 12,
 ): Promise<PaginatedRecipes> {
   const databaseId = process.env.NOTION_RECIPE_DATABASE_ID;
-  const publishedPropertyName = process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
+  const publishedPropertyName =
+    process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
 
   if (!databaseId) {
     throw new Error(
-      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables."
+      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables.",
     );
   }
 
@@ -451,12 +483,14 @@ export async function getPublishedRecipesPaginated(
       try {
         data = await queryNotionRecipeDatabase({
           database_id: databaseId,
-          filter: useFilter ? {
-            property: publishedPropertyName,
-            checkbox: {
-              equals: true,
-            },
-          } : undefined,
+          filter: useFilter
+            ? {
+                property: publishedPropertyName,
+                checkbox: {
+                  equals: true,
+                },
+              }
+            : undefined,
           sorts: [
             {
               timestamp: "created_time",
@@ -468,8 +502,13 @@ export async function getPublishedRecipesPaginated(
         });
       } catch (filterError) {
         // Published 속성이 없으면 필터 없이 가져오기
-        if (filterError instanceof Error && filterError.message.includes("Could not find property")) {
-          console.warn(`⚠️ "${publishedPropertyName}" 속성을 찾을 수 없습니다. 필터 없이 모든 레시피를 가져옵니다.`);
+        if (
+          filterError instanceof Error &&
+          filterError.message.includes("Could not find property")
+        ) {
+          console.warn(
+            `⚠️ "${publishedPropertyName}" 속성을 찾을 수 없습니다. 필터 없이 모든 레시피를 가져옵니다.`,
+          );
           useFilter = false;
           data = await queryNotionRecipeDatabase({
             database_id: databaseId,
@@ -499,70 +538,99 @@ export async function getPublishedRecipesPaginated(
     const pageResults = allResults.slice(targetStartIndex, targetEndIndex);
 
     // 1단계: 먼저 기본 정보만 빠르게 가져오기 (이미지 추출 없이)
-    const recipesWithoutImages: Recipe[] = pageResults.map((page: NotionPage) => {
-      const blogPostContent = page.properties.blogPost?.rich_text
-        ? page.properties.blogPost.rich_text
-            .map((rt: NotionRichText) => rt.plain_text)
-            .join("")
-        : "";
+    const recipesWithoutImages: Recipe[] = pageResults.map(
+      (page: NotionPage) => {
+        const blogPostContent = page.properties.blogPost?.rich_text
+          ? page.properties.blogPost.rich_text
+              .map((rt: NotionRichText) => rt.plain_text)
+              .join("")
+          : "";
 
-      // description 또는 metaDescription 사용
-      const description = page.properties.description?.rich_text?.[0]?.plain_text 
-        || page.properties.metaDescription?.rich_text?.[0]?.plain_text 
-        || "";
+        // description 또는 metaDescription 사용
+        const description =
+          page.properties.description?.rich_text?.[0]?.plain_text ||
+          page.properties.metaDescription?.rich_text?.[0]?.plain_text ||
+          "";
 
-      // image 속성에서 이미지 URL 추출 (빠른 방법)
-      let featuredImage: string | undefined = undefined;
-      
-      // image 속성이 files 배열인 경우
-      if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'files' in page.properties.image && Array.isArray(page.properties.image.files)) {
-        const imageFile = page.properties.image.files[0];
-        if (imageFile?.file?.url) {
-          featuredImage = imageFile.file.url;
+        // image 속성에서 이미지 URL 추출 (빠른 방법)
+        let featuredImage: string | undefined = undefined;
+
+        // image 속성이 files 배열인 경우
+        if (
+          page.properties.image &&
+          typeof page.properties.image === "object" &&
+          page.properties.image !== null &&
+          "files" in page.properties.image &&
+          Array.isArray(page.properties.image.files)
+        ) {
+          const imageFile = page.properties.image.files[0];
+          if (imageFile?.file?.url) {
+            featuredImage = imageFile.file.url;
+          }
         }
-      }
-      // image 속성이 url인 경우
-      else if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'url' in page.properties.image && typeof page.properties.image.url === 'string') {
-        featuredImage = page.properties.image.url;
-      }
-      
-      // image 속성이 없으면 blogPost에서만 추출 (빠른 방법)
-      if (!featuredImage) {
-        featuredImage = extractFirstImageUrl(blogPostContent);
-      }
-
-      // published 속성 확인 (소문자 우선)
-      const publishedValue = (page.properties.published || page.properties.Published) as { checkbox?: boolean } | undefined;
-      const isPublished = publishedValue?.checkbox ?? true;
-
-      // difficulty 추출
-      const difficulty = page.properties.difficulty?.select?.name || undefined;
-
-      // cookingtime 추출 (rich_text 또는 number)
-      let cookingTime: string | number | undefined = undefined;
-      if (page.properties.cookingtime && typeof page.properties.cookingtime === 'object' && page.properties.cookingtime !== null) {
-        if ('rich_text' in page.properties.cookingtime && Array.isArray(page.properties.cookingtime.rich_text) && page.properties.cookingtime.rich_text?.[0]?.plain_text) {
-          cookingTime = page.properties.cookingtime.rich_text[0].plain_text;
-        } else if ('number' in page.properties.cookingtime && typeof page.properties.cookingtime.number === 'number') {
-          cookingTime = page.properties.cookingtime.number;
+        // image 속성이 url인 경우
+        else if (
+          page.properties.image &&
+          typeof page.properties.image === "object" &&
+          page.properties.image !== null &&
+          "url" in page.properties.image &&
+          typeof page.properties.image.url === "string"
+        ) {
+          featuredImage = page.properties.image.url;
         }
-      }
 
-      return {
-        id: page.id,
-        title: page.properties.title?.title[0]?.plain_text || "Untitled",
-        slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-        metaDescription: description,
-        description: description,
-        published: isPublished,
-        blogPost: blogPostContent || undefined,
-        difficulty,
-        cookingTime,
-        category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
-        featuredImage, // 빠른 방법으로 추출한 이미지만 (없으면 undefined)
-        image: featuredImage,
-      };
-    });
+        // image 속성이 없으면 blogPost에서만 추출 (빠른 방법)
+        if (!featuredImage) {
+          featuredImage = extractFirstImageUrl(blogPostContent);
+        }
+
+        // published 속성 확인 (소문자 우선)
+        const publishedValue = (page.properties.published ||
+          page.properties.Published) as { checkbox?: boolean } | undefined;
+        const isPublished = publishedValue?.checkbox ?? true;
+
+        // difficulty 추출
+        const difficulty =
+          page.properties.difficulty?.select?.name || undefined;
+
+        // cookingtime 추출 (rich_text 또는 number)
+        let cookingTime: string | number | undefined = undefined;
+        if (
+          page.properties.cookingtime &&
+          typeof page.properties.cookingtime === "object" &&
+          page.properties.cookingtime !== null
+        ) {
+          if (
+            "rich_text" in page.properties.cookingtime &&
+            Array.isArray(page.properties.cookingtime.rich_text) &&
+            page.properties.cookingtime.rich_text?.[0]?.plain_text
+          ) {
+            cookingTime = page.properties.cookingtime.rich_text[0].plain_text;
+          } else if (
+            "number" in page.properties.cookingtime &&
+            typeof page.properties.cookingtime.number === "number"
+          ) {
+            cookingTime = page.properties.cookingtime.number;
+          }
+        }
+
+        return {
+          id: page.id,
+          title: page.properties.title?.title[0]?.plain_text || "Untitled",
+          slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+          metaDescription: description,
+          description: description,
+          published: isPublished,
+          blogPost: blogPostContent || undefined,
+          difficulty,
+          cookingTime,
+          category:
+            page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+          featuredImage, // 빠른 방법으로 추출한 이미지만 (없으면 undefined)
+          image: featuredImage,
+        };
+      },
+    );
 
     // 2단계: 상단 2개 항목의 이미지를 먼저 가져오기 (우선순위)
     const priorityRecipes = recipesWithoutImages.slice(0, 2);
@@ -605,10 +673,15 @@ export async function getPublishedRecipesPaginated(
 
     // 나머지 항목의 이미지는 백그라운드에서 로드 (기다리지 않음)
     // 하지만 결과를 반환하기 위해 Promise.all로 처리
-    const recipesWithRemainingImages = await Promise.all(remainingImagePromises);
+    const recipesWithRemainingImages = await Promise.all(
+      remainingImagePromises,
+    );
 
     // 최종 결과: 우선순위 항목 + 나머지 항목
-    const recipes = [...recipesWithPriorityImages, ...recipesWithRemainingImages];
+    const recipes = [
+      ...recipesWithPriorityImages,
+      ...recipesWithRemainingImages,
+    ];
 
     return {
       recipes,
@@ -631,11 +704,12 @@ export async function getPublishedRecipesPaginated(
  */
 export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
   const databaseId = process.env.NOTION_RECIPE_DATABASE_ID;
-  const publishedPropertyName = process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
+  const publishedPropertyName =
+    process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
 
   if (!databaseId) {
     throw new Error(
-      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables."
+      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables.",
     );
   }
 
@@ -663,7 +737,10 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
       });
     } catch (filterError) {
       // Published 속성이 없으면 필터 없이 가져오기
-      if (filterError instanceof Error && filterError.message.includes("Could not find property")) {
+      if (
+        filterError instanceof Error &&
+        filterError.message.includes("Could not find property")
+      ) {
         useFilter = false;
         data = await queryNotionRecipeDatabase({
           database_id: databaseId,
@@ -680,80 +757,89 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
       }
     }
 
-    const recipes: Recipe[] = await Promise.all(
-      data.results.map(async (page: NotionPage) => {
-        const blogPostContent = page.properties.blogPost?.rich_text
-          ? page.properties.blogPost.rich_text
-              .map((rt: NotionRichText) => rt.plain_text)
-              .join("")
-          : "";
+    const recipes: Recipe[] = data.results.map((page: NotionPage) => {
+      const p = page.properties;
+      const blogPostContent = p.blogPost?.rich_text
+        ? p.blogPost.rich_text
+            .map((rt: NotionRichText) => rt.plain_text)
+            .join("")
+        : "";
 
-        // description 또는 metaDescription 사용
-        const description = page.properties.description?.rich_text?.[0]?.plain_text 
-          || page.properties.metaDescription?.rich_text?.[0]?.plain_text 
-          || "";
+      const description =
+        p.description?.rich_text?.[0]?.plain_text ||
+        p.metaDescription?.rich_text?.[0]?.plain_text ||
+        "";
 
-        // image 속성에서 이미지 URL 추출
-        let featuredImage: string | undefined = undefined;
-        
-        // image 속성이 files 배열인 경우
-        if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'files' in page.properties.image && Array.isArray(page.properties.image.files)) {
-          const imageFile = page.properties.image.files[0];
-          if (imageFile?.file?.url) {
-            featuredImage = imageFile.file.url;
+      // 이미지 추출 최적화
+      let featuredImage: string | undefined = undefined;
+
+      // 1. featuredImage 속성 확인
+      const fImg = p.featuredImage as any;
+      if (fImg) {
+        if (fImg.type === "files" && fImg.files?.length > 0) {
+          const file = fImg.files[0];
+          featuredImage =
+            file.type === "external" ? file.external.url : file.file.url;
+        } else if (fImg.type === "url" && fImg.url) {
+          featuredImage = fImg.url;
+        }
+      }
+
+      // 2. image 속성 확인
+      if (!featuredImage) {
+        const img = p.image as any;
+        if (img && typeof img === "object") {
+          if (
+            "files" in img &&
+            Array.isArray(img.files) &&
+            img.files.length > 0
+          ) {
+            const file = img.files[0];
+            featuredImage =
+              file.type === "external" ? file.external.url : file.file.url;
+          } else if ("url" in img && typeof img.url === "string") {
+            featuredImage = img.url;
           }
         }
-        // image 속성이 url인 경우
-        else if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'url' in page.properties.image && typeof page.properties.image.url === 'string') {
-          featuredImage = page.properties.image.url;
+      }
+
+      // 3. blogPost 필드에서만 이미지 추출
+      if (!featuredImage) {
+        featuredImage = extractFirstImageUrl(blogPostContent);
+      }
+
+      const publishedValue = (p.published || p.Published) as
+        | { checkbox?: boolean }
+        | undefined;
+      const isPublished = publishedValue?.checkbox ?? true;
+      const difficulty = p.difficulty?.select?.name || undefined;
+
+      let cookingTime: string | number | undefined = undefined;
+      if (p.cookingtime && typeof p.cookingtime === "object") {
+        const ct = p.cookingtime as any;
+        if (ct.rich_text?.[0]?.plain_text) {
+          cookingTime = ct.rich_text[0].plain_text;
+        } else if (typeof ct.number === "number") {
+          cookingTime = ct.number;
         }
-        
-        // image 속성이 없으면 blogPost나 본문에서 추출
-        if (!featuredImage) {
-          featuredImage = extractFirstImageUrl(blogPostContent);
-          if (!featuredImage) {
-            try {
-              const fullContent = await getRecipeContent(page.id);
-              featuredImage = extractFirstImageUrl(fullContent);
-            } catch (error) {
-              // 이미지 추출 실패는 무시
-            }
-          }
-        }
+      }
 
-        // published 속성 확인 (소문자 우선)
-        const publishedValue = (page.properties.published || page.properties.Published) as { checkbox?: boolean } | undefined;
-        const isPublished = publishedValue?.checkbox ?? true;
-
-        // difficulty 추출
-        const difficulty = page.properties.difficulty?.select?.name || undefined;
-
-        // cookingtime 추출 (rich_text 또는 number)
-        let cookingTime: string | number | undefined = undefined;
-        if (page.properties.cookingtime && typeof page.properties.cookingtime === 'object' && page.properties.cookingtime !== null) {
-          if ('rich_text' in page.properties.cookingtime && Array.isArray(page.properties.cookingtime.rich_text) && page.properties.cookingtime.rich_text?.[0]?.plain_text) {
-            cookingTime = page.properties.cookingtime.rich_text[0].plain_text;
-          } else if ('number' in page.properties.cookingtime && typeof page.properties.cookingtime.number === 'number') {
-            cookingTime = page.properties.cookingtime.number;
-          }
-        }
-
-        return {
-          id: page.id,
-          title: page.properties.title?.title[0]?.plain_text || "Untitled",
-          slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-          metaDescription: description,
-          description: description,
-          published: isPublished,
-          blogPost: blogPostContent || undefined,
-          difficulty,
-          cookingTime,
-          category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
-          featuredImage,
-          image: featuredImage,
-        };
-      })
-    );
+      return {
+        id: page.id,
+        title: page.properties.title?.title[0]?.plain_text || "Untitled",
+        slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+        metaDescription: description,
+        description: description,
+        published: isPublished,
+        blogPost: blogPostContent || undefined,
+        difficulty,
+        cookingTime,
+        category:
+          page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+        featuredImage,
+        image: featuredImage,
+      };
+    });
 
     return recipes;
   } catch (error) {
@@ -768,11 +854,12 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
  */
 export async function getAllPublishedRecipes(): Promise<Recipe[]> {
   const databaseId = process.env.NOTION_RECIPE_DATABASE_ID;
-  const publishedPropertyName = process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
+  const publishedPropertyName =
+    process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
 
   if (!databaseId) {
     throw new Error(
-      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables."
+      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables.",
     );
   }
 
@@ -785,7 +872,7 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
     // 모든 페이지를 가져올 때까지 반복
     while (hasMore) {
       let data;
-      
+
       try {
         // Published 속성이 있는 경우 필터 사용
         data = await queryNotionRecipeDatabase({
@@ -807,7 +894,11 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
         });
       } catch (filterError) {
         // Published 속성이 없으면 필터 없이 가져오기
-        if (useFilter && filterError instanceof Error && filterError.message.includes("Could not find property")) {
+        if (
+          useFilter &&
+          filterError instanceof Error &&
+          filterError.message.includes("Could not find property")
+        ) {
           useFilter = false;
           data = await queryNotionRecipeDatabase({
             database_id: databaseId,
@@ -826,51 +917,86 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
       }
 
       // 결과를 Recipe 타입으로 변환
-      const recipes: Recipe[] = await Promise.all(
-        data.results.map(async (page: NotionPage) => {
-          const blogPostContent = page.properties.blogPost?.rich_text
-            ? page.properties.blogPost.rich_text
-                .map((rt: NotionRichText) => rt.plain_text)
-                .join("")
-            : "";
+      const recipes: Recipe[] = data.results.map((page: NotionPage) => {
+        const p = page.properties;
+        const blogPostContent = p.blogPost?.rich_text
+          ? p.blogPost.rich_text
+              .map((rt: NotionRichText) => rt.plain_text)
+              .join("")
+          : "";
 
-          const description = page.properties.description?.rich_text?.[0]?.plain_text 
-            || page.properties.metaDescription?.rich_text?.[0]?.plain_text 
-            || "";
+        const description =
+          p.description?.rich_text?.[0]?.plain_text ||
+          p.metaDescription?.rich_text?.[0]?.plain_text ||
+          "";
 
-          // image 속성에서 이미지 URL 추출
-          let featuredImage: string | undefined = undefined;
-          
-          if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'files' in page.properties.image && Array.isArray(page.properties.image.files)) {
-            const imageFile = page.properties.image.files[0];
-            if (imageFile?.file?.url) {
-              featuredImage = imageFile.file.url;
-            }
-          } else if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'url' in page.properties.image && typeof page.properties.image.url === 'string') {
-            featuredImage = page.properties.image.url;
+        // 이미지 추출 최적화
+        let featuredImage: string | undefined = undefined;
+
+        // 1. featuredImage 속성 확인
+        const fImg = p.featuredImage as any;
+        if (fImg) {
+          if (fImg.type === "files" && fImg.files?.length > 0) {
+            const file = fImg.files[0];
+            featuredImage =
+              file.type === "external" ? file.external.url : file.file.url;
+          } else if (fImg.type === "url" && fImg.url) {
+            featuredImage = fImg.url;
           }
+        }
 
-          return {
-            id: page.id,
-            title: page.properties.title?.title?.[0]?.plain_text || "Untitled",
-            slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-            description,
-            metaDescription: page.properties.metaDescription?.rich_text?.[0]?.plain_text || description,
-            published: true, // getAllPublishedRecipes는 발행된 레시피만 가져오므로 true
-            blogPost: blogPostContent,
-            date: page.properties.date?.date?.start || undefined,
-            tags: page.properties.tags?.multi_select?.map((tag: { name: string }) => tag.name) || [],
-            difficulty: page.properties.difficulty?.select?.name,
-            cookingTime: typeof page.properties.cookingtime === 'number' ? page.properties.cookingtime : undefined,
-            servingSize: typeof page.properties.servingsize === 'number' ? page.properties.servingsize : undefined,
-            featuredImage,
-            category: page.properties.category?.rich_text?.[0]?.plain_text,
-          };
-        })
-      );
+        // 2. image 속성 확인
+        if (!featuredImage) {
+          const img = p.image as any;
+          if (img && typeof img === "object") {
+            if (
+              "files" in img &&
+              Array.isArray(img.files) &&
+              img.files.length > 0
+            ) {
+              const file = img.files[0];
+              featuredImage =
+                file.type === "external" ? file.external.url : file.file.url;
+            } else if ("url" in img && typeof img.url === "string") {
+              featuredImage = img.url;
+            }
+          }
+        }
+
+        // 3. blogPost 필드에서만 이미지 추출
+        if (!featuredImage) {
+          featuredImage = extractFirstImageUrl(blogPostContent);
+        }
+
+        const difficulty = p.difficulty?.select?.name || undefined;
+        const cookingTime =
+          typeof p.cookingtime === "number" ? p.cookingtime : undefined;
+        const servingSize =
+          typeof p.servingsize === "number" ? p.servingsize : undefined;
+
+        return {
+          id: page.id,
+          title: p.title?.title?.[0]?.plain_text || "Untitled",
+          slug: p.slug?.rich_text?.[0]?.plain_text || "",
+          description,
+          metaDescription:
+            p.metaDescription?.rich_text?.[0]?.plain_text || description,
+          published: true,
+          blogPost: blogPostContent,
+          date: p.date?.date?.start || undefined,
+          tags:
+            p.tags?.multi_select?.map((tag: { name: string }) => tag.name) ||
+            [],
+          difficulty,
+          cookingTime,
+          servingSize,
+          featuredImage,
+          category: p.category?.rich_text?.[0]?.plain_text,
+        };
+      });
 
       allRecipes = [...allRecipes, ...recipes];
-      
+
       // 다음 페이지가 있는지 확인
       hasMore = data.has_more;
       cursor = data.next_cursor;
@@ -894,11 +1020,12 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
   }
 
   const databaseId = process.env.NOTION_RECIPE_DATABASE_ID;
-  const publishedPropertyName = process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
+  const publishedPropertyName =
+    process.env.NOTION_RECIPE_PUBLISHED_PROPERTY || "published";
 
   if (!databaseId) {
     throw new Error(
-      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables."
+      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables.",
     );
   }
 
@@ -927,7 +1054,10 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
       });
     } catch (filterError) {
       // Published 속성이 없으면 slug만으로 필터링
-      if (filterError instanceof Error && filterError.message.includes("Could not find property")) {
+      if (
+        filterError instanceof Error &&
+        filterError.message.includes("Could not find property")
+      ) {
         data = await queryNotionRecipeDatabase({
           database_id: databaseId,
           filter: {
@@ -948,15 +1078,17 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
     }
 
     const page: NotionPage = data.results[0];
-    
+
     // published 속성 확인 (소문자 우선)
-    const publishedValue = (page.properties.published || page.properties.Published) as { checkbox?: boolean } | undefined;
+    const publishedValue = (page.properties.published ||
+      page.properties.Published) as { checkbox?: boolean } | undefined;
     const isPublished = publishedValue?.checkbox ?? true;
 
     // description 또는 metaDescription 사용
-    const description = page.properties.description?.rich_text?.[0]?.plain_text 
-      || page.properties.metaDescription?.rich_text?.[0]?.plain_text 
-      || "";
+    const description =
+      page.properties.description?.rich_text?.[0]?.plain_text ||
+      page.properties.metaDescription?.rich_text?.[0]?.plain_text ||
+      "";
 
     // blogPost 추출
     const blogPostContent = page.properties.blogPost?.rich_text
@@ -967,12 +1099,24 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
 
     // image 속성에서 이미지 URL 추출
     let imageUrl: string | undefined = undefined;
-    if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'files' in page.properties.image && Array.isArray(page.properties.image.files)) {
+    if (
+      page.properties.image &&
+      typeof page.properties.image === "object" &&
+      page.properties.image !== null &&
+      "files" in page.properties.image &&
+      Array.isArray(page.properties.image.files)
+    ) {
       const imageFile = page.properties.image.files[0];
       if (imageFile?.file?.url) {
         imageUrl = imageFile.file.url;
       }
-    } else if (page.properties.image && typeof page.properties.image === 'object' && page.properties.image !== null && 'url' in page.properties.image && typeof page.properties.image.url === 'string') {
+    } else if (
+      page.properties.image &&
+      typeof page.properties.image === "object" &&
+      page.properties.image !== null &&
+      "url" in page.properties.image &&
+      typeof page.properties.image.url === "string"
+    ) {
       imageUrl = page.properties.image.url;
     }
 
@@ -981,22 +1125,40 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
 
     // cookingtime 추출
     let cookingTime: string | number | undefined = undefined;
-    if (page.properties.cookingtime && typeof page.properties.cookingtime === 'object' && page.properties.cookingtime !== null) {
-      if ('rich_text' in page.properties.cookingtime && Array.isArray(page.properties.cookingtime.rich_text) && page.properties.cookingtime.rich_text?.[0]?.plain_text) {
+    if (
+      page.properties.cookingtime &&
+      typeof page.properties.cookingtime === "object" &&
+      page.properties.cookingtime !== null
+    ) {
+      if (
+        "rich_text" in page.properties.cookingtime &&
+        Array.isArray(page.properties.cookingtime.rich_text) &&
+        page.properties.cookingtime.rich_text?.[0]?.plain_text
+      ) {
         cookingTime = page.properties.cookingtime.rich_text[0].plain_text;
-      } else if ('number' in page.properties.cookingtime && typeof page.properties.cookingtime.number === 'number') {
+      } else if (
+        "number" in page.properties.cookingtime &&
+        typeof page.properties.cookingtime.number === "number"
+      ) {
         cookingTime = page.properties.cookingtime.number;
       }
     }
 
     // servingsize 추출
     let servingSize: number | undefined = undefined;
-    if (page.properties.servingsize && typeof page.properties.servingsize === 'object' && page.properties.servingsize !== null) {
-      if ('number' in page.properties.servingsize && typeof page.properties.servingsize.number === 'number') {
+    if (
+      page.properties.servingsize &&
+      typeof page.properties.servingsize === "object" &&
+      page.properties.servingsize !== null
+    ) {
+      if (
+        "number" in page.properties.servingsize &&
+        typeof page.properties.servingsize.number === "number"
+      ) {
         servingSize = page.properties.servingsize.number;
       }
     }
-    
+
     const recipe = {
       id: page.id,
       title: page.properties.title?.title[0]?.plain_text || "Untitled",
@@ -1008,9 +1170,11 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
       difficulty,
       cookingTime,
       servingSize,
-      category: page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+      category:
+        page.properties.category?.rich_text?.[0]?.plain_text || undefined,
       date: page.properties.date?.date?.start || undefined,
-      tags: page.properties.tags?.multi_select?.map((tag) => tag.name) || undefined,
+      tags:
+        page.properties.tags?.multi_select?.map((tag) => tag.name) || undefined,
       featuredImage: imageUrl,
       image: imageUrl,
     };
@@ -1053,13 +1217,13 @@ export async function getRecipeContent(pageId: string): Promise<string> {
 export async function searchRecipes(
   query: string,
   page: number = 1,
-  pageSize: number = 12
+  pageSize: number = 12,
 ): Promise<PaginatedRecipes> {
   const databaseId = process.env.NOTION_RECIPE_DATABASE_ID;
 
   if (!databaseId) {
     throw new Error(
-      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables."
+      "NOTION_RECIPE_DATABASE_ID is not defined in environment variables.",
     );
   }
 
@@ -1067,14 +1231,14 @@ export async function searchRecipes(
     // 먼저 모든 Published 레시피를 가져온 후 클라이언트 측에서 필터링
     // (Notion API의 검색 기능은 복잡하므로 간단하게 구현)
     const allData = await getPublishedRecipesPaginated(1, 1000);
-    
+
     const searchLower = query.toLowerCase();
     const filteredRecipes = allData.recipes.filter(
       (recipe) =>
         recipe.title.toLowerCase().includes(searchLower) ||
         recipe.metaDescription.toLowerCase().includes(searchLower) ||
         recipe.category?.toLowerCase().includes(searchLower) ||
-        recipe.tags?.some((tag) => tag.toLowerCase().includes(searchLower))
+        recipe.tags?.some((tag) => tag.toLowerCase().includes(searchLower)),
     );
 
     const totalCount = filteredRecipes.length;
@@ -1097,4 +1261,3 @@ export async function searchRecipes(
     throw error;
   }
 }
-
