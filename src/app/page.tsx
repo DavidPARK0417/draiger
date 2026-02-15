@@ -8,8 +8,8 @@ import { UtensilsCrossed, Lightbulb, ArrowRight } from "lucide-react";
 import { getLatestPosts, Post } from "@/lib/notion";
 import { getLatestRecipes, Recipe } from "@/lib/notion-recipe";
 
-// ISR 설정 (60초마다 갱신)
-export const revalidate = 60;
+// ISR 설정 (10초마다 갱신)
+export const revalidate = 10;
 
 interface RecipeSectionProps {
   recipes: Recipe[];

@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
     // 모든 로컬 경로 허용 (public 폴더 이미지 + API 프록시)
     localPatterns: [
       {
-        pathname: '/**',
+        pathname: "/**",
       },
     ],
     // 외부 이미지 최적화 허용
@@ -28,8 +28,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: '/feed.xml',
-        destination: '/feed',
+        source: "/feed.xml",
+        destination: "/feed",
         permanent: true,
       },
     ];
@@ -39,42 +39,32 @@ const nextConfig: NextConfig = {
     return [
       {
         // Next.js 빌드 산출물 (CSS, JS 등) - 해시가 포함되어 있어도 짧은 캐시
-        source: '/_next/static/:path*',
+        source: "/_next/static/:path*",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
       {
         // 정적 파일 (이미지, 아이콘 등)
-        source: '/:path*\\.(ico|png|jpg|jpeg|svg|webp|woff|woff2|ttf|eot)',
+        source: "/:path*\\.(ico|png|jpg|jpeg|svg|webp|woff|woff2|ttf|eot)",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=86400, must-revalidate',
+            key: "Cache-Control",
+            value: "public, max-age=86400, must-revalidate",
           },
         ],
       },
       {
         // 사이트맵과 robots.txt는 1시간 캐싱 (Google 크롤러 최적화)
-        source: '/(sitemap.xml|robots.txt)',
+        source: "/(sitemap.xml|robots.txt)",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
-          },
-        ],
-      },
-      {
-        // 모든 페이지에 적용 (사이트맵 제외)
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            // CDN 캐시를 5분으로 증가하여 서버 부하 감소
-            value: 'public, s-maxage=300, stale-while-revalidate=600',
+            key: "Cache-Control",
+            value:
+              "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
           },
         ],
       },
