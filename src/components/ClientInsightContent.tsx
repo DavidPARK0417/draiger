@@ -30,16 +30,18 @@ export default function ClientInsightContent({
 
         {/* 나머지 본문 영역 (contentRef) */}
         <div ref={contentRef}>{restOfContent}</div>
-      </div>
 
-      {tags && tags.length > 0 && (
-        <TagCopySection
-          title={title}
-          tags={tags}
-          contentRef={contentRef}
-          descriptionRef={descriptionRef}
-        />
-      )}
+        {/* 태그 영역 (본문 하단) */}
+        {tags && tags.length > 0 && (
+          <TagCopySection
+            title={title}
+            tags={tags}
+            contentRef={contentRef}
+            descriptionRef={descriptionRef}
+            onlyTags={true}
+          />
+        )}
+      </div>
     </>
   );
 }

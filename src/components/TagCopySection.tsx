@@ -8,6 +8,9 @@ interface TagCopySectionProps {
   tags: string[];
   contentRef?: React.RefObject<HTMLDivElement | null>;
   descriptionRef?: React.RefObject<HTMLDivElement | null>;
+  onlyButtons?: boolean;
+  onlyTags?: boolean;
+  className?: string;
 }
 
 export default function TagCopySection({
@@ -15,6 +18,9 @@ export default function TagCopySection({
   tags,
   contentRef,
   descriptionRef,
+  onlyButtons = false,
+  onlyTags = false,
+  className = "",
 }: TagCopySectionProps) {
   const [activeButton, setActiveButton] = React.useState<string | null>(null);
   const [mounted, setMounted] = React.useState(false);
@@ -638,21 +644,33 @@ export default function TagCopySection({
 
   // Hydration mismatch 방지: 서버와 클라이언트의 초기 렌더링을 맞춤
   if (!mounted) {
+    const containerClass =
+      className ||
+      (onlyTags
+        ? "mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-200 dark:border-white/10"
+        : "mb-10 sm:mb-12");
     return (
-      <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-200 dark:border-white/10">
+      <div className={containerClass}>
         <div className="flex flex-col gap-3 sm:gap-4 h-24" />
       </div>
     );
   }
 
+  const containerClass =
+    className ||
+    (onlyTags
+      ? "mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-200 dark:border-white/10"
+      : "mb-10 sm:mb-12");
+
   return (
-    <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-200 dark:border-white/10">
+    <div className={containerClass}>
       <div className="flex flex-col gap-3 sm:gap-4">
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {tags.map((tag, index) => (
-            <span
-              key={`tag-${tag}-${index}`}
-              className="
+        {!onlyButtons && (
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            {tags.map((tag, index) => (
+              <span
+                key={`tag-${tag}-${index}`}
+                className="
                 inline-flex items-center
                 px-3 py-1.5 sm:px-4 sm:py-2
                 rounded-full
@@ -663,17 +681,51 @@ export default function TagCopySection({
                 border border-emerald-200 dark:border-emerald-700/50
                 transition-colors duration-300
               "
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {!onlyTags && (
+          <div className="flex flex-wrap gap-2 mt-1">
+            <button
+              type="button"
+              onClick={handleCopyTitle}
+              className="
+              inline-flex items-center gap-2
+              px-4 py-2.5
+              rounded-lg
+              text-xs sm:text-sm
+              font-medium
+              bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700
+              dark:bg-emerald-600 dark:hover:bg-emerald-500
+              text-white
+              shadow-sm hover:shadow-md active:shadow
+              transition-all duration-300
+              hover:-translate-y-0.5 active:scale-98
+              self-start
+            "
+              aria-label="제목 복사"
             >
-              #{tag}
-            </span>
-          ))}
-        </div>
+              {activeButton === "title" ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>복사 완료!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>제목</span>
+                </>
+              )}
+            </button>
 
-        <div className="flex flex-wrap gap-2 mt-1">
-          <button
-            type="button"
-            onClick={handleCopyTitle}
-            className="
+            <button
+              type="button"
+              onClick={handleCopyHtmlT}
+              className="
               inline-flex items-center gap-2
               px-4 py-2.5
               rounded-lg
@@ -687,25 +739,25 @@ export default function TagCopySection({
               hover:-translate-y-0.5 active:scale-98
               self-start
             "
-            aria-label="제목 복사"
-          >
-            {activeButton === "title" ? (
-              <>
-                <Check className="w-4 h-4" />
-                <span>복사 완료!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                <span>제목</span>
-              </>
-            )}
-          </button>
+              aria-label="본문T 복사"
+            >
+              {activeButton === "htmlT" ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>복사 완료!</span>
+                </>
+              ) : (
+                <>
+                  <FileText className="w-4 h-4" />
+                  <span>본문T</span>
+                </>
+              )}
+            </button>
 
-          <button
-            type="button"
-            onClick={handleCopyHtmlT}
-            className="
+            <button
+              type="button"
+              onClick={handleCopyTag1}
+              className="
               inline-flex items-center gap-2
               px-4 py-2.5
               rounded-lg
@@ -719,25 +771,25 @@ export default function TagCopySection({
               hover:-translate-y-0.5 active:scale-98
               self-start
             "
-            aria-label="본문T 복사"
-          >
-            {activeButton === "htmlT" ? (
-              <>
-                <Check className="w-4 h-4" />
-                <span>복사 완료!</span>
-              </>
-            ) : (
-              <>
-                <FileText className="w-4 h-4" />
-                <span>본문T</span>
-              </>
-            )}
-          </button>
+              aria-label="태그T 복사"
+            >
+              {activeButton === "tag1" ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>복사 완료!</span>
+                </>
+              ) : (
+                <>
+                  <Hash className="w-4 h-4" />
+                  <span>태그T</span>
+                </>
+              )}
+            </button>
 
-          <button
-            type="button"
-            onClick={handleCopyHtmlN}
-            className="
+            <button
+              type="button"
+              onClick={handleCopyHtmlN}
+              className="
               inline-flex items-center gap-2
               px-4 py-2.5
               rounded-lg
@@ -751,25 +803,25 @@ export default function TagCopySection({
               hover:-translate-y-0.5 active:scale-98
               self-start
             "
-            aria-label="본문N 복사"
-          >
-            {activeButton === "htmlN" ? (
-              <>
-                <Check className="w-4 h-4" />
-                <span>복사 완료!</span>
-              </>
-            ) : (
-              <>
-                <FileText className="w-4 h-4" />
-                <span>본문N</span>
-              </>
-            )}
-          </button>
+              aria-label="본문N 복사"
+            >
+              {activeButton === "htmlN" ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>복사 완료!</span>
+                </>
+              ) : (
+                <>
+                  <FileText className="w-4 h-4" />
+                  <span>본문N</span>
+                </>
+              )}
+            </button>
 
-          <button
-            type="button"
-            onClick={handleCopyTag1}
-            className="
+            <button
+              type="button"
+              onClick={handleCopyTag2}
+              className="
               inline-flex items-center gap-2
               px-4 py-2.5
               rounded-lg
@@ -783,53 +835,22 @@ export default function TagCopySection({
               hover:-translate-y-0.5 active:scale-98
               self-start
             "
-            aria-label="태그T 복사"
-          >
-            {activeButton === "tag1" ? (
-              <>
-                <Check className="w-4 h-4" />
-                <span>복사 완료!</span>
-              </>
-            ) : (
-              <>
-                <Hash className="w-4 h-4" />
-                <span>태그T</span>
-              </>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleCopyTag2}
-            className="
-              inline-flex items-center gap-2
-              px-4 py-2.5
-              rounded-lg
-              text-xs sm:text-sm
-              font-medium
-              bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700
-              dark:bg-emerald-600 dark:hover:bg-emerald-500
-              text-white
-              shadow-sm hover:shadow-md active:shadow
-              transition-all duration-300
-              hover:-translate-y-0.5 active:scale-98
-              self-start
-            "
-            aria-label="태그N 복사"
-          >
-            {activeButton === "tag2" ? (
-              <>
-                <Check className="w-4 h-4" />
-                <span>복사 완료!</span>
-              </>
-            ) : (
-              <>
-                <Hash className="w-4 h-4" />
-                <span>태그N</span>
-              </>
-            )}
-          </button>
-        </div>
+              aria-label="태그N 복사"
+            >
+              {activeButton === "tag2" ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>복사 완료!</span>
+                </>
+              ) : (
+                <>
+                  <Hash className="w-4 h-4" />
+                  <span>태그N</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

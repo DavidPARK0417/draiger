@@ -17,6 +17,7 @@ import Link from "next/link";
 import { getBaseUrl } from "@/lib/site";
 import { ArrowRight } from "lucide-react";
 import ClientInsightContent from "@/components/ClientInsightContent";
+import TagCopySection from "@/components/TagCopySection";
 
 // ISR 설정: 30초마다 재검증 (색인 속도 개선을 위해 더 빠른 업데이트)
 export const revalidate = 30;
@@ -348,6 +349,16 @@ export default async function InsightPostPage({
               </div>
             )}
           </header>
+
+          {/* 복사 버튼 영역 (제목 바로 아래) */}
+          {post.tags && post.tags.length > 0 && (
+            <TagCopySection
+              title={post.title}
+              tags={post.tags}
+              onlyButtons={true}
+              className="mb-8 sm:mb-10"
+            />
+          )}
 
           {/* 카카오 애드핏 광고 */}
           <div className="mb-8 sm:mb-12 flex justify-center">

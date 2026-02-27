@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getBaseUrl } from "@/lib/site";
 import ClientRecipeContent from "@/components/ClientRecipeContent";
+import TagCopySection from "@/components/TagCopySection";
 
 export const revalidate = 60;
 export const dynamicParams = true;
@@ -205,6 +206,16 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
               </div>
             )}
           </header>
+
+          {/* 복사 버튼 영역 (제목 바로 아래) */}
+          {recipe.tags && recipe.tags.length > 0 && (
+            <TagCopySection
+              title={recipe.title}
+              tags={recipe.tags}
+              onlyButtons={true}
+              className="mb-8 sm:mb-10"
+            />
+          )}
 
           <ClientRecipeContent title={recipe.title} tags={recipe.tags || []}>
             <div
