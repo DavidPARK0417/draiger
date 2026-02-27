@@ -65,7 +65,7 @@ export default function TagCopySection({
     void copyToClipboard(copyText, "tag2");
   };
 
-  // 본문 HTML 복사 (티스토리 블로그용 - 극강의 호환성 Table 레이아웃)
+  // 본문 HTML 복사 (티스토리 블로그용 - 네이버N과 동일한 디자인 적용)
   const handleCopyHtmlT = async () => {
     if (!contentRef?.current || !descriptionRef?.current) return;
 
@@ -73,13 +73,13 @@ export default function TagCopySection({
       const baseUrl =
         typeof window !== "undefined" ? window.location.origin : "";
 
-      // 1. 요약 박스 (이미지 기반 스타일)
+      // 1. 요약 박스 (네이버N과 동일한 스타일)
       const summaryText = descriptionRef.current.innerText;
       const summaryHtml = `
-        <div style="margin: 30px 0; padding: 25px 30px; border-left: 5px solid #10b981; background-color: #f0fdfa; text-align: left; border-radius: 0 8px 8px 0; text-decoration: none !important;">
-          <p style="color: #115e59; font-size: 18px; line-height: 1.8; margin: 0; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; letter-spacing: -0.01em; text-decoration: none !important; border: none !important;">
+        <div style="margin: 20px 0; padding: 25px 30px; border-left: 5px solid #14b8a6; background-color: #f0fdfa; border-radius: 0 10px 10px 0; text-align: left;">
+          <h3 data-ke-size="size18" style="color: #115e59; line-height: 1.8; margin: 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; letter-spacing: -0.5px; font-weight: normal;">
             ${summaryText}
-          </p>
+          </h3>
         </div>
       `;
 
@@ -95,79 +95,170 @@ export default function TagCopySection({
         path.startsWith("api/") ? match : `src="${baseUrl}/${path}"`,
       );
 
-      // 본문 스타일링 (태그 필터링 및 인라인 스타일 주입)
+      // 제목 스타일 처리
+      const h1Style =
+        "color: #059669; font-size: 24px; font-weight: bold; margin: 40px 0 20px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
+      bodyHtml = bodyHtml.replace(
+        /<h1[^>]*>(.*?)<\/h1>/gi,
+        `<h1 style="${h1Style}">$1</h1>`,
+      );
 
-      // 제목 h2 스타일링
       const h2Style =
-        "color: #0f172a; font-size: 28px; font-weight: 800; border-bottom: 3px solid #10b981; padding-bottom: 12px; margin-top: 60px; margin-bottom: 24px; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; letter-spacing: -0.02em; text-decoration: none !important;";
+        "color: #000000; font-size: 22px; font-weight: bold; margin: 35px 0 15px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h2[^>]*>(.*?)<\/h2>/gi,
         `<h2 style="${h2Style}">$1</h2>`,
       );
 
-      // 제목 h3 스타일링
       const h3Style =
-        "color: #059669; font-size: 22px; font-weight: 700; margin-top: 40px; margin-bottom: 16px; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; text-decoration: none !important;";
+        "color: #059669; font-size: 20px; font-weight: bold; margin: 35px 0 15px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h3[^>]*>(.*?)<\/h3>/gi,
         `<h3 style="${h3Style}">$1</h3>`,
       );
 
-      // 단락 p 스타일링
+      // 특정 중요 헤더 텍스트 스타일링
+      const specialHeaders = [
+        "📋 요리 정보 (Cooking Info)",
+        "🛒 오늘의 재료 (Today's Ingredients)",
+        "🍳 요리 가이드 (Cooking Guide)",
+      ];
+
+      specialHeaders.forEach((header) => {
+        const escaped = header.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const reg = new RegExp(escaped, "g");
+        const needsExtraSpace =
+          header.includes("오늘의 재료") || header.includes("요리 가이드");
+        const prefix = needsExtraSpace ? "<br />" : "";
+        bodyHtml = bodyHtml.replace(
+          reg,
+          `${prefix}<h1 data-ke-size="size32" style="color: #059669; font-size: 30px; font-weight: bold; margin: 20px 0;">${header}</h1>`,
+        );
+      });
+
+      // 단락 p 스타일
       const pStyle =
-        "color: #334155; font-size: 18px; line-height: 1.8; margin: 18px 0; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; text-decoration: none !important; border-bottom: none !important;";
+        "color: #333333; font-size: 17px; line-height: 1.9; margin: 15px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; word-break: break-all;";
       bodyHtml = bodyHtml.replace(
         /<p[^>]*>(.*?)<\/p>/gi,
         `<p style="${pStyle}">$1</p>`,
       );
 
-      // 이미지 스타일링 (가로 100% 대응)
+      // 이미지 스타일
       bodyHtml = bodyHtml.replace(
         /<img([^>]+)>/gi,
-        '<div style="text-align: center; margin: 35px 0; text-decoration: none !important;"><img $1 style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);"></div>',
+        '<div style="text-align: center; margin: 40px 0;"><img $1 style="max-width: 100%; height: auto; border-radius: 8px;"></div>',
       );
 
-      // 리스트 스타일링
+      // 리스트 스타일
       const listStyle =
-        "color: #334155; font-size: 18px; line-height: 1.8; margin-bottom: 20px; padding-left: 25px; text-decoration: none !important;";
-      bodyHtml = bodyHtml.replace(
-        /<ul[^>]*>/gi,
-        `<ul style="${listStyle} list-style-type: disc;">`,
-      );
-      bodyHtml = bodyHtml.replace(
-        /<ol[^>]*>/gi,
-        `<ul style="${listStyle} list-style-type: decimal;">`,
-      ); // 티스토리 호환성을 위해 ul로 대체하되 스타일로 구분
+        "color: #333333; font-size: 17px; line-height: 1.8; margin: 15px 0; padding-left: 20px; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
+      bodyHtml = bodyHtml.replace(/<ul[^>]*>/gi, `<ul style="${listStyle}">`);
+      bodyHtml = bodyHtml.replace(/<ol[^>]*>/gi, `<ol style="${listStyle}">`);
       bodyHtml = bodyHtml.replace(
         /<li[^>]*>/gi,
-        "<li style='margin-bottom: 10px; text-decoration: none !important;'>",
+        "<li style='margin-bottom: 8px;'>",
       );
 
-      // 강조 텍스트
+      // 강조 및 인용구
       bodyHtml = bodyHtml.replace(
         /<strong[^>]*>/gi,
-        "<strong style='color: #0f172a; font-weight: 700; text-decoration: none !important;'>",
+        "<strong style='color: #000000; font-weight: bold;'>",
       );
-
-      // 가로 구분선
-      bodyHtml = bodyHtml.replace(
-        /<hr[^>]*>/gi,
-        '<hr style="border: 0; border-top: 2px solid #f1f5f9; margin: 50px 0; text-decoration: none !important;">',
-      );
-
-      // 인용구
       const bqStyle =
-        "border-left: 4px solid #cbd5e1; padding: 16px 24px; margin: 30px 0; background-color: #f8fafc; color: #475569; italic; font-size: 17px; text-decoration: none !important;";
+        "border-left: 4px solid #d1d5db; padding: 15px 25px; margin: 30px 0; background-color: #f9fafb; color: #666666; font-size: 16px; italic;";
       bodyHtml = bodyHtml.replace(
         /<blockquote[^>]*>/gi,
         `<blockquote style="${bqStyle}">`,
       );
 
+      // [최종 처리 1] 오늘의 재료 섹션 스타일링
+      const ingredientsSectionPattern =
+        /(🛒 오늘의 재료 \(Today's Ingredients\)<\/h1>)([\s\S]*?)(<br \/><h1[^>]*>🍳 요리 가이드 \(Cooking Guide\))/gi;
+
+      bodyHtml = bodyHtml.replace(
+        ingredientsSectionPattern,
+        (_match: string, header1: string, content: string, header2: string) => {
+          const styledContent = content.replace(
+            /<([a-z1-6]+)([^>]*)>(.*?)<\/\1>/gi,
+            (
+              _tagMatch: string,
+              tagName: string,
+              _attributes: string,
+              innerText: string,
+            ) => {
+              if (
+                tagName.toLowerCase() === "img" ||
+                tagName.toLowerCase() === "br" ||
+                innerText.trim() === ""
+              )
+                return _tagMatch;
+
+              // 제목3(H3, ###) 스타일 적용
+              return `<h3 data-ke-size="size18" style="color: #000000 !important; font-weight: normal !important; line-height: 1.8 !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important; margin: 10px 0;">${innerText}</h3>`;
+            },
+          );
+          return `${header1}<div style="color: #000000; line-height: 1.8;">${styledContent}</div>${header2}`;
+        },
+      );
+
+      // [최종 처리 2] 요리 가이드 섹션 스타일링
+      const cookingGuideParts = bodyHtml.split(
+        /<h1[^>]*>🍳 요리 가이드 \(Cooking Guide\)<\/h1>/i,
+      );
+      if (cookingGuideParts.length > 1) {
+        const headerPart =
+          cookingGuideParts[0] +
+          '<h1 data-ke-size="size32" style="color: #059669; font-size: 30px; font-weight: bold; margin: 20px 0;">🍳 요리 가이드 (Cooking Guide)</h1>';
+        let remainingContent = cookingGuideParts
+          .slice(1)
+          .join(
+            '<h1 data-ke-size="size32" style="color: #059669; font-size: 30px; font-weight: bold; margin: 20px 0;">🍳 요리 가이드 (Cooking Guide)</h1>',
+          );
+
+        // 1. 모든 태그에 기본 스타일 적용 (리스트 포함)
+        remainingContent = remainingContent.replace(
+          /<([a-z1-6]+)([^>]*)>(.*?)<\/\1>/gi,
+          (
+            _tagMatch: string,
+            tagName: string,
+            attributes: string,
+            innerContent: string,
+          ) => {
+            const lowerTag = tagName.toLowerCase();
+            if (lowerTag === "img" || lowerTag === "br") return _tagMatch;
+
+            // 리스트 태그(ol, ul)와 항목(li)에 대해 20px 강제 적용
+            const isListTag =
+              lowerTag === "ol" || lowerTag === "ul" || lowerTag === "li";
+            const fontSize = isListTag ? "20px" : "18px";
+            const keSize = isListTag ? "size20" : "size18";
+
+            // 사용자가 요청한 리스트 아이템 스타일 최우선 적용
+            const baseStyle = `font-size: ${fontSize} !important; line-height: 1.8 !important; color: #333333 !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important;`;
+
+            if (attributes.includes("style=")) {
+              return `<${tagName}${attributes.replace(/style="[^"]*"/, `style="${baseStyle}"`)} data-ke-size="${keSize}">${innerContent}</${tagName}>`;
+            } else {
+              return `<${tagName}${attributes} style="${baseStyle}" data-ke-size="${keSize}">${innerContent}</${tagName}>`;
+            }
+          },
+        );
+
+        remainingContent = remainingContent.replace(
+          /(>|^|\s)(\d+\.)(\s)/g,
+          (_match, prefix, num, suffix) => {
+            return `${prefix}<span style="color: #888888 !important; font-size: 24px !important; font-weight: bold !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important;">${num}</span>${suffix}`;
+          },
+        );
+        bodyHtml = headerPart + remainingContent;
+      }
+
       // 전체 결합
       const combinedHtml = `
-        <div style="background-color: #ffffff; padding: 20px; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'noto sans', sans-serif; text-decoration: none !important;">
+        <div style="font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; font-size: 17px; color: #333333; line-height: 1.8; padding: 20px; max-width: 800px; margin: 0 auto;">
           ${summaryHtml}
-          <div style="margin-top: 50px; text-decoration: none !important;">
+          <div style="margin-top: 40px;">
             ${bodyHtml}
           </div>
         </div>
@@ -345,14 +436,17 @@ export default function TagCopySection({
 
       // [최종 처리 2] 요리 가이드 이후의 텍스트 스타일링 (글자 크기 20px, 숫자 24px + 회색)
       const cookingGuideParts = bodyHtml.split(
-        /🍳 요리 가이드 \(Cooking Guide\)<\/span>/i,
+        /<span[^>]*>🍳 요리 가이드 \(Cooking Guide\)<\/span>/i,
       );
       if (cookingGuideParts.length > 1) {
         const headerPart =
-          cookingGuideParts[0] + "🍳 요리 가이드 (Cooking Guide)</span>";
+          cookingGuideParts[0] +
+          '<span style="color: #059669; font-size: 30px; font-weight: bold;">🍳 요리 가이드 (Cooking Guide)</span>';
         let remainingContent = cookingGuideParts
           .slice(1)
-          .join("🍳 요리 가이드 (Cooking Guide)</span>");
+          .join(
+            '<span style="color: #059669; font-size: 30px; font-weight: bold;">🍳 요리 가이드 (Cooking Guide)</span>',
+          );
 
         // 1. 모든 태그에 font-size: 20px 적용
         remainingContent = remainingContent.replace(
