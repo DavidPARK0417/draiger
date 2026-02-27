@@ -104,17 +104,17 @@ export default function TagCopySection({
       );
 
       const h2Style =
-        "color: #000000; font-size: 22px; font-weight: bold; margin: 35px 0 15px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
+        "color: #059669; font-size: 22px; font-weight: bold; margin: 35px 0 15px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h2[^>]*>(.*?)<\/h2>/gi,
-        `<h2 style="${h2Style}">$1</h2>`,
+        `<br /><h2 style="${h2Style}">$1</h2>`,
       );
 
       const h3Style =
         "color: #059669; font-size: 20px; font-weight: bold; margin: 35px 0 15px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h3[^>]*>(.*?)<\/h3>/gi,
-        `<h3 style="${h3Style}">$1</h3>`,
+        `<br /><h3 style="${h3Style}">$1</h3>`,
       );
 
       // 특정 중요 헤더 텍스트 스타일링
@@ -140,8 +140,13 @@ export default function TagCopySection({
       const pStyle =
         "color: #333333; font-size: 17px; line-height: 1.9; margin: 15px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; word-break: break-all;";
       bodyHtml = bodyHtml.replace(
-        /<p[^>]*>(.*?)<\/p>/gi,
-        `<p style="${pStyle}">$1</p>`,
+        /<p([^>]*)>(.*?)<\/p>/gi,
+        (match, attr, content) => {
+          if (attr.includes("text-center")) {
+            return `<p style="${pStyle.replace("color: #333333;", "color: #888888;").replace("font-size: 17px;", "font-size: 15px;")} text-align: center; font-style: italic;">${content}</p>`;
+          }
+          return `<p style="${pStyle}">${content}</p>`;
+        },
       );
 
       // 이미지 스타일
@@ -298,7 +303,7 @@ export default function TagCopySection({
       const summaryText = descriptionRef.current.innerText;
       const summaryHtml = `
         <div style="margin: 20px 0; padding: 25px 30px; border-left: 5px solid #14b8a6; background-color: #f0fdfa; border-radius: 0 10px 10px 0; text-align: left;">
-          <p style="color: #115e59; font-size: 17px; line-height: 1.8; margin: 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; letter-spacing: -0.5px;">
+          <p style="color: #115e59; font-size: 19px; font-weight: bold; line-height: 1.8; margin: 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; letter-spacing: -0.5px;">
             ${summaryText}
           </p>
         </div>
@@ -318,28 +323,26 @@ export default function TagCopySection({
 
       // 네이버 블로그 스마트에디터 최적화 스타일 주입
 
-      // 제목 스타일 처리
+      // 제목 스타일 처리 (에메랄드 색상 + 상단 빈 줄 추가)
       const h1Style =
-        "color: #059669; font-size: 24px; font-weight: bold; margin: 40px 0 20px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
+        "color: #059669; font-size: 24px; font-weight: bold; margin: 20px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h1[^>]*>(.*?)<\/h1>/gi,
-        `<h1 style="${h1Style}">$1</h1>`,
+        `<br /><h1 style="${h1Style}">$1</h1>`,
       );
 
-      // 제목 h2 스타일 (네이버는 큰 제목 선호)
       const h2Style =
-        "color: #000000; font-size: 22px; font-weight: bold; margin: 35px 0 15px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
+        "color: #059669; font-size: 22px; font-weight: bold; margin: 20px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h2[^>]*>(.*?)<\/h2>/gi,
-        `<h2 style="${h2Style}">$1</h2>`,
+        `<br /><h2 style="${h2Style}">$1</h2>`,
       );
 
-      // 제목 h3 스타일 (요리 정보, 오늘의 재료, 요리 가이드 등)
       const h3Style =
-        "color: #059669; font-size: 20px; font-weight: bold; margin: 35px 0 15px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
+        "color: #059669; font-size: 20px; font-weight: bold; margin: 20px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h3[^>]*>(.*?)<\/h3>/gi,
-        `<h3 style="${h3Style}">$1</h3>`,
+        `<br /><h3 style="${h3Style}">$1</h3>`,
       );
 
       // 특정 중요 헤더 텍스트 색상 및 크기 강제 지정 (text-emerald-600: #059669, font-size: 30px)
@@ -368,8 +371,13 @@ export default function TagCopySection({
       const pStyle =
         "color: #333333; font-size: 17px; line-height: 1.9; margin: 15px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; word-break: break-all;";
       bodyHtml = bodyHtml.replace(
-        /<p[^>]*>(.*?)<\/p>/gi,
-        `<p style="${pStyle}">$1</p>`,
+        /<p([^>]*)>(.*?)<\/p>/gi,
+        (match, attr, content) => {
+          if (attr.includes("text-center")) {
+            return `<p style="${pStyle.replace("color: #333333;", "color: #888888;").replace("font-size: 17px;", "font-size: 15px;")} text-align: center; font-style: italic;">${content}</p>`;
+          }
+          return `<p style="${pStyle}">${content}</p>`;
+        },
       );
 
       // 이미지 스타일 (네이버 에디터 대응: 중앙 정렬 강조)
