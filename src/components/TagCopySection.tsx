@@ -480,6 +480,12 @@ export default function TagCopySection({
         bodyHtml = headerPart + remainingContent;
       }
 
+      // 태그 생성 (태그N 방식: #태그1 #태그2 #태그3)
+      const tagsHtml =
+        tags && tags.length > 0
+          ? `<div style="margin-top: 40px; color: #059669; font-size: 16px; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;">${tags.map((t) => `#${t}`).join(" ")}</div>`
+          : "";
+
       // 전체 결합
       const combinedHtml = `
         <div style="font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; font-size: 17px; color: #333333; line-height: 1.8; padding: 20px; max-width: 800px; margin: 0 auto;">
@@ -487,6 +493,8 @@ export default function TagCopySection({
           <div style="margin-top: 40px;">
             ${bodyHtml}
           </div>
+          <br /><br />
+          ${tagsHtml}
         </div>
       `;
 
