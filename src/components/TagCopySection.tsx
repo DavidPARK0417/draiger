@@ -77,7 +77,7 @@ export default function TagCopySection({
       const summaryText = descriptionRef.current.innerText;
       const summaryHtml = `
         <div style="margin: 20px 0; padding: 25px 30px; border-left: 5px solid #14b8a6; background-color: #f0fdfa; border-radius: 0 10px 10px 0; text-align: left;">
-          <h3 data-ke-size="size18" style="color: #000000; line-height: 1.8; margin: 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; letter-spacing: -0.5px; font-weight: normal;">
+          <h3 data-ke-size="size18" style="color: #065f46; line-height: 1.8; margin: 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; letter-spacing: -0.5px; font-weight: bold;">
             ${summaryText}
           </h3>
         </div>
@@ -108,12 +108,15 @@ export default function TagCopySection({
       bodyHtml = bodyHtml.replace(
         /<h2[^>]*>(.*?)<\/h2>/gi,
         (match, content) => {
-          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용 및 간격 축소
           const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
-          const finalH2Style = isRecipeInfo
-            ? h2Style.replace("color: #059669;", "color: #000000;")
-            : h2Style;
-          return `<br /><h2 style="${finalH2Style}">${content}</h2>`;
+          if (isRecipeInfo) {
+            const recipeStyle = h2Style
+              .replace("color: #059669;", "color: #000000;")
+              .replace("margin: 35px 0 15px 0;", "margin: 5px 0;");
+            return `<h2 style="${recipeStyle}">${content}</h2>`;
+          }
+          return `<br /><h2 style="${h2Style}">${content}</h2>`;
         },
       );
 
@@ -122,12 +125,15 @@ export default function TagCopySection({
       bodyHtml = bodyHtml.replace(
         /<h3[^>]*>(.*?)<\/h3>/gi,
         (match, content) => {
-          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용 및 간격 축소
           const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
-          const finalH3Style = isRecipeInfo
-            ? h3Style.replace("color: #059669;", "color: #000000;")
-            : h3Style;
-          return `<br /><h3 style="${finalH3Style}">${content}</h3>`;
+          if (isRecipeInfo) {
+            const recipeStyle = h3Style
+              .replace("color: #059669;", "color: #000000;")
+              .replace("margin: 35px 0 15px 0;", "margin: 5px 0;");
+            return `<h3 style="${recipeStyle}">${content}</h3>`;
+          }
+          return `<br /><h3 style="${h3Style}">${content}</h3>`;
         },
       );
 
@@ -144,9 +150,10 @@ export default function TagCopySection({
         const needsExtraSpace =
           header.includes("오늘의 재료") || header.includes("요리 가이드");
         const prefix = needsExtraSpace ? "<br />" : "";
+        // 하단 마진을 5px로 줄여 내용과 밀착시킴
         bodyHtml = bodyHtml.replace(
           reg,
-          `${prefix}<h1 data-ke-size="size32" style="color: #059669; font-size: 30px; font-weight: bold; margin: 20px 0;">${header}</h1>`,
+          `${prefix}<h1 data-ke-size="size32" style="color: #059669; font-size: 30px; font-weight: bold; margin: 20px 0 5px 0;">${header}</h1>`,
         );
       });
 
@@ -159,10 +166,12 @@ export default function TagCopySection({
           if (attr.includes("text-center")) {
             return `<p style="${pStyle.replace("color: #333333;", "color: #888888;").replace("font-size: 17px;", "font-size: 15px;")} text-align: center; font-style: italic;">${content}</p>`;
           }
-          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용 및 간격 축소
           const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
           const finalPStyle = isRecipeInfo
-            ? pStyle.replace("color: #333333;", "color: #000000;")
+            ? pStyle
+                .replace("color: #333333;", "color: #000000;")
+                .replace("margin: 15px 0;", "margin: 2px 0;")
             : pStyle;
           return `<p style="${finalPStyle}">${content}</p>`;
         },
@@ -203,7 +212,13 @@ export default function TagCopySection({
       bodyHtml = bodyHtml.replace(
         ingredientsSectionPattern,
         (_match: string, header1: string, content: string, header2: string) => {
-          const styledContent = content.replace(
+          // content 시작 부분의 빈 줄(<br />) 제거하여 간격 밀착
+          const cleanedContent = content
+            .replace(/^(\s*<br\s*\/?>\s*)+/gi, "")
+            .trim();
+
+          let isFirst = true;
+          const styledContent = cleanedContent.replace(
             /<([a-z1-6]+)([^>]*)>(.*?)<\/\1>/gi,
             (
               _tagMatch: string,
@@ -218,11 +233,16 @@ export default function TagCopySection({
               )
                 return _tagMatch;
 
+              // 첫 번째 항목은 상단 마진을 제거하여 제목과 밀착
+              const marginTop = isFirst ? "0px" : "10px";
+              isFirst = false;
+
               // 제목3(H3, ###) 스타일 적용
-              return `<h3 data-ke-size="size18" style="color: #000000 !important; font-weight: normal !important; line-height: 1.8 !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important; margin: 10px 0;">${innerText}</h3>`;
+              return `<h3 data-ke-size="size18" style="color: #000000 !important; font-weight: normal !important; line-height: 1.8 !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important; margin: ${marginTop} 0 10px 0;">${innerText}</h3>`;
             },
           );
-          return `${header1}<div style="color: #000000; line-height: 1.8;">${styledContent}</div>${header2}`;
+          // div에 margin-top: 0 추가하여 제목과 밀착
+          return `${header1}<div style="color: #000000; line-height: 1.8; margin-top: 0;">${styledContent}</div>${header2}`;
         },
       );
 
@@ -252,11 +272,11 @@ export default function TagCopySection({
             const lowerTag = tagName.toLowerCase();
             if (lowerTag === "img" || lowerTag === "br") return _tagMatch;
 
-            // 리스트 태그(ol, ul)와 항목(li)에 대해 20px 강제 적용
+            // 리스트 태그(ol, ul)와 항목(li)에 대해 19px 강제 적용
             const isListTag =
               lowerTag === "ol" || lowerTag === "ul" || lowerTag === "li";
-            const fontSize = isListTag ? "20px" : "18px";
-            const keSize = isListTag ? "size20" : "size18";
+            const fontSize = isListTag ? "19px" : "18px";
+            const keSize = isListTag ? "size19" : "size18";
 
             // 사용자가 요청한 리스트 아이템 스타일 최우선 적용
             const baseStyle = `font-size: ${fontSize} !important; line-height: 1.8 !important; color: #333333 !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important;`;
@@ -275,7 +295,21 @@ export default function TagCopySection({
             return `${prefix}<span style="color: #888888 !important; font-size: 24px !important; font-weight: bold !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important;">${num}</span>${suffix}`;
           },
         );
-        bodyHtml = headerPart + remainingContent;
+
+        // 티스토리 전용 구조 적용 (div 래핑 및 style 태그 포함)
+        const tistoryStyle = `
+<style>
+.tistory-cooking-guide ol li {
+  font-size: 19px !important;
+  line-height: 1.8 !important;
+}
+</style>
+        `.trim();
+
+        bodyHtml =
+          headerPart +
+          tistoryStyle +
+          `\n<div class="tistory-cooking-guide">\n${remainingContent}\n</div>`;
       }
 
       // 전체 결합
@@ -336,7 +370,7 @@ export default function TagCopySection({
       const summaryText = descriptionRef.current.innerText;
       const summaryHtml = `
         <div style="margin: 20px 0; padding: 25px 30px; border-left: 5px solid #14b8a6; background-color: #f0fdfa; border-radius: 0 10px 10px 0; text-align: left;">
-          <p style="color: #000000; font-size: 19px; font-weight: bold; line-height: 1.8; margin: 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; letter-spacing: -0.5px;">
+          <p style="color: #065f46; font-size: 19px; font-weight: bold; line-height: 1.8; margin: 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; letter-spacing: -0.5px;">
             ${summaryText}
           </p>
         </div>
@@ -369,12 +403,15 @@ export default function TagCopySection({
       bodyHtml = bodyHtml.replace(
         /<h2[^>]*>(.*?)<\/h2>/gi,
         (match, content) => {
-          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용 및 간격 축소
           const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
-          const finalH2Style = isRecipeInfo
-            ? h2Style.replace("color: #059669;", "color: #000000;")
-            : h2Style;
-          return `<br /><h2 style="${finalH2Style}">${content}</h2>`;
+          if (isRecipeInfo) {
+            const recipeStyle = h2Style
+              .replace("color: #059669;", "color: #000000;")
+              .replace("margin: 20px 0;", "margin: 5px 0;");
+            return `<h2 style="${recipeStyle}">${content}</h2>`;
+          }
+          return `<br /><h2 style="${h2Style}">${content}</h2>`;
         },
       );
 
@@ -383,12 +420,15 @@ export default function TagCopySection({
       bodyHtml = bodyHtml.replace(
         /<h3[^>]*>(.*?)<\/h3>/gi,
         (match, content) => {
-          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용 및 간격 축소
           const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
-          const finalH3Style = isRecipeInfo
-            ? h3Style.replace("color: #059669;", "color: #000000;")
-            : h3Style;
-          return `<br /><h3 style="${finalH3Style}">${content}</h3>`;
+          if (isRecipeInfo) {
+            const recipeStyle = h3Style
+              .replace("color: #059669;", "color: #000000;")
+              .replace("margin: 20px 0;", "margin: 5px 0;");
+            return `<h3 style="${recipeStyle}">${content}</h3>`;
+          }
+          return `<br /><h3 style="${h3Style}">${content}</h3>`;
         },
       );
 
@@ -423,10 +463,12 @@ export default function TagCopySection({
           if (attr.includes("text-center")) {
             return `<p style="${pStyle.replace("color: #333333;", "color: #888888;").replace("font-size: 17px;", "font-size: 15px;")} text-align: center; font-style: italic;">${content}</p>`;
           }
-          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용 및 간격 축소
           const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
           const finalPStyle = isRecipeInfo
-            ? pStyle.replace("color: #333333;", "color: #000000;")
+            ? pStyle
+                .replace("color: #333333;", "color: #000000;")
+                .replace("margin: 15px 0;", "margin: 2px 0;")
             : pStyle;
           return `<p style="${finalPStyle}">${content}</p>`;
         },
