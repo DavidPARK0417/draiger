@@ -227,23 +227,53 @@ export default function TagCopySection({
 
       // 네이버 블로그 스마트에디터 최적화 스타일 주입
 
+      // 제목 스타일 처리
+      const h1Style =
+        "color: #059669; font-size: 24px; font-weight: bold; margin: 40px 0 20px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
+      bodyHtml = bodyHtml.replace(
+        /<h1[^>]*>(.*?)<\/h1>/gi,
+        `<h1 style="${h1Style}">$1</h1>`,
+      );
+
       // 제목 h2 스타일 (네이버는 큰 제목 선호)
       const h2Style =
-        "color: #000000; font-size: 26px; font-weight: bold; margin: 50px 0 20px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
+        "color: #000000; font-size: 22px; font-weight: bold; margin: 35px 0 15px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h2[^>]*>(.*?)<\/h2>/gi,
         `<h2 style="${h2Style}">$1</h2>`,
       );
 
-      // 제목 h3 스타일
+      // 제목 h3 스타일 (요리 정보, 오늘의 재료, 요리 가이드 등)
       const h3Style =
-        "color: #14b8a6; font-size: 20px; font-weight: bold; margin: 35px 0 15px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
+        "color: #059669; font-size: 20px; font-weight: bold; margin: 35px 0 15px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h3[^>]*>(.*?)<\/h3>/gi,
         `<h3 style="${h3Style}">$1</h3>`,
       );
 
-      // 단락 p 스타일 (네이버 기본 폰트 감안)
+      // 특정 중요 헤더 텍스트 색상 및 크기 강제 지정 (text-emerald-600: #059669, font-size: 30px)
+      const specialHeaders = [
+        "📋 요리 정보 (Cooking Info)",
+        "🛒 오늘의 재료 (Today's Ingredients)",
+        "🍳 요리 가이드 (Cooking Guide)",
+      ];
+
+      specialHeaders.forEach((header) => {
+        const escaped = header.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const reg = new RegExp(escaped, "g");
+
+        // "오늘의 재료"와 "요리 가이드" 헤더 위에 빈 줄 추가
+        const needsExtraSpace =
+          header.includes("오늘의 재료") || header.includes("요리 가이드");
+        const prefix = needsExtraSpace ? "<br />" : "";
+
+        bodyHtml = bodyHtml.replace(
+          reg,
+          `${prefix}<span style="color: #059669; font-size: 30px; font-weight: bold;">${header}</span>`,
+        );
+      });
+
+      // 단락 p 스타일 (네이버 기본 폰트 감안) - 위에서 처리되지 않은 나머지 p 태그들 전용
       const pStyle =
         "color: #333333; font-size: 17px; line-height: 1.9; margin: 15px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; word-break: break-all;";
       bodyHtml = bodyHtml.replace(
@@ -278,6 +308,83 @@ export default function TagCopySection({
         /<blockquote[^>]*>/gi,
         `<blockquote style="${bqStyle}">`,
       );
+
+      // [최종 처리] 오늘의 재료와 요리 가이드 사이의 텍스트 스타일링 (검은색, 크기 24px, 굵기 제거)
+      const ingredientsSectionPattern =
+        /(🛒 오늘의 재료 \(Today's Ingredients\)<\/span>)([\s\S]*?)(<br \/><span[^>]*>🍳 요리 가이드 \(Cooking Guide\))/gi;
+
+      bodyHtml = bodyHtml.replace(
+        ingredientsSectionPattern,
+        (_match: string, header1: string, content: string, header2: string) => {
+          // 섹션 내부의 모든 HTML 태그들에 스타일 적용 (기존 스타일 덮어쓰기)
+          const styledContent = content.replace(
+            /<([a-z1-6]+)([^>]*)>/gi,
+            (_tagMatch: string, tagName: string, attributes: string) => {
+              // 이미지 태그 등 스타일링에서 제외할 태그 처리 (필요시)
+              if (
+                tagName.toLowerCase() === "img" ||
+                tagName.toLowerCase() === "br"
+              )
+                return _tagMatch;
+
+              const baseStyle =
+                "color: #000000 !important; font-size: 24px !important; font-weight: normal !important; line-height: 1.8 !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important;";
+
+              // 기존 style 속성이 있으면 교체, 없으면 추가
+              if (attributes.includes("style=")) {
+                return `<${tagName}${attributes.replace(/style="[^"]*"/, `style="${baseStyle}"`)}>`;
+              } else {
+                return `<${tagName}${attributes} style="${baseStyle}">`;
+              }
+            },
+          );
+
+          return `${header1}<div style="color: #000000; font-size: 24px; font-weight: normal; line-height: 1.8;">${styledContent}</div>${header2}`;
+        },
+      );
+
+      // [최종 처리 2] 요리 가이드 이후의 텍스트 스타일링 (글자 크기 20px, 숫자 24px + 회색)
+      const cookingGuideParts = bodyHtml.split(
+        /🍳 요리 가이드 \(Cooking Guide\)<\/span>/i,
+      );
+      if (cookingGuideParts.length > 1) {
+        const headerPart =
+          cookingGuideParts[0] + "🍳 요리 가이드 (Cooking Guide)</span>";
+        let remainingContent = cookingGuideParts
+          .slice(1)
+          .join("🍳 요리 가이드 (Cooking Guide)</span>");
+
+        // 1. 모든 태그에 font-size: 20px 적용
+        remainingContent = remainingContent.replace(
+          /<([a-z1-6]+)([^>]*)>/gi,
+          (_tagMatch: string, tagName: string, attributes: string) => {
+            if (
+              tagName.toLowerCase() === "img" ||
+              tagName.toLowerCase() === "br"
+            )
+              return _tagMatch;
+
+            const baseStyle =
+              "color: #333333 !important; font-size: 20px !important; font-weight: normal !important; line-height: 1.8 !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important;";
+
+            if (attributes.includes("style=")) {
+              return `<${tagName}${attributes.replace(/style="[^"]*"/, `style="${baseStyle}"`)}>`;
+            } else {
+              return `<${tagName}${attributes} style="${baseStyle}">`;
+            }
+          },
+        );
+
+        // 2. 숫자(1., 2., 3.) 스타일링: 글자 크기 24px, 회색(#888888)
+        remainingContent = remainingContent.replace(
+          /(>|^|\s)(\d+\.)(\s)/g,
+          (_match, prefix, num, suffix) => {
+            return `${prefix}<span style="color: #888888 !important; font-size: 24px !important; font-weight: bold !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important;">${num}</span>${suffix}`;
+          },
+        );
+
+        bodyHtml = headerPart + remainingContent;
+      }
 
       // 전체 결합
       const combinedHtml = `
