@@ -73,11 +73,11 @@ export default function TagCopySection({
       const baseUrl =
         typeof window !== "undefined" ? window.location.origin : "";
 
-      // 1. 요약 박스 (네이버N과 동일한 스타일)
+      // 1. 요약 박스 (네이버N과 동일한 스타일 - 글자색 검은색으로 변경)
       const summaryText = descriptionRef.current.innerText;
       const summaryHtml = `
         <div style="margin: 20px 0; padding: 25px 30px; border-left: 5px solid #14b8a6; background-color: #f0fdfa; border-radius: 0 10px 10px 0; text-align: left;">
-          <h3 data-ke-size="size18" style="color: #115e59; line-height: 1.8; margin: 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; letter-spacing: -0.5px; font-weight: normal;">
+          <h3 data-ke-size="size18" style="color: #000000; line-height: 1.8; margin: 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; letter-spacing: -0.5px; font-weight: normal;">
             ${summaryText}
           </h3>
         </div>
@@ -107,14 +107,28 @@ export default function TagCopySection({
         "color: #059669; font-size: 22px; font-weight: bold; margin: 35px 0 15px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h2[^>]*>(.*?)<\/h2>/gi,
-        `<br /><h2 style="${h2Style}">$1</h2>`,
+        (match, content) => {
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
+          const finalH2Style = isRecipeInfo
+            ? h2Style.replace("color: #059669;", "color: #000000;")
+            : h2Style;
+          return `<br /><h2 style="${finalH2Style}">${content}</h2>`;
+        },
       );
 
       const h3Style =
         "color: #059669; font-size: 20px; font-weight: bold; margin: 35px 0 15px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h3[^>]*>(.*?)<\/h3>/gi,
-        `<br /><h3 style="${h3Style}">$1</h3>`,
+        (match, content) => {
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
+          const finalH3Style = isRecipeInfo
+            ? h3Style.replace("color: #059669;", "color: #000000;")
+            : h3Style;
+          return `<br /><h3 style="${finalH3Style}">${content}</h3>`;
+        },
       );
 
       // 특정 중요 헤더 텍스트 스타일링
@@ -145,7 +159,12 @@ export default function TagCopySection({
           if (attr.includes("text-center")) {
             return `<p style="${pStyle.replace("color: #333333;", "color: #888888;").replace("font-size: 17px;", "font-size: 15px;")} text-align: center; font-style: italic;">${content}</p>`;
           }
-          return `<p style="${pStyle}">${content}</p>`;
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
+          const finalPStyle = isRecipeInfo
+            ? pStyle.replace("color: #333333;", "color: #000000;")
+            : pStyle;
+          return `<p style="${finalPStyle}">${content}</p>`;
         },
       );
 
@@ -282,12 +301,26 @@ export default function TagCopySection({
         }),
       ];
 
-      await navigator.clipboard.write(data);
+      // iOS Safari 등 일부 모바일 브라우저 대응을 위해 navigator.clipboard.write 사용
+      if (navigator.clipboard && navigator.clipboard.write) {
+        await navigator.clipboard.write(data);
+      } else {
+        throw new Error("Clipboard write not supported");
+      }
 
       setActiveButton("htmlT");
       window.setTimeout(() => setActiveButton(null), 2000);
     } catch (err) {
       console.error("티스토리 본문 복사 실패:", err);
+      // 모바일 등에서 실패 시 텍스트만이라도 복사 시도
+      try {
+        const plainText = `${descriptionRef.current?.innerText || ""}\n\n${contentRef.current?.innerText || ""}`;
+        await navigator.clipboard.writeText(plainText);
+        setActiveButton("htmlT");
+        window.setTimeout(() => setActiveButton(null), 2000);
+      } catch (innerErr) {
+        alert("복사에 실패했습니다. 브라우저 설정을 확인해주세요.");
+      }
     }
   };
 
@@ -299,11 +332,11 @@ export default function TagCopySection({
       const baseUrl =
         typeof window !== "undefined" ? window.location.origin : "";
 
-      // 1. 요약 박스 (네이버 최적화: 단순 Div 구조 + 명확한 인라인 스타일)
+      // 1. 요약 박스 (네이버 최적화: 단순 Div 구조 + 명확한 인라인 스타일 - 글자색 검은색으로 변경)
       const summaryText = descriptionRef.current.innerText;
       const summaryHtml = `
         <div style="margin: 20px 0; padding: 25px 30px; border-left: 5px solid #14b8a6; background-color: #f0fdfa; border-radius: 0 10px 10px 0; text-align: left;">
-          <p style="color: #115e59; font-size: 19px; font-weight: bold; line-height: 1.8; margin: 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; letter-spacing: -0.5px;">
+          <p style="color: #000000; font-size: 19px; font-weight: bold; line-height: 1.8; margin: 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; letter-spacing: -0.5px;">
             ${summaryText}
           </p>
         </div>
@@ -335,14 +368,28 @@ export default function TagCopySection({
         "color: #059669; font-size: 22px; font-weight: bold; margin: 20px 0; line-height: 1.4; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h2[^>]*>(.*?)<\/h2>/gi,
-        `<br /><h2 style="${h2Style}">$1</h2>`,
+        (match, content) => {
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
+          const finalH2Style = isRecipeInfo
+            ? h2Style.replace("color: #059669;", "color: #000000;")
+            : h2Style;
+          return `<br /><h2 style="${finalH2Style}">${content}</h2>`;
+        },
       );
 
       const h3Style =
         "color: #059669; font-size: 20px; font-weight: bold; margin: 20px 0; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;";
       bodyHtml = bodyHtml.replace(
         /<h3[^>]*>(.*?)<\/h3>/gi,
-        `<br /><h3 style="${h3Style}">$1</h3>`,
+        (match, content) => {
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
+          const finalH3Style = isRecipeInfo
+            ? h3Style.replace("color: #059669;", "color: #000000;")
+            : h3Style;
+          return `<br /><h3 style="${finalH3Style}">${content}</h3>`;
+        },
       );
 
       // 특정 중요 헤더 텍스트 색상 및 크기 강제 지정 (text-emerald-600: #059669, font-size: 30px)
@@ -376,7 +423,12 @@ export default function TagCopySection({
           if (attr.includes("text-center")) {
             return `<p style="${pStyle.replace("color: #333333;", "color: #888888;").replace("font-size: 17px;", "font-size: 15px;")} text-align: center; font-style: italic;">${content}</p>`;
           }
-          return `<p style="${pStyle}">${content}</p>`;
+          // 레시피 정보(이모지 포함)인 경우 검은색(#000000) 적용
+          const isRecipeInfo = content.match(/[🍽️👥🔥⭐⏱️]/);
+          const finalPStyle = isRecipeInfo
+            ? pStyle.replace("color: #333333;", "color: #000000;")
+            : pStyle;
+          return `<p style="${finalPStyle}">${content}</p>`;
         },
       );
 
@@ -519,12 +571,26 @@ export default function TagCopySection({
         }),
       ];
 
-      await navigator.clipboard.write(data);
+      // iOS Safari 등 일부 모바일 브라우저 대응을 위해 navigator.clipboard.write 사용
+      if (navigator.clipboard && navigator.clipboard.write) {
+        await navigator.clipboard.write(data);
+      } else {
+        throw new Error("Clipboard write not supported");
+      }
 
       setActiveButton("htmlN");
       window.setTimeout(() => setActiveButton(null), 2000);
     } catch (err) {
       console.error("네이버 본문 복사 실패:", err);
+      // 모바일 등에서 실패 시 텍스트만이라도 복사 시도
+      try {
+        const plainText = `${descriptionRef.current?.innerText || ""}\n\n${contentRef.current?.innerText || ""}`;
+        await navigator.clipboard.writeText(plainText);
+        setActiveButton("htmlN");
+        window.setTimeout(() => setActiveButton(null), 2000);
+      } catch (innerErr) {
+        alert("복사에 실패했습니다. 브라우저 설정을 확인해주세요.");
+      }
     }
   };
 
