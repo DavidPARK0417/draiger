@@ -348,55 +348,37 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
                         textContent.includes("오늘의 재료") ||
                         textContent.includes("Today's Ingredients");
 
-                      // 재료 내용 감지: **양념**, **육수** 같은 패턴이 있거나 "고추가루", "국간장" 등이 포함된 경우
+                      // 재료 내용 감지: **양념**, **육수** 또는 콜론(:)이 포함된 줄, 특정 재료 키워드 등
                       const hasIngredientsContent =
                         textContent.includes("양념:") ||
                         textContent.includes("육수:") ||
+                        textContent.includes(":") || // 일반적인 "재료: 분량" 형식
+                        textContent.includes("**") || // 강조 표시가 있는 경우
                         (textContent.includes("고추가루") &&
                           textContent.includes("국간장")) ||
                         (textContent.includes("소고기") &&
                           (textContent.includes("고사리") ||
                             textContent.includes("숙주")));
 
-                      // 재료 섹션: 더 큰 글자 크기와 줄바꿈 적용
-                      if (isIngredientsSectionTitle || hasIngredientsContent) {
-                        // children 배열을 순회하면서 strong 태그 앞뒤에 줄바꿈 추가
-                        const childrenArray = React.Children.toArray(children);
-                        const processedChildren: React.ReactNode[] = [];
-                        let previousWasStrong = false;
-
-                        childrenArray.forEach((child, index) => {
-                          // strong 태그인 경우
-                          if (
-                            React.isValidElement(child) &&
-                            child.type === "strong"
-                          ) {
-                            // 첫 번째가 아니고 이전이 strong이 아니었으면 앞에 줄바꿈 2개 추가
-                            if (index > 0 && !previousWasStrong) {
-                              processedChildren.push(
-                                <br key={`br1-${index}`} />,
-                              );
-                              processedChildren.push(
-                                <br key={`br2-${index}`} />,
-                              );
-                            }
-                            processedChildren.push(child);
-                            previousWasStrong = true;
-                          } else {
-                            processedChildren.push(child);
-                            previousWasStrong = false;
-                          }
-                        });
-
+                      // 재료 섹션: 타이틀과 내용에 대해 더 큰 글자 크기 적용
+                      if (isIngredientsSectionTitle) {
                         return (
                           <div
-                            className="mt-12 mb-8"
-                            style={{ marginTop: "2.5rem" }}
+                            className="mt-16 mb-8"
+                            style={{ marginTop: "4rem" }}
                           >
-                            <div className="text-base sm:text-lg lg:text-xl text-gray-700 dark:text-white/90 leading-relaxed">
-                              {processedChildren}
+                            <div className="text-lg sm:text-xl lg:text-2xl font-serif font-bold tracking-tight text-emerald-600 dark:text-emerald-400 leading-relaxed">
+                              {children}
                             </div>
                           </div>
+                        );
+                      }
+
+                      if (hasIngredientsContent) {
+                        return (
+                          <p className="text-lg sm:text-xl lg:text-2xl font-serif font-bold tracking-tight text-gray-900 dark:text-white leading-relaxed mb-2">
+                            {children}
+                          </p>
                         );
                       }
 
