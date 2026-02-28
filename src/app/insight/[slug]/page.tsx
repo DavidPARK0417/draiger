@@ -8,7 +8,6 @@ import {
 } from "@/lib/notion";
 import ReactMarkdown from "react-markdown";
 import GrainOverlay from "@/components/GrainOverlay";
-import TextToSpeech from "@/components/TextToSpeech";
 import FormattedDate from "@/components/FormattedDate";
 import AdFit from "@/components/AdFit";
 import GiscusComments from "@/components/GiscusComments";
@@ -17,7 +16,6 @@ import Link from "next/link";
 import { getBaseUrl } from "@/lib/site";
 import { ArrowRight } from "lucide-react";
 import ClientInsightContent from "@/components/ClientInsightContent";
-import TagCopySection from "@/components/TagCopySection";
 
 // ISR 설정: 30초마다 재검증 (색인 속도 개선을 위해 더 빠른 업데이트)
 export const revalidate = 30;
@@ -317,7 +315,7 @@ export default async function InsightPostPage({
   }
 
   return (
-    <>
+    <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* 구조화된 데이터 (JSON-LD) - SEO 최적화 */}
       <script
         type="application/ld+json"
@@ -333,53 +331,38 @@ export default async function InsightPostPage({
         }}
       />
 
-      <div className="blog-page min-h-screen bg-gray-50 dark:bg-gray-900">
-        <GrainOverlay />
-        <article className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-          <header className="mb-12 sm:mb-16">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-serif font-bold mb-6 sm:mb-8 leading-tight text-gray-900 dark:text-white">
-              {post.title}
-            </h1>
-            {post.date && (
-              <div className="mb-4 sm:mb-6">
-                <FormattedDate
-                  date={post.date}
-                  className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-sans"
-                />
-              </div>
-            )}
-          </header>
-
-          {/* 복사 버튼 영역 (제목 바로 아래) */}
-          {post.tags && post.tags.length > 0 && (
-            <TagCopySection
-              title={post.title}
-              tags={post.tags}
-              onlyButtons={true}
-              className="mb-8 sm:mb-10"
-            />
+      <GrainOverlay />
+      <article className="min-h-screen pt-16 sm:pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <header className="mb-12 sm:mb-16">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-serif font-bold mb-6 sm:mb-8 leading-tight text-gray-900 dark:text-white">
+            {post.title}
+          </h1>
+          {post.date && (
+            <div className="mb-4 sm:mb-6">
+              <FormattedDate
+                date={post.date}
+                className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-sans"
+              />
+            </div>
           )}
+        </header>
 
-          {/* 카카오 애드핏 광고 */}
-          <div className="mb-8 sm:mb-12 flex justify-center">
+        <ClientInsightContent
+          title={post.title}
+          tags={post.tags || []}
+          metaDescription={post.metaDescription}
+          content={content}
+          adComponent={
             <AdFit
               unitId="DAN-3zxEkFXjkDNH2T9G"
               width={300}
               height={250}
               className="w-full max-w-[300px]"
             />
-          </div>
-
-          {/* 음성 읽기 컴포넌트 */}
-          <TextToSpeech
-            content={content}
-            title={post.title}
-            metaDescription={post.metaDescription}
-          />
-
-          <ClientInsightContent title={post.title} tags={post.tags || []}>
-            <div
-              className="
+          }
+        >
+          <div
+            className="
               border-l-4 border-emerald-500 dark:border-emerald-400
               bg-gradient-to-r from-emerald-50/80 via-emerald-50/50 to-emerald-50/80
               dark:from-emerald-900/20 dark:via-emerald-900/20 dark:to-emerald-900/20
@@ -387,279 +370,275 @@ export default async function InsightPostPage({
               rounded-r-lg
               my-6 sm:my-8
             "
-            >
-              <p className="text-base sm:text-lg lg:text-xl text-emerald-800 dark:text-emerald-200 font-sans leading-relaxed">
-                {post.metaDescription}
-              </p>
-            </div>
+          >
+            <p className="text-base sm:text-lg lg:text-xl text-emerald-800 dark:text-emerald-200 font-sans leading-relaxed">
+              {post.metaDescription}
+            </p>
+          </div>
 
-            <div className="max-w-none">
-              <ReactMarkdown
-                components={{
-                  p: ({ children, node }) => {
-                    // ReactMarkdown의 AST 노드를 확인하여 이미지가 있는지 체크
-                    // node.children을 확인하여 더 정확하게 이미지 감지
-                    const hasImageInNode = node?.children?.some(
-                      (child: { type: string; tagName?: string }) =>
-                        child.type === "element" && child.tagName === "img",
-                    );
+          <div className="max-w-none">
+            <ReactMarkdown
+              components={{
+                p: ({ children, node }) => {
+                  // ReactMarkdown의 AST 노드를 확인하여 이미지가 있는지 체크
+                  // node.children을 확인하여 더 정확하게 이미지 감지
+                  const hasImageInNode = node?.children?.some(
+                    (child: { type: string; tagName?: string }) =>
+                      child.type === "element" && child.tagName === "img",
+                  );
 
-                    // 자식에 이미지가 있는지 확인하는 함수 (더 정확한 감지)
-                    const checkForImage = (node: React.ReactNode): boolean => {
-                      if (React.isValidElement(node)) {
-                        const element = node as React.ReactElement<{
-                          children?: React.ReactNode;
-                        }>;
-                        // img 태그 직접 확인
-                        if (element.type === "img") {
+                  // 자식에 이미지가 있는지 확인하는 함수 (더 정확한 감지)
+                  const checkForImage = (node: React.ReactNode): boolean => {
+                    if (React.isValidElement(node)) {
+                      const element = node as React.ReactElement<{
+                        children?: React.ReactNode;
+                      }>;
+                      // img 태그 직접 확인
+                      if (element.type === "img") {
+                        return true;
+                      }
+                      // MarkdownImage 컴포넌트 확인
+                      if (typeof element.type === "function") {
+                        const componentType =
+                          element.type as React.ComponentType<unknown> & {
+                            displayName?: string;
+                            name?: string;
+                          };
+                        const componentName =
+                          componentType.displayName || componentType.name;
+                        if (componentName === "MarkdownImage") {
                           return true;
                         }
-                        // MarkdownImage 컴포넌트 확인
-                        if (typeof element.type === "function") {
-                          const componentType =
-                            element.type as React.ComponentType<unknown> & {
-                              displayName?: string;
-                              name?: string;
-                            };
-                          const componentName =
-                            componentType.displayName || componentType.name;
-                          if (componentName === "MarkdownImage") {
-                            return true;
-                          }
-                        }
-                        // 자식 요소 재귀적으로 확인
-                        if (element.props?.children) {
-                          return React.Children.toArray(
-                            element.props.children,
-                          ).some(checkForImage);
-                        }
                       }
-                      // 문자열이 아닌 경우에만 재귀 확인
-                      if (
-                        typeof node !== "string" &&
-                        node !== null &&
-                        node !== undefined
-                      ) {
-                        try {
-                          return React.Children.toArray(node).some(
-                            checkForImage,
-                          );
-                        } catch {
-                          return false;
-                        }
+                      // 자식 요소 재귀적으로 확인
+                      if (element.props?.children) {
+                        return React.Children.toArray(
+                          element.props.children,
+                        ).some(checkForImage);
                       }
-                      return false;
-                    };
-
-                    const hasImageInChildren =
-                      React.Children.toArray(children).some(checkForImage);
-
-                    // 이미지가 있으면 div로 렌더링 (p 안에 div가 들어갈 수 없음)
-                    if (hasImageInNode || hasImageInChildren) {
-                      return (
-                        <div className="text-base sm:text-lg text-gray-700 dark:text-white/90 leading-relaxed mb-6">
-                          {children}
-                        </div>
-                      );
                     }
-
-                    // 공지사항 패턴 감지 (AI 기본법 준수 공지사항)
-                    const getTextContent = (node: React.ReactNode): string => {
-                      if (typeof node === "string") {
-                        return node;
+                    // 문자열이 아닌 경우에만 재귀 확인
+                    if (
+                      typeof node !== "string" &&
+                      node !== null &&
+                      node !== undefined
+                    ) {
+                      try {
+                        return React.Children.toArray(node).some(checkForImage);
+                      } catch {
+                        return false;
                       }
-                      if (React.isValidElement(node)) {
-                        const element = node as React.ReactElement<{
-                          children?: React.ReactNode;
-                        }>;
-                        if (element.props?.children) {
-                          return React.Children.toArray(element.props.children)
-                            .map(getTextContent)
-                            .join("");
-                        }
-                      }
-                      if (Array.isArray(node)) {
-                        return node.map(getTextContent).join("");
-                      }
-                      return "";
-                    };
-
-                    const textContent = getTextContent(children);
-                    const isNotice =
-                      textContent.includes("📢 읽어주셔서 감사합니다") ||
-                      textContent.includes(
-                        "지능형 정보 요약 시스템의 도움을 받아",
-                      ) ||
-                      textContent.includes(
-                        "본 포스팅은 방대한 데이터를 신속하게 취합하는",
-                      );
-
-                    // 공지사항인 경우 본문에서 제거 (태그 아래에 별도로 렌더링)
-                    if (isNotice) {
-                      return null;
                     }
+                    return false;
+                  };
 
-                    // 일반 텍스트는 p로 렌더링
+                  const hasImageInChildren =
+                    React.Children.toArray(children).some(checkForImage);
+
+                  // 이미지가 있으면 div로 렌더링 (p 안에 div가 들어갈 수 없음)
+                  if (hasImageInNode || hasImageInChildren) {
                     return (
-                      <p className="text-base sm:text-lg text-gray-700 dark:text-white/90 leading-relaxed mb-6">
+                      <div className="text-base sm:text-lg text-gray-700 dark:text-white/90 leading-relaxed mb-6">
                         {children}
-                      </p>
-                    );
-                  },
-                  h1: ({ children }) => (
-                    <h1 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-2xl sm:text-3xl lg:text-4xl mt-8 mb-4">
-                      {children}
-                    </h1>
-                  ),
-                  h2: ({ children }) => (
-                    <h2 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-xl sm:text-2xl lg:text-3xl mt-8 mb-4">
-                      {children}
-                    </h2>
-                  ),
-                  h3: ({ children }) => (
-                    <h3 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-6 mb-3">
-                      {children}
-                    </h3>
-                  ),
-                  h4: ({ children }) => (
-                    <h4 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-base sm:text-lg lg:text-xl mt-6 mb-3">
-                      {children}
-                    </h4>
-                  ),
-                  strong: ({ children }) => (
-                    <strong className="text-gray-900 dark:text-white font-semibold">
-                      {children}
-                    </strong>
-                  ),
-                  em: ({ children }) => (
-                    <em className="text-gray-900 dark:text-white/95 italic">
-                      {children}
-                    </em>
-                  ),
-                  a: ({ href, children }) => (
-                    <a
-                      href={href}
-                      className="text-gray-900 dark:text-white underline underline-offset-4 hover:text-emerald-600 dark:hover:text-white/80"
-                    >
-                      {children}
-                    </a>
-                  ),
-                  ul: ({ children }) => (
-                    <ul className="text-base sm:text-lg text-gray-700 dark:text-white/90 mb-6 pl-6 list-disc">
-                      {children}
-                    </ul>
-                  ),
-                  ol: ({ children }) => (
-                    <ol className="text-base sm:text-lg text-gray-700 dark:text-white/90 mb-6 pl-6 list-decimal">
-                      {children}
-                    </ol>
-                  ),
-                  li: ({ children }) => (
-                    <li className="text-gray-700 dark:text-white/90 mb-2 marker:text-gray-500 dark:marker:text-white/70">
-                      {children}
-                    </li>
-                  ),
-                  blockquote: ({ children }) => (
-                    <blockquote className="border-l-4 border-gray-300 dark:border-white/20 pl-6 italic text-gray-600 dark:text-white/70 my-6">
-                      {children}
-                    </blockquote>
-                  ),
-                  code: ({ children }) => (
-                    <code className="text-gray-900 dark:text-white bg-gray-100 dark:bg-white/10 px-1 rounded">
-                      {children}
-                    </code>
-                  ),
-                  hr: () => (
-                    <hr className="border-gray-300 dark:border-white/20 my-8" />
-                  ),
-                  img: ({ src, alt, ...props }) => {
-                    // 단순 img 태그로 렌더링 (MarkdownImage 복잡도 제거)
-                    if (!src) return null;
-
-                    // src를 문자열로 변환 (Blob인 경우 처리)
-                    const srcString =
-                      typeof src === "string"
-                        ? src
-                        : src instanceof Blob
-                          ? URL.createObjectURL(src)
-                          : String(src);
-
-                    // 외부 이미지는 프록시 사용
-                    const isExternalImage =
-                      srcString.startsWith("http://") ||
-                      srcString.startsWith("https://");
-                    const proxySrc = isExternalImage
-                      ? `/api/proxy-image?url=${encodeURIComponent(srcString)}`
-                      : srcString;
-
-                    return (
-                      <div className="my-8 sm:my-10 lg:my-12">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={proxySrc}
-                          alt={alt || "이미지"}
-                          className="w-full h-auto rounded-xl sm:rounded-2xl shadow-lg dark:shadow-gray-900/50 object-contain bg-gray-100 dark:bg-gray-800"
-                          loading="lazy"
-                          {...props}
-                        />
-                        {alt && (
-                          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-center text-gray-500 dark:text-gray-400 italic">
-                            {alt}
-                          </p>
-                        )}
                       </div>
                     );
-                  },
-                  // 텍스트 노드에서 이미지 파일명을 감지하여 처리
-                  text: ({ children }) => {
-                    const textContent = String(children);
-                    // 이미지 파일명 패턴 감지
-                    const imageFilenamePattern =
-                      /^([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))$/;
-                    const match = textContent
-                      .trim()
-                      .match(imageFilenamePattern);
+                  }
 
-                    if (match && process.env.NODE_ENV === "development") {
-                      const filename = match[1];
-                      console.log(
-                        "[ReactMarkdown text] ⚠️ 이미지 파일명만 있는 텍스트 발견:",
-                        filename,
-                      );
-                      // 이미지 파일명만 있는 경우, 나중에 처리하기 위해 그대로 반환
-                      // (마크다운 변환 단계에서 이미 처리되어야 함)
+                  // 공지사항 패턴 감지 (AI 기본법 준수 공지사항)
+                  const getTextContent = (node: React.ReactNode): string => {
+                    if (typeof node === "string") {
+                      return node;
                     }
+                    if (React.isValidElement(node)) {
+                      const element = node as React.ReactElement<{
+                        children?: React.ReactNode;
+                      }>;
+                      if (element.props?.children) {
+                        return React.Children.toArray(element.props.children)
+                          .map(getTextContent)
+                          .join("");
+                      }
+                    }
+                    if (Array.isArray(node)) {
+                      return node.map(getTextContent).join("");
+                    }
+                    return "";
+                  };
 
-                    return <>{children}</>;
-                  },
-                }}
-              >
-                {content}
-              </ReactMarkdown>
-            </div>
-          </ClientInsightContent>
+                  const textContent = getTextContent(children);
+                  const isNotice =
+                    textContent.includes("📢 읽어주셔서 감사합니다") ||
+                    textContent.includes(
+                      "지능형 정보 요약 시스템의 도움을 받아",
+                    ) ||
+                    textContent.includes(
+                      "본 포스팅은 방대한 데이터를 신속하게 취합하는",
+                    );
 
-          {/* AI 기본법 준수 공지사항 - 태그 아래에 표시 */}
-          {noticeContent && (
-            <div className="mt-8 sm:mt-12 mb-8 sm:mb-12" aria-hidden="true">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 italic leading-relaxed whitespace-pre-line">
-                {noticeContent}
-              </p>
-            </div>
-          )}
+                  // 공지사항인 경우 본문에서 제거 (태그 아래에 별도로 렌더링)
+                  if (isNotice) {
+                    return null;
+                  }
 
-          {/* 관련 인사이트 글 섹션 */}
-          {relatedPosts.length > 0 && (
-            <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-200 dark:border-white/10">
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold mb-6 sm:mb-8 text-gray-900 dark:text-white">
-                관련 인사이트
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {relatedPosts.map((relatedPost) => (
-                  <Link
-                    key={relatedPost.id}
-                    href={`/insight/${relatedPost.slug}`}
-                    className="
+                  // 일반 텍스트는 p로 렌더링
+                  return (
+                    <p className="text-base sm:text-lg text-gray-700 dark:text-white/90 leading-relaxed mb-6">
+                      {children}
+                    </p>
+                  );
+                },
+                h1: ({ children }) => (
+                  <h1 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-2xl sm:text-3xl lg:text-4xl mt-8 mb-4">
+                    {children}
+                  </h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-xl sm:text-2xl lg:text-3xl mt-8 mb-4">
+                    {children}
+                  </h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-6 mb-3">
+                    {children}
+                  </h3>
+                ),
+                h4: ({ children }) => (
+                  <h4 className="font-serif font-bold tracking-tight text-gray-900 dark:text-white text-base sm:text-lg lg:text-xl mt-6 mb-3">
+                    {children}
+                  </h4>
+                ),
+                strong: ({ children }) => (
+                  <strong className="text-gray-900 dark:text-white font-semibold">
+                    {children}
+                  </strong>
+                ),
+                em: ({ children }) => (
+                  <em className="text-gray-900 dark:text-white/95 italic">
+                    {children}
+                  </em>
+                ),
+                a: ({ href, children }) => (
+                  <a
+                    href={href}
+                    className="text-gray-900 dark:text-white underline underline-offset-4 hover:text-emerald-600 dark:hover:text-white/80"
+                  >
+                    {children}
+                  </a>
+                ),
+                ul: ({ children }) => (
+                  <ul className="text-base sm:text-lg text-gray-700 dark:text-white/90 mb-6 pl-6 list-disc">
+                    {children}
+                  </ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="text-base sm:text-lg text-gray-700 dark:text-white/90 mb-6 pl-6 list-decimal">
+                    {children}
+                  </ol>
+                ),
+                li: ({ children }) => (
+                  <li className="text-gray-700 dark:text-white/90 mb-2 marker:text-gray-500 dark:marker:text-white/70">
+                    {children}
+                  </li>
+                ),
+                blockquote: ({ children }) => (
+                  <blockquote className="border-l-4 border-gray-300 dark:border-white/20 pl-6 italic text-gray-600 dark:text-white/70 my-6">
+                    {children}
+                  </blockquote>
+                ),
+                code: ({ children }) => (
+                  <code className="text-gray-900 dark:text-white bg-gray-100 dark:bg-white/10 px-1 rounded">
+                    {children}
+                  </code>
+                ),
+                hr: () => (
+                  <hr className="border-gray-300 dark:border-white/20 my-8" />
+                ),
+                img: ({ src, alt, ...props }) => {
+                  // 단순 img 태그로 렌더링 (MarkdownImage 복잡도 제거)
+                  if (!src) return null;
+
+                  // src를 문자열로 변환 (Blob인 경우 처리)
+                  const srcString =
+                    typeof src === "string"
+                      ? src
+                      : src instanceof Blob
+                        ? URL.createObjectURL(src)
+                        : String(src);
+
+                  // 외부 이미지는 프록시 사용
+                  const isExternalImage =
+                    srcString.startsWith("http://") ||
+                    srcString.startsWith("https://");
+                  const proxySrc = isExternalImage
+                    ? `/api/proxy-image?url=${encodeURIComponent(srcString)}`
+                    : srcString;
+
+                  return (
+                    <div className="my-8 sm:my-10 lg:my-12">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={proxySrc}
+                        alt={alt || "이미지"}
+                        className="w-full h-auto rounded-xl sm:rounded-2xl shadow-lg dark:shadow-gray-900/50 object-contain bg-gray-100 dark:bg-gray-800"
+                        loading="lazy"
+                        {...props}
+                      />
+                      {alt && (
+                        <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-center text-gray-500 dark:text-gray-400 italic">
+                          {alt}
+                        </p>
+                      )}
+                    </div>
+                  );
+                },
+                // 텍스트 노드에서 이미지 파일명을 감지하여 처리
+                text: ({ children }) => {
+                  const textContent = String(children);
+                  // 이미지 파일명 패턴 감지
+                  const imageFilenamePattern =
+                    /^([a-zA-Z0-9_-]+\.(png|jpg|jpeg|gif|webp|svg))$/;
+                  const match = textContent.trim().match(imageFilenamePattern);
+
+                  if (match && process.env.NODE_ENV === "development") {
+                    const filename = match[1];
+                    console.log(
+                      "[ReactMarkdown text] ⚠️ 이미지 파일명만 있는 텍스트 발견:",
+                      filename,
+                    );
+                    // 이미지 파일명만 있는 경우, 나중에 처리하기 위해 그대로 반환
+                    // (마크다운 변환 단계에서 이미 처리되어야 함)
+                  }
+
+                  return <>{children}</>;
+                },
+              }}
+            >
+              {content}
+            </ReactMarkdown>
+          </div>
+        </ClientInsightContent>
+
+        {/* AI 기본법 준수 공지사항 - 태그 아래에 표시 */}
+        {noticeContent && (
+          <div className="mt-8 sm:mt-12 mb-8 sm:mb-12" aria-hidden="true">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 italic leading-relaxed whitespace-pre-line">
+              {noticeContent}
+            </p>
+          </div>
+        )}
+
+        {/* 관련 인사이트 글 섹션 */}
+        {relatedPosts.length > 0 && (
+          <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-200 dark:border-white/10">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold mb-6 sm:mb-8 text-gray-900 dark:text-white">
+              관련 인사이트
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {relatedPosts.map((relatedPost) => (
+                <Link
+                  key={relatedPost.id}
+                  href={`/insight/${relatedPost.slug}`}
+                  className="
                       group
                       block
                       p-4 sm:p-6
@@ -671,9 +650,9 @@ export default async function InsightPostPage({
                       hover:-translate-y-1
                       transition-all duration-300
                     "
-                  >
-                    <h3
-                      className="
+                >
+                  <h3
+                    className="
                       text-base sm:text-lg lg:text-xl
                       font-semibold
                       text-gray-900 dark:text-white
@@ -682,64 +661,63 @@ export default async function InsightPostPage({
                       group-hover:text-emerald-600 dark:group-hover:text-emerald-400
                       transition-colors duration-300
                     "
-                    >
-                      {relatedPost.title}
-                    </h3>
-                    {relatedPost.metaDescription && (
-                      <p
-                        className="
+                  >
+                    {relatedPost.title}
+                  </h3>
+                  {relatedPost.metaDescription && (
+                    <p
+                      className="
                         text-sm sm:text-base
                         text-gray-600 dark:text-gray-400
                         line-clamp-2
                         mb-3 sm:mb-4
                       "
-                      >
-                        {relatedPost.metaDescription}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
-                      <span>자세히 보기</span>
-                      <ArrowRight
-                        className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
-                        strokeWidth={2}
-                      />
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                    >
+                      {relatedPost.metaDescription}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                    <span>자세히 보기</span>
+                    <ArrowRight
+                      className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
+                      strokeWidth={2}
+                    />
+                  </div>
+                </Link>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* 댓글 섹션 */}
-          <GiscusComments slug={slug} />
+        {/* 댓글 섹션 */}
+        <GiscusComments slug={slug} />
 
-          <footer className="mt-24 sm:mt-32 pt-12 sm:pt-16 border-t border-gray-200 dark:border-white/10">
-            <Link
-              href="/"
-              className="group flex items-center gap-4 text-sm uppercase tracking-widest text-gray-600 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              <div className="w-10 h-10 rounded-full border border-gray-300 dark:border-white/10 flex items-center justify-center group-hover:bg-gray-900 dark:group-hover:bg-white group-hover:border-gray-900 dark:group-hover:border-white transition-colors duration-500">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="group-hover:stroke-white dark:group-hover:stroke-black stroke-gray-900 dark:stroke-white transition-colors duration-500 rotate-180"
-                >
-                  <path
-                    d="M1 11L11 1M11 1H1M11 1V11"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              Back to Index
-            </Link>
-          </footer>
-        </article>
-      </div>
-    </>
+        <footer className="mt-24 sm:mt-32 pt-12 sm:pt-16 border-t border-gray-200 dark:border-white/10">
+          <Link
+            href="/"
+            className="group flex items-center gap-4 text-sm uppercase tracking-widest text-gray-600 dark:text-white/50 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <div className="w-10 h-10 rounded-full border border-gray-300 dark:border-white/10 flex items-center justify-center group-hover:bg-gray-900 dark:group-hover:bg-white group-hover:border-gray-900 dark:group-hover:border-white transition-colors duration-500">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="group-hover:stroke-white dark:group-hover:stroke-black stroke-gray-900 dark:stroke-white transition-colors duration-500 rotate-180"
+              >
+                <path
+                  d="M1 11L11 1M11 1H1M11 1V11"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            Back to Index
+          </Link>
+        </footer>
+      </article>
+    </div>
   );
 }

@@ -26,6 +26,16 @@ export default function ClientRecipeContent({
   return (
     <>
       <div className="recipe-content-container">
+        {/* 상단 복사 버튼 영역 - ref 연결 */}
+        <TagCopySection
+          title={title}
+          tags={tags}
+          contentRef={contentRef}
+          descriptionRef={descriptionRef}
+          onlyButtons={true}
+          className="mb-8 sm:mb-10"
+        />
+
         {/* 요약 박스 영역 */}
         <div ref={descriptionRef}>{description}</div>
 

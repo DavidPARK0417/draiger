@@ -36,17 +36,37 @@ export default function TagCopySection({
       } else {
         const textarea = document.createElement("textarea");
         textarea.value = text;
+        // 모바일 브라우저에서 줌이나 키보드 팝업 방지
         textarea.style.position = "fixed";
         textarea.style.left = "-9999px";
+        textarea.style.top = "0";
+        textarea.style.fontSize = "12pt"; // 줌 방지
+        textarea.setAttribute("readonly", "");
         document.body.appendChild(textarea);
-        textarea.select();
+
+        // iOS 대응 선택 방식
+        const isiOS = navigator.userAgent.match(/ipad|iphone/i);
+        if (isiOS) {
+          const range = document.createRange();
+          range.selectNodeContents(textarea);
+          const selection = window.getSelection();
+          if (selection) {
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+          textarea.setSelectionRange(0, 999999);
+        } else {
+          textarea.select();
+        }
+
         document.execCommand("copy");
         document.body.removeChild(textarea);
       }
 
       setActiveButton(buttonId);
       window.setTimeout(() => setActiveButton(null), 2000);
-    } catch {
+    } catch (err) {
+      console.error("복사 실패:", err);
       setActiveButton(null);
     }
   };
@@ -352,15 +372,9 @@ export default function TagCopySection({
       window.setTimeout(() => setActiveButton(null), 2000);
     } catch (err) {
       console.error("티스토리 본문 복사 실패:", err);
-      // 모바일 등에서 실패 시 텍스트만이라도 복사 시도
-      try {
-        const plainText = `${descriptionRef.current?.innerText || ""}\n\n${contentRef.current?.innerText || ""}`;
-        await navigator.clipboard.writeText(plainText);
-        setActiveButton("htmlT");
-        window.setTimeout(() => setActiveButton(null), 2000);
-      } catch (innerErr) {
-        alert("복사에 실패했습니다. 브라우저 설정을 확인해주세요.");
-      }
+      // 모바일 등에서 ClipboardItem 미지원 시 텍스트만이라도 복사 시도
+      const plainText = `${descriptionRef.current?.innerText || ""}\n\n${contentRef.current?.innerText || ""}`;
+      void copyToClipboard(plainText, "htmlT");
     }
   };
 
@@ -630,15 +644,9 @@ export default function TagCopySection({
       window.setTimeout(() => setActiveButton(null), 2000);
     } catch (err) {
       console.error("네이버 본문 복사 실패:", err);
-      // 모바일 등에서 실패 시 텍스트만이라도 복사 시도
-      try {
-        const plainText = `${descriptionRef.current?.innerText || ""}\n\n${contentRef.current?.innerText || ""}`;
-        await navigator.clipboard.writeText(plainText);
-        setActiveButton("htmlN");
-        window.setTimeout(() => setActiveButton(null), 2000);
-      } catch (innerErr) {
-        alert("복사에 실패했습니다. 브라우저 설정을 확인해주세요.");
-      }
+      // 모바일 등에서 ClipboardItem 미지원 시 텍스트만이라도 복사 시도
+      const plainText = `${descriptionRef.current?.innerText || ""}\n\n${contentRef.current?.innerText || ""}`;
+      void copyToClipboard(plainText, "htmlN");
     }
   };
 
