@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Copy, Check, FileText, Hash } from "lucide-react";
+import { Copy, Check, FileText, Hash, AtSign } from "lucide-react";
 
 interface TagCopySectionProps {
   title: string;
@@ -650,6 +650,80 @@ export default function TagCopySection({
     }
   };
 
+  // 스레드용 본문 복사 (제목 + 요약 + 첫 번째 이미지)
+  const handleCopyThreads = async () => {
+    try {
+      if (!title) return;
+
+      const summaryText = descriptionRef?.current?.innerText || "";
+      const fullText = `${title}\n\n${summaryText}\n\n`;
+
+      // 첫 번째 이미지 추출 시도
+      const firstImg = contentRef?.current?.querySelector("img");
+      let imageUrl = firstImg ? firstImg.getAttribute("src") : null;
+
+      // 상대 경로면 절대 경로로 전환
+      if (imageUrl && !imageUrl.startsWith("http")) {
+        imageUrl = window.location.origin + imageUrl;
+      }
+
+      // ClipboardItem 지원 여부 및 이미지 존재 확인
+      if (
+        imageUrl &&
+        typeof ClipboardItem !== "undefined" &&
+        navigator.clipboard &&
+        navigator.clipboard.write
+      ) {
+        try {
+          // 이미지 데이터를 Blob으로 가져오기
+          const response = await fetch(imageUrl);
+          const rawBlob = await response.blob();
+
+          // Safari 등 다수의 브라우저는 클립보드 복사 시 'image/png' 형식을 필수로 요구함
+          // 원본이 PNG가 아닐 경우를 대비해 Canvas를 이용한 변환 시도
+          const pngBlob = await new Promise<Blob | null>((resolve) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext("2d");
+              if (!ctx) {
+                resolve(null);
+                return;
+              }
+              ctx.drawImage(img, 0, 0);
+              canvas.toBlob((blob) => resolve(blob), "image/png");
+            };
+            img.onerror = () => resolve(null);
+            img.src = URL.createObjectURL(rawBlob);
+          });
+
+          if (pngBlob) {
+            const data = [
+              new ClipboardItem({
+                "text/plain": new Blob([fullText], { type: "text/plain" }),
+                "image/png": pngBlob,
+              }),
+            ];
+            await navigator.clipboard.write(data);
+            setActiveButton("threads");
+            window.setTimeout(() => setActiveButton(null), 2000);
+            return;
+          }
+        } catch (imgErr) {
+          console.error("이미지 포함 복사 실패, 텍스트만 시도:", imgErr);
+        }
+      }
+
+      // 이미지가 없거나 복사 실패 시 텍스트만 복사
+      await copyToClipboard(fullText, "threads");
+    } catch (err) {
+      console.error("스레드 복사 실패:", err);
+    }
+  };
+
   // Hydration mismatch 방지: 서버와 클라이언트의 초기 렌더링을 맞춤
   if (!mounted) {
     const containerClass =
@@ -854,6 +928,38 @@ export default function TagCopySection({
                 <>
                   <Hash className="w-4 h-4" />
                   <span>태그N</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyThreads}
+              className="
+              inline-flex items-center gap-2
+              px-4 py-2.5
+              rounded-lg
+              text-xs sm:text-sm
+              font-medium
+              bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700
+              dark:bg-emerald-600 dark:hover:bg-emerald-500
+              text-white
+              shadow-sm hover:shadow-md active:shadow
+              transition-all duration-300
+              hover:-translate-y-0.5 active:scale-98
+              self-start
+            "
+              aria-label="스레드 복사"
+            >
+              {activeButton === "threads" ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>복사 완료!</span>
+                </>
+              ) : (
+                <>
+                  <AtSign className="w-4 h-4" />
+                  <span>스레드</span>
                 </>
               )}
             </button>
