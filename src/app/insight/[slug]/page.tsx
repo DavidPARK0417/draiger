@@ -338,11 +338,16 @@ export default async function InsightPostPage({
             {post.title}
           </h1>
           {post.date && (
-            <div className="mb-4 sm:mb-6">
-              <FormattedDate
-                date={post.date}
-                className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-sans"
-              />
+            <div className="mb-4 sm:mb-6 flex items-center text-sm sm:text-base text-gray-500 dark:text-gray-400 font-sans">
+              <FormattedDate date={post.date} />
+              {post.category && (
+                <span className="flex items-center">
+                  <span className="mx-2 text-gray-300 dark:text-gray-600">
+                    |
+                  </span>
+                  <span>{post.category}</span>
+                </span>
+              )}
             </div>
           )}
         </header>
