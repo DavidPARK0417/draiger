@@ -715,7 +715,6 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
 
   try {
     let data;
-    let useFilter = true;
 
     try {
       // Published 속성이 있는 경우 필터 사용
@@ -741,7 +740,6 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
         filterError instanceof Error &&
         filterError.message.includes("Could not find property")
       ) {
-        useFilter = false;
         data = await queryNotionRecipeDatabase({
           database_id: databaseId,
           sorts: [

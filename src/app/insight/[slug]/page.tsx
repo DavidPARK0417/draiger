@@ -39,6 +39,7 @@ export async function generateStaticParams() {
 
     return posts
       .filter((post) => post.slug) // slug가 있는 포스트만 필터링
+      .slice(0, 40) // 빌드 시 최근 40개만 정적 생성하여 Notion API 속도 제한 및 빌드 타임아웃 방지
       .map((post) => ({
         slug: post.slug,
       }));
