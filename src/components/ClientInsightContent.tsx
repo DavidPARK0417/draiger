@@ -40,6 +40,7 @@ export default function ClientInsightContent({
           descriptionRef={descriptionRef}
           onlyButtons={true}
           className="mb-6"
+          type="insight"
         />
 
         {/* 2. 요약 박스 영역 (descriptionRef) */}
@@ -74,6 +75,7 @@ export default function ClientInsightContent({
             contentRef={contentRef}
             descriptionRef={descriptionRef}
             onlyTags={true}
+            type="insight"
           />
         )}
       </div>

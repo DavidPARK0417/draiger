@@ -11,6 +11,7 @@ interface TagCopySectionProps {
   onlyButtons?: boolean;
   onlyTags?: boolean;
   className?: string;
+  type?: "menu" | "insight";
 }
 
 export default function TagCopySection({
@@ -21,6 +22,7 @@ export default function TagCopySection({
   onlyButtons = false,
   onlyTags = false,
   className = "",
+  type = "menu",
 }: TagCopySectionProps) {
   const [activeButton, setActiveButton] = React.useState<string | null>(null);
   const [mounted, setMounted] = React.useState(false);
@@ -656,7 +658,12 @@ export default function TagCopySection({
       if (!title) return;
 
       const summaryText = descriptionRef?.current?.innerText || "";
-      const fullText = `${title}\n\n${summaryText}\n\n`;
+
+      let fullText = `${title}\n\n${summaryText}\n\n`;
+
+      if (type === "menu") {
+        fullText = `오늘의 메뉴 : ${title}\n\n${summaryText}\n#레시피\n\n`;
+      }
 
       // 첫 번째 이미지 추출 시도
       const firstImg = contentRef?.current?.querySelector("img");

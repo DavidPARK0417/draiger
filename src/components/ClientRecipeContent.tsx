@@ -34,6 +34,7 @@ export default function ClientRecipeContent({
           descriptionRef={descriptionRef}
           onlyButtons={true}
           className="mb-8 sm:mb-10"
+          type="menu"
         />
 
         {/* 요약 박스 영역 */}
@@ -50,6 +51,7 @@ export default function ClientRecipeContent({
             contentRef={contentRef}
             descriptionRef={descriptionRef}
             onlyTags={true}
+            type="menu"
           />
         )}
       </div>
