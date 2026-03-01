@@ -12,6 +12,7 @@ interface TagCopySectionProps {
   onlyTags?: boolean;
   className?: string;
   type?: "menu" | "insight";
+  category?: string;
 }
 
 export default function TagCopySection({
@@ -23,6 +24,7 @@ export default function TagCopySection({
   onlyTags = false,
   className = "",
   type = "menu",
+  category = "",
 }: TagCopySectionProps) {
   const [activeButton, setActiveButton] = React.useState<string | null>(null);
   const [mounted, setMounted] = React.useState(false);
@@ -663,6 +665,32 @@ export default function TagCopySection({
 
       if (type === "menu") {
         fullText = `오늘의 메뉴 : ${title}\n\n${summaryText}\n#레시피\n\n`;
+      } else if (type === "insight") {
+        let categoryTag = "";
+        switch (category) {
+          case "내일의 AI":
+            categoryTag = "#AI정보";
+            break;
+          case "돈이 되는 소식":
+            categoryTag = "#경제";
+            break;
+          case "궁금한 세상 이야기":
+            categoryTag = "#사회";
+            break;
+          case "슬기로운 생활":
+            categoryTag = "#생활정보";
+            break;
+          case "오늘보다 건강하게":
+            categoryTag = "#건강";
+            break;
+          case "마음 채우기":
+          case "마음 채우기는":
+            categoryTag = "#자기계발";
+            break;
+          default:
+            categoryTag = "";
+        }
+        fullText = `${title}\n\n${summaryText}\n${categoryTag}\n\n`;
       }
 
       // 첫 번째 이미지 추출 시도

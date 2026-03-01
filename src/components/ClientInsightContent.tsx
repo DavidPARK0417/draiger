@@ -11,6 +11,7 @@ interface ClientInsightContentProps {
   metaDescription?: string;
   content?: string;
   adComponent?: React.ReactNode;
+  category?: string;
 }
 
 export default function ClientInsightContent({
@@ -20,6 +21,7 @@ export default function ClientInsightContent({
   metaDescription,
   content,
   adComponent,
+  category,
 }: ClientInsightContentProps) {
   const contentRef = React.useRef<HTMLDivElement>(null);
   const descriptionRef = React.useRef<HTMLDivElement>(null);
@@ -41,6 +43,7 @@ export default function ClientInsightContent({
           onlyButtons={true}
           className="mb-6"
           type="insight"
+          category={category}
         />
 
         {/* 2. 요약 박스 영역 (descriptionRef) */}
@@ -76,6 +79,7 @@ export default function ClientInsightContent({
             descriptionRef={descriptionRef}
             onlyTags={true}
             type="insight"
+            category={category}
           />
         )}
       </div>

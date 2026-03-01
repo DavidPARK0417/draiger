@@ -357,6 +357,7 @@ export default async function InsightPostPage({
           tags={post.tags || []}
           metaDescription={post.metaDescription}
           content={content}
+          category={post.category}
           adComponent={
             <AdFit
               unitId="DAN-3zxEkFXjkDNH2T9G"
