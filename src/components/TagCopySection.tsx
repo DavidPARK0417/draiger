@@ -29,9 +29,58 @@ export default function TagCopySection({
   const [activeButton, setActiveButton] = React.useState<string | null>(null);
   const [mounted, setMounted] = React.useState(false);
 
+  // ⭐ 같은 메뉴에서 공통으로 쓸 “랜덤 카피 제목” 저장용 상태
+  const [menuDynamicTitle, setMenuDynamicTitle] = React.useState<string | null>(
+    null,
+  );
+
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  // ⭐ 1) 제목 패턴 생성 함수 (컴포넌트 내부 상단 쪽에 추가)
+  const generateDynamicTitle = React.useCallback((rawTitle: string) => {
+    if (!rawTitle) return "";
+    const titleInBracket = `[${rawTitle}]`;
+    const titleInQuote = `"${rawTitle}"`;
+    const basePatterns = [
+      // 사용자가 제안한 문구들
+      `요리 초보도 성공하는 ${titleInBracket}, 오늘 레시피로 완벽하게!`,
+      `실패 없는 ${titleInBracket} 황금 레시피, 딱 이렇게만 하세요`,
+      `맛 보장! 누구나 따라 하는 간단 ${titleInBracket} 레시피`,
+      `오늘 뭐 먹지? 간단하게 만드는 ${titleInBracket} 레시피`,
+      `뭐 먹을지 고민될 땐? ${titleInBracket}으로 해결하는 오늘의 메뉴`,
+      `오늘 메뉴 고민 끝! ${titleInBracket} 맛있게 만드는 법`,
+      `매일 고민하는 메뉴, 오늘은 ${titleInBracket} 어때요?`,
+      // 추가 패턴
+      `오늘의 메뉴 추천 : ${titleInBracket}`,
+      `오늘의 메뉴 추천 : ${titleInQuote}`,
+      `실패 없는 요리 레시피 : ${titleInBracket}`,
+      `실패 없는 요리 레시피 : ${titleInQuote}`,
+      `이대로만 만들면 성공! ${titleInBracket} 레시피`,
+      `${titleInQuote} 레시피, 이대로만 만들면 성공!`,
+      `집에서도 쉽게 만드는 ${titleInBracket} 레시피`,
+      `초보도 할 수 있는 쉬운 ${titleInBracket} 만드는 법`,
+    ];
+    const menuExtraPatterns = [
+      `오늘의 메뉴 : ${titleInBracket}`,
+      `오늘의 메뉴 : ${titleInQuote}`,
+      `오늘 뭐 먹지? ${titleInBracket} 어떠세요?`,
+      `오늘 뭐 먹지? ${titleInQuote} 어떠세요?`,
+      `따뜻하게 한 끼, ${titleInBracket} 추천`,
+    ];
+    const patterns = [...basePatterns, ...menuExtraPatterns];
+    const randomIndex = Math.floor(Math.random() * patterns.length);
+    return patterns[randomIndex];
+  }, []);
+
+  // ⭐ 메뉴 페이지일 때, 처음 렌더링 시 한 번만 랜덤 카피 제목 생성
+  React.useEffect(() => {
+    if (type === "menu" && title && !menuDynamicTitle) {
+      const generated = generateDynamicTitle(title);
+      setMenuDynamicTitle(generated || title);
+    }
+  }, [type, title, menuDynamicTitle, generateDynamicTitle]);
 
   const copyToClipboard = async (text: string, buttonId: string) => {
     try {
@@ -78,7 +127,13 @@ export default function TagCopySection({
   // 제목 복사
   const handleCopyTitle = () => {
     if (!title) return;
-    void copyToClipboard(title, "title");
+    // 기본값: 원래 제목
+    let textToCopy = title;
+    // ✅ 오늘의 메뉴 상세페이지(type === "menu")에서만 상태에 저장된 랜덤 카피 적용
+    if (type === "menu") {
+      textToCopy = menuDynamicTitle || title;
+    }
+    void copyToClipboard(textToCopy, "title");
   };
 
   // 태그1: # 없이 쉼표로 구분
@@ -660,7 +715,10 @@ export default function TagCopySection({
       let fullText = `${title}\n\n${summaryText}\n\n`;
 
       if (type === "menu") {
-        fullText = `오늘의 메뉴 : ${title}\n\n${summaryText}\n\n#레시피\n\n`;
+        // 1) 오늘의 메뉴일 때는 미리 생성된 랜덤 카피라이팅 제목 사용
+        const threadTitle = menuDynamicTitle || title;
+        // 2) Threads용 최종 텍스트 구성: 제목(랜덤) + 본문 + #레시피
+        fullText = `${threadTitle}\n\n${summaryText}\n\n#레시피\n\n`;
       } else if (type === "insight") {
         let categoryTag = "";
         switch (category) {
