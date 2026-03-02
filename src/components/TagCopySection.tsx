@@ -664,7 +664,7 @@ export default function TagCopySection({
       let fullText = `${title}\n\n${summaryText}\n\n`;
 
       if (type === "menu") {
-        fullText = `오늘의 메뉴 : ${title}\n\n${summaryText}\n#레시피\n\n`;
+        fullText = `오늘의 메뉴 : ${title}\n\n${summaryText}\n\n#레시피\n\n`;
       } else if (type === "insight") {
         let categoryTag = "";
         switch (category) {
@@ -690,7 +690,7 @@ export default function TagCopySection({
           default:
             categoryTag = "";
         }
-        fullText = `${title}\n\n${summaryText}\n${categoryTag}\n\n`;
+        fullText = `${title}\n\n${summaryText}\n\n${categoryTag}\n\n`;
       }
 
       // 첫 번째 이미지 추출 시도
