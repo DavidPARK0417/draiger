@@ -242,14 +242,12 @@ export default function TagCopySection({
       bodyHtml = bodyHtml.replace(
         ingredientsSectionPattern,
         (_match: string, header1: string, content: string, header2: string) => {
-          // content 시작 부분의 빈 줄(<br />) 제거하여 간격 밀착
-          const cleanedContent = content
-            .replace(/^(\s*<br\s*\/?>\s*)+/gi, "")
-            .trim();
+          // 섹션 내부의 모든 불필요한 빈 줄(<br />) 제거
+          const cleanedContent = content.replace(/<br\s*\/?>/gi, "").trim();
 
           let isFirst = true;
           const styledContent = cleanedContent.replace(
-            /<([a-z1-6]+)([^>]*)>(.*?)<\/\1>/gi,
+            /<([a-z1-6]+)([^>]*)>([\s\S]*?)<\/\1>/gi,
             (
               _tagMatch: string,
               tagName: string,
@@ -267,8 +265,8 @@ export default function TagCopySection({
               const marginTop = isFirst ? "0px" : "10px";
               isFirst = false;
 
-              // 제목3(H3, ###) 스타일 적용
-              return `<h3 data-ke-size="size18" style="color: #000000 !important; font-weight: normal !important; line-height: 1.8 !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important; margin: ${marginTop} 0 10px 0;">${innerText}</h3>`;
+              // 제목(23px) 스타일 적용
+              return `<h2 data-ke-size="size23" style="color: #000000 !important; font-size: 23px !important; font-weight: bold !important; line-height: 1.8 !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important; margin: ${marginTop} 0 10px 0;">${innerText}</h2>`;
             },
           );
           // div에 margin-top: 0 추가하여 제목과 밀착
@@ -292,7 +290,7 @@ export default function TagCopySection({
 
         // 1. 모든 태그에 기본 스타일 적용 (리스트 포함)
         remainingContent = remainingContent.replace(
-          /<([a-z1-6]+)([^>]*)>(.*?)<\/\1>/gi,
+          /<([a-z1-6]+)([^>]*)>([\s\S]*?)<\/\1>/gi,
           (
             _tagMatch: string,
             tagName: string,
@@ -302,11 +300,9 @@ export default function TagCopySection({
             const lowerTag = tagName.toLowerCase();
             if (lowerTag === "img" || lowerTag === "br") return _tagMatch;
 
-            // 리스트 태그(ol, ul)와 항목(li)에 대해 19px 강제 적용
-            const isListTag =
-              lowerTag === "ol" || lowerTag === "ul" || lowerTag === "li";
-            const fontSize = isListTag ? "19px" : "18px";
-            const keSize = isListTag ? "size19" : "size18";
+            // 모든 태그에 대해 20px 적용
+            const fontSize = "20px";
+            const keSize = "size20";
 
             // 사용자가 요청한 리스트 아이템 스타일 최우선 적용
             const baseStyle = `font-size: ${fontSize} !important; line-height: 1.8 !important; color: #333333 !important; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif !important;`;
