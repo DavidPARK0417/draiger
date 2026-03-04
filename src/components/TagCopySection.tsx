@@ -28,6 +28,7 @@ export default function TagCopySection({
 }: TagCopySectionProps) {
   const [activeButton, setActiveButton] = React.useState<string | null>(null);
   const [mounted, setMounted] = React.useState(false);
+  const isProcessingRef = React.useRef(false); // 가공/복사 중복 방지용
 
   // ⭐ 같은 메뉴에서 공통으로 쓸 “랜덤 카피 제목” 저장용 상태
   const [menuDynamicTitle, setMenuDynamicTitle] = React.useState<string | null>(
@@ -707,17 +708,17 @@ export default function TagCopySection({
 
   // 스레드용 본문 복사 (제목 + 요약 + 첫 번째 이미지)
   const handleCopyThreads = async () => {
+    if (isProcessingRef.current) return;
+
     try {
       if (!title) return;
+      isProcessingRef.current = true;
 
       const summaryText = descriptionRef?.current?.innerText || "";
-
       let fullText = `${title}\n\n${summaryText}\n\n`;
 
       if (type === "menu") {
-        // 1) 오늘의 메뉴일 때는 미리 생성된 랜덤 카피라이팅 제목 사용
         const threadTitle = menuDynamicTitle || title;
-        // 2) Threads용 최종 텍스트 구성: 제목(랜덤) + 본문 + #레시피
         fullText = `${threadTitle}\n\n${summaryText}\n\n#레시피\n\n`;
       } else if (type === "insight") {
         let categoryTag = "";
@@ -751,7 +752,6 @@ export default function TagCopySection({
       const firstImg = contentRef?.current?.querySelector("img");
       let imageUrl = firstImg ? firstImg.getAttribute("src") : null;
 
-      // 상대 경로면 절대 경로로 전환
       if (imageUrl && !imageUrl.startsWith("http")) {
         imageUrl = window.location.origin + imageUrl;
       }
@@ -764,32 +764,40 @@ export default function TagCopySection({
         navigator.clipboard.write
       ) {
         try {
-          // 이미지 데이터를 Blob으로 가져오기
           const response = await fetch(imageUrl);
           const rawBlob = await response.blob();
 
           // Safari 등 다수의 브라우저는 클립보드 복사 시 'image/png' 형식을 필수로 요구함
-          // 원본이 PNG가 아닐 경우를 대비해 Canvas를 이용한 변환 시도
           const pngBlob = await new Promise<Blob | null>((resolve) => {
             const img = new Image();
             img.crossOrigin = "anonymous";
+            const blobUrl = URL.createObjectURL(rawBlob);
             img.onload = () => {
               const canvas = document.createElement("canvas");
               canvas.width = img.width;
               canvas.height = img.height;
               const ctx = canvas.getContext("2d");
               if (!ctx) {
+                URL.revokeObjectURL(blobUrl);
                 resolve(null);
                 return;
               }
               ctx.drawImage(img, 0, 0);
-              canvas.toBlob((blob) => resolve(blob), "image/png");
+              canvas.toBlob((blob) => {
+                URL.revokeObjectURL(blobUrl);
+                resolve(blob);
+              }, "image/png");
             };
-            img.onerror = () => resolve(null);
-            img.src = URL.createObjectURL(rawBlob);
+            img.onerror = () => {
+              URL.revokeObjectURL(blobUrl);
+              resolve(null);
+            };
+            img.src = blobUrl;
           });
 
           if (pngBlob) {
+            // 모바일 앱(스레드 등)에서 텍스트와 이미지를 함께 복사할 때 중복 현상을 방지하기 위해
+            // 텍스트를 plain text와 html 형식 모두 제공하거나 형식을 단순화하여 시도
             const data = [
               new ClipboardItem({
                 "text/plain": new Blob([fullText], { type: "text/plain" }),
@@ -810,6 +818,8 @@ export default function TagCopySection({
       await copyToClipboard(fullText, "threads");
     } catch (err) {
       console.error("스레드 복사 실패:", err);
+    } finally {
+      isProcessingRef.current = false;
     }
   };
 
