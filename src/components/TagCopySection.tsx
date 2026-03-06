@@ -39,38 +39,65 @@ export default function TagCopySection({
     setMounted(true);
   }, []);
 
-  // ⭐ 1) 제목 패턴 생성 함수 (컴포넌트 내부 상단 쪽에 추가)
+  // ⭐ 제목 패턴 생성 함수 (SEO + CTR 최적화)
   const generateDynamicTitle = React.useCallback((rawTitle: string) => {
     if (!rawTitle) return "";
-    const titleInBracket = `[${rawTitle}]`;
-    const titleInQuote = `"${rawTitle}"`;
-    const basePatterns = [
-      // 사용자가 제안한 문구들
-      `요리 초보도 성공하는 ${titleInBracket}, 오늘 레시피로 완벽하게!`,
-      `실패 없는 ${titleInBracket} 황금 레시피, 딱 이렇게만 하세요`,
-      `맛 보장! 누구나 따라 하는 간단 ${titleInBracket} 레시피`,
-      `오늘 뭐 먹지? 간단하게 만드는 ${titleInBracket} 레시피`,
-      `뭐 먹을지 고민될 땐? ${titleInBracket}으로 해결하는 오늘의 메뉴`,
-      `오늘 메뉴 고민 끝! ${titleInBracket} 맛있게 만드는 법`,
-      `매일 고민하는 메뉴, 오늘은 ${titleInBracket} 어때요?`,
-      // 추가 패턴
-      `오늘의 메뉴 추천 : ${titleInBracket}`,
-      `오늘의 메뉴 추천 : ${titleInQuote}`,
-      `실패 없는 요리 레시피 : ${titleInBracket}`,
-      `실패 없는 요리 레시피 : ${titleInQuote}`,
-      `이대로만 만들면 성공! ${titleInBracket} 레시피`,
-      `${titleInQuote} 레시피, 이대로만 만들면 성공!`,
-      `집에서도 쉽게 만드는 ${titleInBracket} 레시피`,
-      `초보도 할 수 있는 쉬운 ${titleInBracket} 만드는 법`,
+
+    const title = rawTitle.trim();
+    const bracketTitle = `[${title}]`;
+    const quoteTitle = `"${title}"`;
+
+    const patterns = [
+      // ⭐ 기본 SEO 패턴
+      `${title} 레시피`,
+      `${title} 만드는 법`,
+      `${title} 황금 레시피`,
+      `${title} 초간단 레시피`,
+      `집에서 쉽게 만드는 ${title} 레시피`,
+
+      // ⭐ 실패 없는 패턴
+      `실패 없는 ${title} 황금 레시피`,
+      `요리 초보도 성공하는 ${title} 레시피`,
+      `이대로만 만들면 성공하는 ${title} 레시피`,
+      `${title} 맛있게 만드는 방법`,
+      `${title} 이렇게 만들면 더 맛있습니다`,
+
+      // ⭐ 오늘 메뉴 패턴 (티스토리 트래픽 핵심)
+      `오늘 저녁 메뉴 추천 ${title}`,
+      `오늘 뭐 먹지? ${title} 어떠세요`,
+      `오늘의 메뉴 추천 ${title}`,
+      `오늘 메뉴 고민 끝! ${title} 레시피`,
+      `오늘 한 끼 추천 ${title}`,
+
+      // ⭐ 감정 클릭 유도 패턴
+      `한 번 먹으면 계속 찾는 ${title} 레시피`,
+      `식당보다 맛있는 ${title} 레시피`,
+      `집에서 만드는 맛집 ${title}`,
+      `정말 맛있는 ${title} 레시피`,
+      `요즘 인기 메뉴 ${title} 레시피`,
+
+      // ⭐ 숫자 CTR 패턴
+      `5분 완성 ${title} 초간단 레시피`,
+      `10분 만에 만드는 ${title}`,
+      `3가지 재료로 만드는 ${title}`,
+      `초간단 ${title} 레시피 5분 완성`,
+      `누구나 만드는 ${title} 간단 레시피`,
+
+      // ⭐ 괄호 패턴
+      `오늘의 메뉴 : ${bracketTitle}`,
+      `오늘의 메뉴 : ${quoteTitle}`,
+      `실패 없는 요리 레시피 : ${bracketTitle}`,
+      `실패 없는 요리 레시피 : ${quoteTitle}`,
+      `오늘 저녁 메뉴 추천 : ${bracketTitle}`,
+
+      // ⭐ 추가 CTR 패턴
+      `${title} 레시피, 이렇게 만들면 성공`,
+      `${title} 제대로 만드는 방법`,
+      `${title} 맛있게 만드는 황금 비율`,
+      `${title} 레시피 공개`,
+      `${title} 간단 레시피 알려드립니다`,
     ];
-    const menuExtraPatterns = [
-      `오늘의 메뉴 : ${titleInBracket}`,
-      `오늘의 메뉴 : ${titleInQuote}`,
-      `오늘 뭐 먹지? ${titleInBracket} 어떠세요?`,
-      `오늘 뭐 먹지? ${titleInQuote} 어떠세요?`,
-      `따뜻하게 한 끼, ${titleInBracket} 추천`,
-    ];
-    const patterns = [...basePatterns, ...menuExtraPatterns];
+
     const randomIndex = Math.floor(Math.random() * patterns.length);
     return patterns[randomIndex];
   }, []);
