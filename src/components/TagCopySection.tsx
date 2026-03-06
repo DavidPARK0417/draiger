@@ -110,38 +110,49 @@ export default function TagCopySection({
     }
   }, [type, title, menuDynamicTitle, generateDynamicTitle]);
 
-  const copyToClipboard = async (text: string, buttonId: string) => {
+  const copyToClipboard = async (
+    content: string | ClipboardItem[],
+    buttonId: string,
+  ) => {
     try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        const textarea = document.createElement("textarea");
-        textarea.value = text;
-        // 모바일 브라우저에서 줌이나 키보드 팝업 방지
-        textarea.style.position = "fixed";
-        textarea.style.left = "-9999px";
-        textarea.style.top = "0";
-        textarea.style.fontSize = "12pt"; // 줌 방지
-        textarea.setAttribute("readonly", "");
-        document.body.appendChild(textarea);
-
-        // iOS 대응 선택 방식
-        const isiOS = navigator.userAgent.match(/ipad|iphone/i);
-        if (isiOS) {
-          const range = document.createRange();
-          range.selectNodeContents(textarea);
-          const selection = window.getSelection();
-          if (selection) {
-            selection.removeAllRanges();
-            selection.addRange(range);
-          }
-          textarea.setSelectionRange(0, 999999);
+      if (Array.isArray(content)) {
+        // ClipboardItem 배열인 경우 (복합 컨텐츠)
+        if (navigator.clipboard && navigator.clipboard.write) {
+          await navigator.clipboard.write(content);
         } else {
-          textarea.select();
+          throw new Error("ClipboardItem not supported");
         }
+      } else {
+        // 단일 문자열인 경우 (기존 로직 유지)
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(content);
+        } else {
+          const textarea = document.createElement("textarea");
+          textarea.value = content;
+          textarea.style.position = "fixed";
+          textarea.style.left = "-9999px";
+          textarea.style.top = "0";
+          textarea.style.fontSize = "12pt";
+          textarea.setAttribute("readonly", "");
+          document.body.appendChild(textarea);
 
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
+          const isiOS = navigator.userAgent.match(/ipad|iphone/i);
+          if (isiOS) {
+            const range = document.createRange();
+            range.selectNodeContents(textarea);
+            const selection = window.getSelection();
+            if (selection) {
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+            textarea.setSelectionRange(0, 999999);
+          } else {
+            textarea.select();
+          }
+
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+        }
       }
 
       setActiveButton(buttonId);
@@ -733,6 +744,21 @@ export default function TagCopySection({
     }
   };
 
+  // 스레드용 HTML 빌드 (figure 구조 적용)
+  const buildThreadsHtml = (text: string, imageUrl: string | null) => {
+    const formattedText = text.replace(/\n/g, "<br>");
+    let html = `<div style="font-family: sans-serif; line-height: 1.6;">${formattedText}</div>`;
+
+    if (imageUrl) {
+      html += `
+        <figure style="text-align: center; margin: 20px 0; padding: 0;">
+          <img src="${imageUrl}" style="max-width: 100%; height: auto; border-radius: 8px;" alt="Thread Image">
+        </figure>
+      `;
+    }
+    return html;
+  };
+
   // 스레드용 본문 복사 (제목 + 요약 + 첫 번째 이미지)
   const handleCopyThreads = async () => {
     if (isProcessingRef.current) return;
@@ -742,63 +768,44 @@ export default function TagCopySection({
       isProcessingRef.current = true;
 
       const summaryText = descriptionRef?.current?.innerText || "";
-      let fullText = `${title}\n\n${summaryText}\n\n`;
+      let plainText = `${title}\n\n${summaryText}\n\n`;
 
+      // 1. 유형별 텍스트 구성
       if (type === "menu") {
         const threadTitle = menuDynamicTitle || title;
-        fullText = `${threadTitle}\n\n${summaryText}\n\n#레시피\n\n`;
+        plainText = `${threadTitle}\n\n${summaryText}\n\n#레시피\n\n`;
       } else if (type === "insight") {
-        let categoryTag = "";
-        switch (category) {
-          case "내일의 AI":
-            categoryTag = "#AI정보";
-            break;
-          case "돈이 되는 소식":
-            categoryTag = "#경제";
-            break;
-          case "궁금한 세상 이야기":
-            categoryTag = "#사회";
-            break;
-          case "슬기로운 생활":
-            categoryTag = "#생활정보";
-            break;
-          case "오늘보다 건강하게":
-            categoryTag = "#건강";
-            break;
-          case "마음 채우기":
-          case "마음 채우기는":
-            categoryTag = "#자기계발";
-            break;
-          default:
-            categoryTag = "";
-        }
-        fullText = `${title}\n\n${summaryText}\n\n${categoryTag}\n\n`;
+        const categoryMap: Record<string, string> = {
+          "내일의 AI": "#AI정보",
+          "돈이 되는 소식": "#경제",
+          "궁금한 세상 이야기": "#사회",
+          "슬기로운 생활": "#생활정보",
+          "오늘보다 건강하게": "#건강",
+          "마음 채우기": "#자기계발",
+          "마음 채우기는": "#자기계발",
+        };
+        const categoryTag = categoryMap[category] || "";
+        plainText = `${title}\n\n${summaryText}\n\n${categoryTag}\n\n`;
       }
 
-      // 첫 번째 이미지 추출 시도
+      // 2. 이미지 추출 및 절대 경로 변환
       const firstImg = contentRef?.current?.querySelector("img");
       let imageUrl = firstImg ? firstImg.getAttribute("src") : null;
-
       if (imageUrl && !imageUrl.startsWith("http")) {
         imageUrl = window.location.origin + imageUrl;
       }
 
-      // ClipboardItem 지원 여부 및 이미지 존재 확인
-      if (
-        imageUrl &&
-        typeof ClipboardItem !== "undefined" &&
-        navigator.clipboard &&
-        navigator.clipboard.write
-      ) {
+      // 3. 복사 컨텐츠 준비
+      if (imageUrl && typeof ClipboardItem !== "undefined") {
         try {
           const response = await fetch(imageUrl);
           const rawBlob = await response.blob();
 
-          // Safari 등 다수의 브라우저는 클립보드 복사 시 'image/png' 형식을 필수로 요구함
           const pngBlob = await new Promise<Blob | null>((resolve) => {
             const img = new Image();
             img.crossOrigin = "anonymous";
             const blobUrl = URL.createObjectURL(rawBlob);
+
             img.onload = () => {
               const canvas = document.createElement("canvas");
               canvas.width = img.width;
@@ -823,28 +830,26 @@ export default function TagCopySection({
           });
 
           if (pngBlob) {
-            // 모바일 앱(스레드 등)에서 텍스트와 이미지를 함께 복사할 때 중복 현상을 방지하기 위해
-            // 텍스트를 plain text와 html 형식 모두 제공하거나 형식을 단순화하여 시도
+            const threadsHtml = buildThreadsHtml(plainText, imageUrl);
             const data = [
               new ClipboardItem({
-                "text/plain": new Blob([fullText], { type: "text/plain" }),
+                "text/plain": new Blob([plainText], { type: "text/plain" }),
+                "text/html": new Blob([threadsHtml], { type: "text/html" }),
                 "image/png": pngBlob,
               }),
             ];
-            await navigator.clipboard.write(data);
-            setActiveButton("threads");
-            window.setTimeout(() => setActiveButton(null), 2000);
+            await copyToClipboard(data, "threads");
             return;
           }
         } catch (imgErr) {
-          console.error("이미지 포함 복사 실패, 텍스트만 시도:", imgErr);
+          console.error("이미지 가공 중 오류 발생:", imgErr);
         }
       }
 
-      // 이미지가 없거나 복사 실패 시 텍스트만 복사
-      await copyToClipboard(fullText, "threads");
+      // 4. 이미지 실패 시 텍스트 전용 복사
+      await copyToClipboard(plainText, "threads");
     } catch (err) {
-      console.error("스레드 복사 실패:", err);
+      console.error("스레드 복사 실행 오류:", err);
     } finally {
       isProcessingRef.current = false;
     }
