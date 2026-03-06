@@ -760,7 +760,7 @@ export default function TagCopySection({
   };
 
   // 스레드용 본문 복사 (제목 + 요약 + 첫 번째 이미지)
-  const handleCopyThreads = async () => {
+  const handleCopyThreads = async (buttonId: string = "threads") => {
     if (isProcessingRef.current) return;
 
     try {
@@ -788,15 +788,22 @@ export default function TagCopySection({
         plainText = `${title}\n\n${summaryText}\n\n${categoryTag}\n\n`;
       }
 
-      // 2. 이미지 추출 및 절대 경로 변환
-      const firstImg = contentRef?.current?.querySelector("img");
+      // 2. 이미지 추출 및 절대 경로 변환 (threadsT는 이미지 제외하므로 건너뜀)
+      const firstImg =
+        buttonId !== "threadsT"
+          ? contentRef?.current?.querySelector("img")
+          : null;
       let imageUrl = firstImg ? firstImg.getAttribute("src") : null;
       if (imageUrl && !imageUrl.startsWith("http")) {
         imageUrl = window.location.origin + imageUrl;
       }
 
-      // 3. 복사 컨텐츠 준비
-      if (imageUrl && typeof ClipboardItem !== "undefined") {
+      // 3. 복사 컨텐츠 준비 (threadsT는 텍스트만 처리)
+      if (
+        buttonId !== "threadsT" &&
+        imageUrl &&
+        typeof ClipboardItem !== "undefined"
+      ) {
         try {
           const response = await fetch(imageUrl);
           const rawBlob = await response.blob();
@@ -838,7 +845,7 @@ export default function TagCopySection({
                 "image/png": pngBlob,
               }),
             ];
-            await copyToClipboard(data, "threads");
+            await copyToClipboard(data, buttonId);
             return;
           }
         } catch (imgErr) {
@@ -847,7 +854,7 @@ export default function TagCopySection({
       }
 
       // 4. 이미지 실패 시 텍스트 전용 복사
-      await copyToClipboard(plainText, "threads");
+      await copyToClipboard(plainText, buttonId);
     } catch (err) {
       console.error("스레드 복사 실행 오류:", err);
     } finally {
@@ -1065,7 +1072,7 @@ export default function TagCopySection({
 
             <button
               type="button"
-              onClick={handleCopyThreads}
+              onClick={() => handleCopyThreads("threadsN")}
               className="
               inline-flex items-center gap-2
               px-4 py-2.5
@@ -1080,9 +1087,9 @@ export default function TagCopySection({
               hover:-translate-y-0.5 active:scale-98
               self-start
             "
-              aria-label="스레드 복사"
+              aria-label="스레드N 복사"
             >
-              {activeButton === "threads" ? (
+              {activeButton === "threadsN" ? (
                 <>
                   <Check className="w-4 h-4" />
                   <span>복사 완료!</span>
@@ -1090,7 +1097,39 @@ export default function TagCopySection({
               ) : (
                 <>
                   <AtSign className="w-4 h-4" />
-                  <span>스레드</span>
+                  <span>스레드N</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleCopyThreads("threadsT")}
+              className="
+              inline-flex items-center gap-2
+              px-4 py-2.5
+              rounded-lg
+              text-xs sm:text-sm
+              font-medium
+              bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700
+              dark:bg-emerald-600 dark:hover:bg-emerald-500
+              text-white
+              shadow-sm hover:shadow-md active:shadow
+              transition-all duration-300
+              hover:-translate-y-0.5 active:scale-98
+              self-start
+            "
+              aria-label="스레드T 복사"
+            >
+              {activeButton === "threadsT" ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>복사 완료!</span>
+                </>
+              ) : (
+                <>
+                  <AtSign className="w-4 h-4" />
+                  <span>스레드T</span>
                 </>
               )}
             </button>
