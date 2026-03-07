@@ -217,7 +217,18 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
             "
           >
             <p className="text-base sm:text-lg lg:text-xl text-teal-800 dark:text-cyan-200 font-sans leading-relaxed">
-              {recipe.metaDescription}
+              {recipe.metaDescription?.split(/(\*\*.*?\*\*)/).map((part, i) =>
+                part.startsWith("**") && part.endsWith("**") ? (
+                  <strong
+                    key={i}
+                    className="font-bold text-teal-900 dark:text-cyan-100 text-[1.1em]"
+                  >
+                    {part.slice(2, -2)}
+                  </strong>
+                ) : (
+                  part
+                ),
+              )}
             </p>
           </div>
 
