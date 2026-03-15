@@ -222,7 +222,7 @@ export default function TagCopySection({
         img.removeAttribute("sizes");
         img.removeAttribute("decoding");
 
-        let srcUrl = img.getAttribute("src");
+        const srcUrl = img.getAttribute("src");
         if (!srcUrl) continue;
 
         // 원본이 외부 이미지거나 프록시를 통하는 경우, 직접 Canvas에 그리기 위해 프록시 URL 사용
@@ -573,7 +573,7 @@ export default function TagCopySection({
         img.removeAttribute("sizes");
         img.removeAttribute("decoding");
 
-        let srcUrl = img.getAttribute("src");
+        const srcUrl = img.getAttribute("src");
         if (!srcUrl) continue;
 
         let proxyUrl = srcUrl;
