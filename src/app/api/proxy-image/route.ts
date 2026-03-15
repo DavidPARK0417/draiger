@@ -103,8 +103,12 @@ export async function GET(request: NextRequest) {
 
     // 이미지 데이터 가져오기
     const imageBuffer = await imageResponse.arrayBuffer();
-    const contentType =
-      imageResponse.headers.get("content-type") || "image/png";
+    let contentType = imageResponse.headers.get("content-type") || "image/png";
+
+    // ✅ 티스토리 서버가 avif나 webp를 거부하는 문제를 완화하기 위해 헤더를 강제로 jpeg로 치환 (MIME 속임수)
+    if (contentType.includes("avif") || contentType.includes("webp")) {
+      contentType = "image/jpeg";
+    }
 
     // 이미지를 클라이언트에 전달
     return new NextResponse(imageBuffer, {

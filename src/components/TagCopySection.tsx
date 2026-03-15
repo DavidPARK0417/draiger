@@ -207,17 +207,87 @@ export default function TagCopySection({
         </div>
       `;
 
-      // 2. 본문 내용 가공
-      let bodyHtml = contentRef.current.innerHTML;
+      // 2. 본문 내용 가공 (Dom Clone을 이용한 이미지 데이터 객체화)
+      const contentClone = contentRef.current.cloneNode(true) as HTMLDivElement;
 
-      // 이미지 경로를 절대 경로로 치환
-      bodyHtml = bodyHtml.replace(
-        /src="\/api\/proxy-image\?url=([^"]+)"/g,
-        `src="${baseUrl}/api/proxy-image?url=$1"`,
-      );
-      bodyHtml = bodyHtml.replace(/src="\/([^"]+)"/g, (match, path) =>
-        path.startsWith("api/") ? match : `src="${baseUrl}/${path}"`,
-      );
+      // 사용자 요청: 보이지 않는 canvas 엘리먼트를 생성해서 이미지를 그린 뒤,
+      // canvas.toDataURL('image/jpeg')를 통해 표준 JPEG 데이터로 뽑아서 복사
+      let clipboardImageBlob: Blob | null = null;
+      const images = Array.from(contentClone.querySelectorAll("img"));
+
+      for (const img of images) {
+        // [기능 1] Lazy Load(지연 로딩) 기능 해제
+        img.removeAttribute("loading");
+        img.removeAttribute("srcset");
+        img.removeAttribute("sizes");
+        img.removeAttribute("decoding");
+
+        let srcUrl = img.getAttribute("src");
+        if (!srcUrl) continue;
+
+        // 원본이 외부 이미지거나 프록시를 통하는 경우, 직접 Canvas에 그리기 위해 프록시 URL 사용
+        let proxyUrl = srcUrl;
+        if (srcUrl.startsWith("http")) {
+          if (!srcUrl.includes("/api/proxy-image")) {
+            proxyUrl = `/api/proxy-image?url=${encodeURIComponent(srcUrl)}`;
+          }
+        } else if (srcUrl.startsWith("/")) {
+          proxyUrl = srcUrl;
+        }
+
+        try {
+          const imgObj = new window.Image();
+          imgObj.crossOrigin = "anonymous";
+          await new Promise((resolve, reject) => {
+            imgObj.onload = resolve;
+            imgObj.onerror = reject;
+            imgObj.src = proxyUrl;
+          });
+
+          const canvas = document.createElement("canvas");
+          canvas.width = imgObj.naturalWidth || imgObj.width;
+          canvas.height = imgObj.naturalHeight || imgObj.height;
+          const ctx = canvas.getContext("2d");
+
+          if (ctx) {
+            // 투명 배경이 검게 변하는 것을 방지 (JPEG 변환용 흰색 배경)
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(imgObj, 0, 0);
+
+            // 티스토리 호환 JPEG Base64 치환
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+            img.setAttribute("src", dataUrl);
+
+            // 첫 번째 이미지는 클립보드 Mime(객체) 복사용 Blob으로 추출
+            if (!clipboardImageBlob) {
+              clipboardImageBlob = await new Promise<Blob | null>((res) => {
+                // 클립보드 API는 image/png 만 허용할 경우가 많으므로 png 반환
+                canvas.toBlob((blob) => res(blob), "image/png");
+              });
+            }
+          }
+        } catch (err) {
+          console.error("Canvas 이미지 변환 실패:", err);
+          // 실패 시 최후의 수단: 원본 도메인 절대 경로 치환 + jpg 확장자 눈속임
+          let originalUrl = srcUrl;
+          if (srcUrl.includes("/api/proxy-image")) {
+            const urlMatch = srcUrl.match(/url=([^&]+)/);
+            if (urlMatch) {
+              originalUrl = decodeURIComponent(urlMatch[1]);
+            }
+          }
+          originalUrl = originalUrl.replace(/\.(avif|webp)(?=\?|$)/i, ".jpg");
+          img.setAttribute(
+            "src",
+            originalUrl.startsWith("http")
+              ? originalUrl
+              : baseUrl + originalUrl,
+          );
+        }
+      }
+
+      let bodyHtml = contentClone.innerHTML;
 
       // 제목 스타일 처리
       const h1Style =
@@ -448,10 +518,11 @@ export default function TagCopySection({
         { type: "text/plain" },
       );
 
-      const data = [
+      const data: ClipboardItem[] = [
         new ClipboardItem({
           "text/html": blobHtml,
           "text/plain": blobText,
+          ...(clipboardImageBlob && { "image/png": clipboardImageBlob }),
         }),
       ];
 
@@ -490,17 +561,78 @@ export default function TagCopySection({
         </div>
       `;
 
-      // 2. 본문 내용 가공
-      let bodyHtml = contentRef.current.innerHTML;
+      // 2. 본문 내용 가공 (Dom Clone을 이용한 이미지 데이터 객체화)
+      const contentClone = contentRef.current.cloneNode(true) as HTMLDivElement;
 
-      // 이미지 경로를 절대 경로로 치환
-      bodyHtml = bodyHtml.replace(
-        /src="\/api\/proxy-image\?url=([^"]+)"/g,
-        `src="${baseUrl}/api/proxy-image?url=$1"`,
-      );
-      bodyHtml = bodyHtml.replace(/src="\/([^"]+)"/g, (match, path) =>
-        path.startsWith("api/") ? match : `src="${baseUrl}/${path}"`,
-      );
+      let clipboardImageBlob: Blob | null = null;
+      const images = Array.from(contentClone.querySelectorAll("img"));
+
+      for (const img of images) {
+        img.removeAttribute("loading");
+        img.removeAttribute("srcset");
+        img.removeAttribute("sizes");
+        img.removeAttribute("decoding");
+
+        let srcUrl = img.getAttribute("src");
+        if (!srcUrl) continue;
+
+        let proxyUrl = srcUrl;
+        if (srcUrl.startsWith("http")) {
+          if (!srcUrl.includes("/api/proxy-image")) {
+            proxyUrl = `/api/proxy-image?url=${encodeURIComponent(srcUrl)}`;
+          }
+        } else if (srcUrl.startsWith("/")) {
+          proxyUrl = srcUrl;
+        }
+
+        try {
+          const imgObj = new window.Image();
+          imgObj.crossOrigin = "anonymous";
+          await new Promise((resolve, reject) => {
+            imgObj.onload = resolve;
+            imgObj.onerror = reject;
+            imgObj.src = proxyUrl;
+          });
+
+          const canvas = document.createElement("canvas");
+          canvas.width = imgObj.naturalWidth || imgObj.width;
+          canvas.height = imgObj.naturalHeight || imgObj.height;
+          const ctx = canvas.getContext("2d");
+
+          if (ctx) {
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(imgObj, 0, 0);
+
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+            img.setAttribute("src", dataUrl);
+
+            if (!clipboardImageBlob) {
+              clipboardImageBlob = await new Promise<Blob | null>((res) => {
+                canvas.toBlob((blob) => res(blob), "image/png");
+              });
+            }
+          }
+        } catch (err) {
+          console.error("Canvas 이미지 변환 실패:", err);
+          let originalUrl = srcUrl;
+          if (srcUrl.includes("/api/proxy-image")) {
+            const urlMatch = srcUrl.match(/url=([^&]+)/);
+            if (urlMatch) {
+              originalUrl = decodeURIComponent(urlMatch[1]);
+            }
+          }
+          originalUrl = originalUrl.replace(/\.(avif|webp)(?=\?|$)/i, ".jpg");
+          img.setAttribute(
+            "src",
+            originalUrl.startsWith("http")
+              ? originalUrl
+              : baseUrl + originalUrl,
+          );
+        }
+      }
+
+      let bodyHtml = contentClone.innerHTML;
 
       // 네이버 블로그 스마트에디터 최적화 스타일 주입
 
@@ -720,10 +852,11 @@ export default function TagCopySection({
         { type: "text/plain" },
       );
 
-      const data = [
+      const data: ClipboardItem[] = [
         new ClipboardItem({
           "text/html": blobHtml,
           "text/plain": blobText,
+          ...(clipboardImageBlob && { "image/png": clipboardImageBlob }),
         }),
       ];
 
