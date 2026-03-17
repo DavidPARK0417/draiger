@@ -561,78 +561,17 @@ export default function TagCopySection({
         </div>
       `;
 
-      // 2. 본문 내용 가공 (Dom Clone을 이용한 이미지 데이터 객체화)
-      const contentClone = contentRef.current.cloneNode(true) as HTMLDivElement;
+      // 2. 본문 내용 가공
+      let bodyHtml = contentRef.current.innerHTML;
 
-      let clipboardImageBlob: Blob | null = null;
-      const images = Array.from(contentClone.querySelectorAll("img"));
-
-      for (const img of images) {
-        img.removeAttribute("loading");
-        img.removeAttribute("srcset");
-        img.removeAttribute("sizes");
-        img.removeAttribute("decoding");
-
-        const srcUrl = img.getAttribute("src");
-        if (!srcUrl) continue;
-
-        let proxyUrl = srcUrl;
-        if (srcUrl.startsWith("http")) {
-          if (!srcUrl.includes("/api/proxy-image")) {
-            proxyUrl = `/api/proxy-image?url=${encodeURIComponent(srcUrl)}`;
-          }
-        } else if (srcUrl.startsWith("/")) {
-          proxyUrl = srcUrl;
-        }
-
-        try {
-          const imgObj = new window.Image();
-          imgObj.crossOrigin = "anonymous";
-          await new Promise((resolve, reject) => {
-            imgObj.onload = resolve;
-            imgObj.onerror = reject;
-            imgObj.src = proxyUrl;
-          });
-
-          const canvas = document.createElement("canvas");
-          canvas.width = imgObj.naturalWidth || imgObj.width;
-          canvas.height = imgObj.naturalHeight || imgObj.height;
-          const ctx = canvas.getContext("2d");
-
-          if (ctx) {
-            ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(imgObj, 0, 0);
-
-            const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-            img.setAttribute("src", dataUrl);
-
-            if (!clipboardImageBlob) {
-              clipboardImageBlob = await new Promise<Blob | null>((res) => {
-                canvas.toBlob((blob) => res(blob), "image/png");
-              });
-            }
-          }
-        } catch (err) {
-          console.error("Canvas 이미지 변환 실패:", err);
-          let originalUrl = srcUrl;
-          if (srcUrl.includes("/api/proxy-image")) {
-            const urlMatch = srcUrl.match(/url=([^&]+)/);
-            if (urlMatch) {
-              originalUrl = decodeURIComponent(urlMatch[1]);
-            }
-          }
-          originalUrl = originalUrl.replace(/\.(avif|webp)(?=\?|$)/i, ".jpg");
-          img.setAttribute(
-            "src",
-            originalUrl.startsWith("http")
-              ? originalUrl
-              : baseUrl + originalUrl,
-          );
-        }
-      }
-
-      let bodyHtml = contentClone.innerHTML;
+      // 이미지 경로를 절대 경로로 치환
+      bodyHtml = bodyHtml.replace(
+        /src="\/api\/proxy-image\?url=([^"]+)"/g,
+        `src="${baseUrl}/api/proxy-image?url=$1"`,
+      );
+      bodyHtml = bodyHtml.replace(/src="\/([^"]+)"/g, (match, path) =>
+        path.startsWith("api/") ? match : `src="${baseUrl}/${path}"`,
+      );
 
       // 네이버 블로그 스마트에디터 최적화 스타일 주입
 
@@ -852,11 +791,10 @@ export default function TagCopySection({
         { type: "text/plain" },
       );
 
-      const data: ClipboardItem[] = [
+      const data = [
         new ClipboardItem({
           "text/html": blobHtml,
           "text/plain": blobText,
-          ...(clipboardImageBlob && { "image/png": clipboardImageBlob }),
         }),
       ];
 
