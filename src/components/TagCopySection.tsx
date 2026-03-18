@@ -244,19 +244,33 @@ export default function TagCopySection({
             imgObj.src = proxyUrl;
           });
 
+          const MAX_WIDTH = 800;
+          let targetWidth = imgObj.naturalWidth || imgObj.width;
+          let targetHeight = imgObj.naturalHeight || imgObj.height;
+
+          // 너비가 800px보다 크면 비율에 맞춰 축소
+          if (targetWidth > MAX_WIDTH) {
+            targetHeight = (targetHeight * MAX_WIDTH) / targetWidth;
+            targetWidth = MAX_WIDTH;
+          }
+
           const canvas = document.createElement("canvas");
-          canvas.width = imgObj.naturalWidth || imgObj.width;
-          canvas.height = imgObj.naturalHeight || imgObj.height;
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
           const ctx = canvas.getContext("2d");
 
           if (ctx) {
+            // 이미지 부드럽게 리사이징되도록 설정
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+
             // 투명 배경이 검게 변하는 것을 방지 (JPEG 변환용 흰색 배경)
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(imgObj, 0, 0);
+            ctx.drawImage(imgObj, 0, 0, targetWidth, targetHeight);
 
-            // 티스토리 호환 JPEG Base64 치환
-            const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+            // 티스토리 호환 JPEG Base64 치환 (품질 0.75로 낮추어 용량 압축)
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
             img.setAttribute("src", dataUrl);
 
             // 첫 번째 이미지는 클립보드 Mime(객체) 복사용 Blob으로 추출
