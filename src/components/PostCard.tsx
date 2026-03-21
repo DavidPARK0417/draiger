@@ -16,49 +16,55 @@ interface PostCardProps {
 // 외부 이미지인 경우 프록시 URL 생성
 function getProxyImageUrl(imageUrl: string | undefined): string | undefined {
   if (!imageUrl) return undefined;
-  
+
   // 이미 프록시 URL인 경우 그대로 반환
-  if (imageUrl.startsWith('/api/proxy-image')) {
+  if (imageUrl.startsWith("/api/proxy-image")) {
     return imageUrl;
   }
-  
+
   // 외부 이미지인 경우 프록시 URL 생성
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
     try {
       const urlObj = new URL(imageUrl);
       // 브라우저 환경에서만 hostname 비교
-      const isExternal = typeof window !== 'undefined' 
-        ? urlObj.hostname !== window.location.hostname && 
-          urlObj.hostname !== 'localhost' && 
-          urlObj.hostname !== '127.0.0.1'
-        : !urlObj.hostname.includes('localhost') && !urlObj.hostname.includes('127.0.0.1');
-      
+      const isExternal =
+        typeof window !== "undefined"
+          ? urlObj.hostname !== window.location.hostname &&
+            urlObj.hostname !== "localhost" &&
+            urlObj.hostname !== "127.0.0.1"
+          : !urlObj.hostname.includes("localhost") &&
+            !urlObj.hostname.includes("127.0.0.1");
+
       if (isExternal) {
         const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[PostCard] 프록시 URL 생성:', {
+        if (process.env.NODE_ENV === "development") {
+          console.log("[PostCard] 프록시 URL 생성:", {
             original: imageUrl.substring(0, 100),
-            proxy: proxyUrl.substring(0, 100)
+            proxy: proxyUrl.substring(0, 100),
           });
         }
         return proxyUrl;
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[PostCard] URL 파싱 오류:', error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("[PostCard] URL 파싱 오류:", error);
       }
     }
   }
-  
+
   return imageUrl;
 }
 
-export default function PostCard({ post, index, isLarge = false }: PostCardProps) {
+export default function PostCard({
+  post,
+  index,
+  isLarge = false,
+}: PostCardProps) {
   const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
   const [retryWithOriginal, setRetryWithOriginal] = useState(false);
-  
+
   // 이미지 URL 처리 (외부 이미지인 경우 프록시 사용)
   useEffect(() => {
     if (post.featuredImage) {
@@ -92,7 +98,7 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
       }`}
       suppressHydrationWarning
     >
-      <Link 
+      <Link
         href={`/insight/${post.slug}`}
         prefetch={true}
         onClick={handleCardClick}
@@ -102,14 +108,18 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
         <span className="sr-only">{post.title}</span>
       </Link>
 
-      <div className={`flex flex-col h-full ${isLarge ? 'gap-6' : 'gap-3 sm:gap-4'}`}>
+      <div
+        className={`flex flex-col h-full ${isLarge ? "gap-6" : "gap-3 sm:gap-4"}`}
+      >
         {/* 이미지가 있을 때 작은 이미지 표시 - 텍스트와 함께 보이도록 */}
         {imageSrc && !imageError && (
-          <div className={`
+          <div
+            className={`
             relative w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0
             aspect-video
             ${isLarge ? "min-h-[180px] sm:min-h-[220px] lg:min-h-[260px]" : "min-h-[120px] sm:min-h-[140px]"}
-          `}>
+          `}
+          >
             <Image
               src={imageSrc}
               alt={post.title}
@@ -118,44 +128,52 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               unoptimized
               style={{
-                objectFit: 'cover',
-                objectPosition: 'center',
+                objectFit: "cover",
+                objectPosition: "center",
               }}
               onError={(e) => {
                 const errorInfo = {
                   original: post.featuredImage,
                   proxy: imageSrc,
-                  error: e?.type || 'unknown',
-                  target: e?.target ? {
-                    src: (e.target as HTMLImageElement)?.src,
-                    naturalWidth: (e.target as HTMLImageElement)?.naturalWidth,
-                    naturalHeight: (e.target as HTMLImageElement)?.naturalHeight,
-                  } : null,
+                  error: e?.type || "unknown",
+                  target: e?.target
+                    ? {
+                        src: (e.target as HTMLImageElement)?.src,
+                        naturalWidth: (e.target as HTMLImageElement)
+                          ?.naturalWidth,
+                        naturalHeight: (e.target as HTMLImageElement)
+                          ?.naturalHeight,
+                      }
+                    : null,
                 };
-                
+
                 // 프록시 URL로 실패했고 아직 원본으로 재시도하지 않은 경우
-                if (imageSrc?.startsWith('/api/proxy-image') && !retryWithOriginal && post.featuredImage) {
-                  if (process.env.NODE_ENV === 'development') {
-                    console.warn('[PostCard] 프록시 실패, 원본 URL로 재시도:', {
+                if (
+                  imageSrc?.startsWith("/api/proxy-image") &&
+                  !retryWithOriginal &&
+                  post.featuredImage
+                ) {
+                  if (process.env.NODE_ENV === "development") {
+                    console.warn("[PostCard] 프록시 실패, 원본 URL로 재시도:", {
                       proxy: imageSrc,
-                      original: post.featuredImage
+                      original: post.featuredImage,
                     });
                   }
                   setRetryWithOriginal(true);
                   setImageSrc(post.featuredImage);
                   setImageError(false);
                 } else {
-                  if (process.env.NODE_ENV === 'development') {
-                    console.error('[PostCard] 이미지 로드 실패:', errorInfo);
+                  if (process.env.NODE_ENV === "development") {
+                    console.warn("[PostCard] 이미지 로드 실패:", errorInfo);
                   }
                   setImageError(true);
                 }
               }}
               onLoad={() => {
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('[PostCard] ✅ 이미지 로드 성공:', {
+                if (process.env.NODE_ENV === "development") {
+                  console.log("[PostCard] ✅ 이미지 로드 성공:", {
                     original: post.featuredImage,
-                    proxy: imageSrc
+                    proxy: imageSrc,
                   });
                 }
               }}
@@ -164,21 +182,25 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
         )}
 
         {/* 텍스트 영역 - 항상 보이도록 보장 */}
-        <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${
-          isLarge ? "min-h-[120px]" : "min-h-[100px]"
-        }`}>
-          <h3 className={`font-serif font-semibold mb-2 sm:mb-3 group-hover:translate-x-2 transition-transform duration-500 text-gray-900 dark:text-white line-clamp-2 ${
-            isLarge 
-              ? "text-lg sm:text-xl lg:text-2xl" 
-              : "text-base sm:text-lg"
-          }`}>
+        <div
+          className={`flex-1 flex flex-col min-h-0 overflow-hidden ${
+            isLarge ? "min-h-[120px]" : "min-h-[100px]"
+          }`}
+        >
+          <h3
+            className={`font-serif font-semibold mb-2 sm:mb-3 group-hover:translate-x-2 transition-transform duration-500 text-gray-900 dark:text-white line-clamp-2 ${
+              isLarge
+                ? "text-lg sm:text-xl lg:text-2xl"
+                : "text-base sm:text-lg"
+            }`}
+          >
             {post.title}
           </h3>
-          <p className={`text-gray-600 dark:text-white/50 line-clamp-3 leading-relaxed flex-1 ${
-            isLarge 
-              ? "text-sm sm:text-base" 
-              : "text-xs sm:text-sm"
-          }`}>
+          <p
+            className={`text-gray-600 dark:text-white/50 line-clamp-3 leading-relaxed flex-1 ${
+              isLarge ? "text-sm sm:text-base" : "text-xs sm:text-sm"
+            }`}
+          >
             {post.metaDescription}
           </p>
         </div>
@@ -210,4 +232,3 @@ export default function PostCard({ post, index, isLarge = false }: PostCardProps
     </motion.div>
   );
 }
-
