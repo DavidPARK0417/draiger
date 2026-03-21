@@ -39,6 +39,12 @@ interface NotionPage {
     category?: { rich_text: NotionRichText[] };
     date?: { date: { start: string } | null };
     tags?: { multi_select: { name: string; color?: string }[] };
+    prompt1?: { rich_text: NotionRichText[] };
+    prompt2?: { rich_text: NotionRichText[] };
+    prompt3?: { rich_text: NotionRichText[] };
+    prompt4?: { rich_text: NotionRichText[] };
+    prompt5?: { rich_text: NotionRichText[] };
+    prompt6?: { rich_text: NotionRichText[] };
     [key: string]: unknown;
   };
   [key: string]: unknown;
@@ -489,6 +495,12 @@ export interface Post {
   date?: string; // 날짜 추가
   tags?: string[]; // 태그 추가
   featuredImage?: string; // 대표 이미지 추가
+  prompt1?: string;
+  prompt2?: string;
+  prompt3?: string;
+  prompt4?: string;
+  prompt5?: string;
+  prompt6?: string;
 }
 
 /**
@@ -575,6 +587,12 @@ export async function mapNotionPageToPost(
     date: p.date?.date?.start || undefined,
     tags: p.tags?.multi_select?.map((tag) => tag.name) || undefined,
     featuredImage,
+    prompt1: p.prompt1?.rich_text?.[0]?.plain_text || undefined,
+    prompt2: p.prompt2?.rich_text?.[0]?.plain_text || undefined,
+    prompt3: p.prompt3?.rich_text?.[0]?.plain_text || undefined,
+    prompt4: p.prompt4?.rich_text?.[0]?.plain_text || undefined,
+    prompt5: p.prompt5?.rich_text?.[0]?.plain_text || undefined,
+    prompt6: p.prompt6?.rich_text?.[0]?.plain_text || undefined,
   };
 }
 

@@ -368,6 +368,14 @@ export default async function InsightPostPage({
               className="w-full max-w-[300px]"
             />
           }
+          prompts={[
+            post.prompt1,
+            post.prompt2,
+            post.prompt3,
+            post.prompt4,
+            post.prompt5,
+            post.prompt6,
+          ]}
         >
           <div
             className="

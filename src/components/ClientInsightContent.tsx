@@ -2,6 +2,7 @@
 
 import React from "react";
 import TagCopySection from "@/components/TagCopySection";
+import PromptCopySection from "@/components/PromptCopySection";
 import TextToSpeech from "@/components/TextToSpeech";
 
 interface ClientInsightContentProps {
@@ -12,6 +13,7 @@ interface ClientInsightContentProps {
   content?: string;
   adComponent?: React.ReactNode;
   category?: string;
+  prompts?: (string | undefined)[];
 }
 
 export default function ClientInsightContent({
@@ -22,6 +24,7 @@ export default function ClientInsightContent({
   content,
   adComponent,
   category,
+  prompts,
 }: ClientInsightContentProps) {
   const contentRef = React.useRef<HTMLDivElement>(null);
   const descriptionRef = React.useRef<HTMLDivElement>(null);
@@ -41,10 +44,15 @@ export default function ClientInsightContent({
           contentRef={contentRef}
           descriptionRef={descriptionRef}
           onlyButtons={true}
-          className="mb-6"
+          className={prompts && prompts.length > 0 ? "mb-2" : "mb-6"}
           type="insight"
           category={category}
         />
+
+        {/* 1-1. 프롬프트 버튼 영역 (인사이트 상세에서만 보임) */}
+        {prompts && prompts.length > 0 && (
+          <PromptCopySection prompts={prompts} />
+        )}
 
         {/* 2. 요약 박스 영역 (descriptionRef) */}
         <div ref={descriptionRef} className="mb-8">
