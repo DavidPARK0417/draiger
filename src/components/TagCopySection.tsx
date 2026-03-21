@@ -301,7 +301,51 @@ export default function TagCopySection({
         }
       }
 
+      // 테이블 스타일링 (클론 DOM 조작)
+      const tables = Array.from(contentClone.querySelectorAll("table"));
+      for (const table of tables) {
+        table.setAttribute(
+          "style",
+          "width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; text-align: left; border: 1px solid #d1d5db; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;",
+        );
+
+        const ths = Array.from(table.querySelectorAll("th"));
+        for (const th of ths) {
+          th.setAttribute(
+            "style",
+            "padding: 12px 15px; font-weight: bold; text-align: center; border: 1px solid #d1d5db; color: #111827; background-color: #ecfdf5;",
+          );
+        }
+
+        const trs = Array.from(table.querySelectorAll("tr"));
+        for (const tr of trs) {
+          tr.setAttribute("style", "border-bottom: 1px solid #d1d5db;");
+
+          const tds = Array.from(tr.querySelectorAll("td"));
+          if (tds.length > 0) {
+            // 첫 번째 td에 에메랄드 음영 적용
+            tds[0].setAttribute(
+              "style",
+              "padding: 12px 15px; border: 1px solid #d1d5db; color: #374151; background-color: #ecfdf5; font-weight: 500;",
+            );
+            // 나머지 td
+            for (let i = 1; i < tds.length; i++) {
+              tds[i].setAttribute(
+                "style",
+                "padding: 12px 15px; border: 1px solid #d1d5db; color: #374151;",
+              );
+            }
+          }
+        }
+      }
+
       let bodyHtml = contentClone.innerHTML;
+
+      // 티스토리/네이버 등 일부 에디터에서 첫 행(th, thead)이 올바르게 렌더링되지 않거나 무시되는 현상을 방지하기 위해 일반 td와 tbody로 강제 변환
+      bodyHtml = bodyHtml
+        .replace(/<thead/gi, "<tbody")
+        .replace(/<\/thead>/gi, "</tbody>");
+      bodyHtml = bodyHtml.replace(/<th/gi, "<td").replace(/<\/th>/gi, "</td>");
 
       // 제목 스타일 처리
       const h1Style =
@@ -576,7 +620,53 @@ export default function TagCopySection({
       `;
 
       // 2. 본문 내용 가공
-      let bodyHtml = contentRef.current.innerHTML;
+      const contentCloneN = contentRef.current.cloneNode(
+        true,
+      ) as HTMLDivElement;
+
+      // 테이블 스타일링 (클론 DOM 조작)
+      const tablesN = Array.from(contentCloneN.querySelectorAll("table"));
+      for (const table of tablesN) {
+        table.setAttribute(
+          "style",
+          "width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; text-align: left; border: 1px solid #d1d5db; font-family: 'NanumGothic', 'Malgun Gothic', sans-serif;",
+        );
+
+        const ths = Array.from(table.querySelectorAll("th"));
+        for (const th of ths) {
+          th.setAttribute(
+            "style",
+            "padding: 12px 15px; font-weight: bold; text-align: center; border: 1px solid #d1d5db; color: #111827; background-color: #ecfdf5;",
+          );
+        }
+
+        const trs = Array.from(table.querySelectorAll("tr"));
+        for (const tr of trs) {
+          tr.setAttribute("style", "border-bottom: 1px solid #d1d5db;");
+
+          const tds = Array.from(tr.querySelectorAll("td"));
+          if (tds.length > 0) {
+            tds[0].setAttribute(
+              "style",
+              "padding: 12px 15px; border: 1px solid #d1d5db; color: #374151; background-color: #ecfdf5; font-weight: 500;",
+            );
+            for (let i = 1; i < tds.length; i++) {
+              tds[i].setAttribute(
+                "style",
+                "padding: 12px 15px; border: 1px solid #d1d5db; color: #374151;",
+              );
+            }
+          }
+        }
+      }
+
+      let bodyHtml = contentCloneN.innerHTML;
+
+      // 티스토리/네이버 등 일부 에디터에서 첫 행(th, thead)이 올바르게 렌더링되지 않거나 무시되는 현상을 방지하기 위해 일반 td와 tbody로 강제 변환
+      bodyHtml = bodyHtml
+        .replace(/<thead/gi, "<tbody")
+        .replace(/<\/thead>/gi, "</tbody>");
+      bodyHtml = bodyHtml.replace(/<th/gi, "<td").replace(/<\/th>/gi, "</td>");
 
       // 이미지 경로를 절대 경로로 치환
       bodyHtml = bodyHtml.replace(

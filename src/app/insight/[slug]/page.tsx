@@ -7,6 +7,7 @@ import {
   getPublishedPostsByCategory,
 } from "@/lib/notion";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import GrainOverlay from "@/components/GrainOverlay";
 import FormattedDate from "@/components/FormattedDate";
 import AdFit from "@/components/AdFit";
@@ -385,7 +386,40 @@ export default async function InsightPostPage({
 
           <div className="max-w-none">
             <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
               components={{
+                table: ({ children }) => (
+                  <div className="overflow-x-auto w-full mb-8 rounded-lg shadow-sm">
+                    <table className="w-full text-left border-collapse text-sm sm:text-base border-hidden">
+                      {children}
+                    </table>
+                  </div>
+                ),
+                thead: ({ children }) => (
+                  <thead className="bg-emerald-50 dark:bg-emerald-900/30">
+                    {children}
+                  </thead>
+                ),
+                tbody: ({ children }) => (
+                  <tbody className="bg-white dark:bg-gray-800">
+                    {children}
+                  </tbody>
+                ),
+                tr: ({ children }) => (
+                  <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    {children}
+                  </tr>
+                ),
+                th: ({ children }) => (
+                  <th className="p-4 font-semibold text-center text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 whitespace-nowrap">
+                    {children}
+                  </th>
+                ),
+                td: ({ children }) => (
+                  <td className="p-4 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 first:bg-emerald-50 dark:first:bg-emerald-900/30 first:font-medium whitespace-pre-wrap">
+                    {children}
+                  </td>
+                ),
                 p: ({ children, node }) => {
                   // ReactMarkdown의 AST 노드를 확인하여 이미지가 있는지 체크
                   // node.children을 확인하여 더 정확하게 이미지 감지
