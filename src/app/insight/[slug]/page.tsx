@@ -423,11 +423,39 @@ export default async function InsightPostPage({
                     {children}
                   </th>
                 ),
-                td: ({ children }) => (
-                  <td className="p-4 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 first:bg-emerald-50 dark:first:bg-emerald-900/30 first:font-medium whitespace-pre-wrap">
-                    {children}
-                  </td>
-                ),
+                td: ({ children }) => {
+                  // 셀 내부에서 <br> 태그 텍스트를 실제 줄바꿈으로 변환
+                  const processedChildren = React.Children.map(
+                    children,
+                    (child) => {
+                      if (typeof child === "string" && child.includes("<br>")) {
+                        return child.split("<br>").map((part, i, arr) => (
+                          <React.Fragment key={i}>
+                            {part}
+                            {i < arr.length - 1 && <br />}
+                          </React.Fragment>
+                        ));
+                      }
+                      if (
+                        typeof child === "string" &&
+                        child.includes("<br />")
+                      ) {
+                        return child.split("<br />").map((part, i, arr) => (
+                          <React.Fragment key={i}>
+                            {part}
+                            {i < arr.length - 1 && <br />}
+                          </React.Fragment>
+                        ));
+                      }
+                      return child;
+                    },
+                  );
+                  return (
+                    <td className="p-4 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 first:bg-emerald-50 dark:first:bg-emerald-900/30 first:font-medium">
+                      {processedChildren}
+                    </td>
+                  );
+                },
                 p: ({ children, node }) => {
                   // ReactMarkdown의 AST 노드를 확인하여 이미지가 있는지 체크
                   // node.children을 확인하여 더 정확하게 이미지 감지
