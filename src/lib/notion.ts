@@ -39,6 +39,7 @@ interface NotionPage {
     category?: { rich_text: NotionRichText[] };
     date?: { date: { start: string } | null };
     tags?: { multi_select: { name: string; color?: string }[] };
+    products?: { multi_select: { name: string; color?: string }[] };
     prompt1?: { rich_text: NotionRichText[] };
     prompt2?: { rich_text: NotionRichText[] };
     prompt3?: { rich_text: NotionRichText[] };
@@ -494,6 +495,7 @@ export interface Post {
   category?: string; // 카테고리 추가
   date?: string; // 날짜 추가
   tags?: string[]; // 태그 추가
+  products?: string[]; // 추천 상품 태그
   featuredImage?: string; // 대표 이미지 추가
   prompt1?: string;
   prompt2?: string;
@@ -586,6 +588,7 @@ export async function mapNotionPageToPost(
     category: p.category?.rich_text?.[0]?.plain_text || undefined,
     date: p.date?.date?.start || undefined,
     tags: p.tags?.multi_select?.map((tag) => tag.name) || undefined,
+    products: p.products?.multi_select?.map((item) => item.name) || undefined,
     featuredImage,
     prompt1: p.prompt1?.rich_text?.[0]?.plain_text || undefined,
     prompt2: p.prompt2?.rich_text?.[0]?.plain_text || undefined,

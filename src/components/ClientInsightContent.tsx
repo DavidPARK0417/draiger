@@ -3,6 +3,7 @@
 import React from "react";
 import TagCopySection from "@/components/TagCopySection";
 import PromptCopySection from "@/components/PromptCopySection";
+import InsightProductTags from "@/components/InsightProductTags";
 import TextToSpeech from "@/components/TextToSpeech";
 
 interface ClientInsightContentProps {
@@ -14,6 +15,7 @@ interface ClientInsightContentProps {
   adComponent?: React.ReactNode;
   category?: string;
   prompts?: (string | undefined)[];
+  products?: string[];
 }
 
 export default function ClientInsightContent({
@@ -25,6 +27,7 @@ export default function ClientInsightContent({
   adComponent,
   category,
   prompts,
+  products,
 }: ClientInsightContentProps) {
   const contentRef = React.useRef<HTMLDivElement>(null);
   const descriptionRef = React.useRef<HTMLDivElement>(null);
@@ -52,6 +55,11 @@ export default function ClientInsightContent({
         {/* 1-1. 프롬프트 버튼 영역 (인사이트 상세에서만 보임) */}
         {prompts && prompts.length > 0 && (
           <PromptCopySection prompts={prompts} />
+        )}
+
+        {/* 1-2. 추천 상품 태그 (프롬프트 버튼 아래에 표시) */}
+        {products && products.length > 0 && (
+          <InsightProductTags products={products} />
         )}
 
         {/* 2. 요약 박스 영역 (descriptionRef) */}
