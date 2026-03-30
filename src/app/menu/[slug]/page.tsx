@@ -205,7 +205,11 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
           )}
         </header>
 
-        <ClientRecipeContent title={recipe.title} tags={recipe.tags || []}>
+        <ClientRecipeContent
+          title={recipe.title}
+          tags={recipe.tags || []}
+          cookingTime={recipe.cookingTime}
+        >
           <div
             className="
               border-l-4 border-teal-500 dark:border-cyan-400

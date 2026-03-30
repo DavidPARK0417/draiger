@@ -6,12 +6,14 @@ import TagCopySection from "@/components/TagCopySection";
 interface ClientRecipeContentProps {
   title: string;
   tags: string[];
+  cookingTime?: string | number;
   children: React.ReactNode;
 }
 
 export default function ClientRecipeContent({
   title,
   tags,
+  cookingTime,
   children,
 }: ClientRecipeContentProps) {
   const contentRef = React.useRef<HTMLDivElement>(null);
@@ -30,6 +32,7 @@ export default function ClientRecipeContent({
         <TagCopySection
           title={title}
           tags={tags}
+          cookingTime={cookingTime}
           contentRef={contentRef}
           descriptionRef={descriptionRef}
           onlyButtons={true}
@@ -48,6 +51,7 @@ export default function ClientRecipeContent({
           <TagCopySection
             title={title}
             tags={tags}
+            cookingTime={cookingTime}
             contentRef={contentRef}
             descriptionRef={descriptionRef}
             onlyTags={true}

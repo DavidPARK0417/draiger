@@ -13,6 +13,7 @@ interface TagCopySectionProps {
   className?: string;
   type?: "menu" | "insight";
   category?: string;
+  cookingTime?: string | number;
 }
 
 export default function TagCopySection({
@@ -25,6 +26,7 @@ export default function TagCopySection({
   className = "",
   type = "menu",
   category = "",
+  cookingTime,
 }: TagCopySectionProps) {
   const [activeButton, setActiveButton] = React.useState<string | null>(null);
   const [mounted, setMounted] = React.useState(false);
@@ -40,75 +42,84 @@ export default function TagCopySection({
   }, []);
 
   // ⭐ 제목 패턴 생성 함수 (SEO + CTR 최적화)
-  const generateDynamicTitle = React.useCallback((rawTitle: string) => {
-    if (!rawTitle) return "";
+  const generateDynamicTitle = React.useCallback(
+    (rawTitle: string, time?: string | number) => {
+      if (!rawTitle) return "";
 
-    const title = rawTitle.trim();
-    const bracketTitle = `[${title}]`;
-    const quoteTitle = `"${title}"`;
+      const title = rawTitle.trim();
+      const bracketTitle = `[${title}]`;
+      const quoteTitle = `"${title}"`;
 
-    const patterns = [
-      // ⭐ 기본 SEO 패턴
-      `${title} 레시피`,
-      `${title} 만드는 법`,
-      `${title} 황금 레시피`,
-      `${title} 초간단 레시피`,
-      `집에서 쉽게 만드는 ${title} 레시피`,
+      // cookingTime 파싱 (예: "3", "3분", 3 -> "3분")
+      let timeValueStr = "5분";
+      if (time) {
+        const timeStr = time.toString().trim();
+        timeValueStr = timeStr.includes("분") ? timeStr : `${timeStr}분`;
+      }
 
-      // ⭐ 실패 없는 패턴
-      `실패 없는 ${title} 황금 레시피`,
-      `요리 초보도 성공하는 ${title} 레시피`,
-      `이대로만 만들면 성공하는 ${title} 레시피`,
-      `${title} 맛있게 만드는 방법`,
-      `${title} 이렇게 만들면 더 맛있습니다`,
+      // 혹시 '3분분' 이런식으로 되지 않게
+      timeValueStr = timeValueStr.replace(/분분/g, "분");
 
-      // ⭐ 오늘 메뉴 패턴 (티스토리 트래픽 핵심)
-      `오늘 저녁 메뉴 추천 ${title}`,
-      `오늘 뭐 먹지? ${title} 어떠세요`,
-      `오늘의 메뉴 추천 ${title}`,
-      `오늘 메뉴 고민 끝! ${title} 레시피`,
-      `오늘 한 끼 추천 ${title}`,
+      const patterns = [
+        // ⭐ 기본 SEO 패턴
+        `${title} 레시피`,
+        `${title} 만드는 법`,
+        `${title} 황금 레시피`,
+        `${title} 초간단 레시피`,
+        `집에서 쉽게 만드는 ${title} 레시피`,
 
-      // ⭐ 감정 클릭 유도 패턴
-      `한 번 먹으면 계속 찾는 ${title} 레시피`,
-      `식당보다 맛있는 ${title} 레시피`,
-      `집에서 만드는 맛집 ${title}`,
-      `정말 맛있는 ${title} 레시피`,
-      `요즘 인기 메뉴 ${title} 레시피`,
+        // ⭐ 실패 없는 패턴
+        `실패 없는 ${title} 황금 레시피`,
+        `요리 초보도 성공하는 ${title} 레시피`,
+        `이대로만 만들면 성공하는 ${title} 레시피`,
+        `${title} 맛있게 만드는 방법`,
+        `${title} 이렇게 만들면 더 맛있습니다`,
 
-      // ⭐ 숫자 CTR 패턴
-      `5분 완성 ${title} 초간단 레시피`,
-      `10분 만에 만드는 ${title}`,
-      `3가지 재료로 만드는 ${title}`,
-      `초간단 ${title} 레시피 5분 완성`,
-      `누구나 만드는 ${title} 간단 레시피`,
+        // ⭐ 오늘 메뉴 패턴 (티스토리 트래픽 핵심)
+        `오늘 뭐 먹지? ${title} 어떠세요`,
+        `오늘의 메뉴 추천 ${title}`,
+        `오늘 메뉴 고민 끝! ${title} 레시피`,
+        `오늘 한 끼 추천 ${title}`,
 
-      // ⭐ 괄호 패턴
-      `오늘의 메뉴 : ${bracketTitle}`,
-      `오늘의 메뉴 : ${quoteTitle}`,
-      `실패 없는 요리 레시피 : ${bracketTitle}`,
-      `실패 없는 요리 레시피 : ${quoteTitle}`,
-      `오늘 저녁 메뉴 추천 : ${bracketTitle}`,
+        // ⭐ 감정 클릭 유도 패턴
+        `한 번 먹으면 계속 찾는 ${title} 레시피`,
+        `식당보다 맛있는 ${title} 레시피`,
+        `집에서 만드는 맛집 ${title}`,
+        `정말 맛있는 ${title} 레시피`,
+        `요즘 인기 메뉴 ${title} 레시피`,
 
-      // ⭐ 추가 CTR 패턴
-      `${title} 레시피, 이렇게 만들면 성공`,
-      `${title} 제대로 만드는 방법`,
-      `${title} 맛있게 만드는 황금 비율`,
-      `${title} 레시피 공개`,
-      `${title} 간단 레시피 알려드립니다`,
-    ];
+        // ⭐ 숫자 CTR 패턴
+        `${timeValueStr} 완성 ${title} 초간단 레시피`,
+        `${timeValueStr} 만에 만드는 ${title}`,
+        `3가지 재료로 만드는 ${title}`,
+        `초간단 ${title} 레시피 ${timeValueStr} 완성`,
+        `누구나 만드는 ${title} 간단 레시피`,
 
-    const randomIndex = Math.floor(Math.random() * patterns.length);
-    return patterns[randomIndex];
-  }, []);
+        // ⭐ 괄호 패턴
+        `오늘의 메뉴 : ${bracketTitle}`,
+        `오늘의 메뉴 : ${quoteTitle}`,
+        `실패 없는 요리 레시피 : ${bracketTitle}`,
+        `실패 없는 요리 레시피 : ${quoteTitle}`,
+
+        // ⭐ 추가 CTR 패턴
+        `${title} 레시피, 이렇게 만들면 성공`,
+        `${title} 제대로 만드는 방법`,
+        `${title} 맛있게 만드는 황금 비율`,
+      ];
+
+      const randomIndex = Math.floor(Math.random() * patterns.length);
+      return patterns[randomIndex];
+    },
+    [],
+  );
 
   // ⭐ 메뉴 페이지일 때, 처음 렌더링 시 한 번만 랜덤 카피 제목 생성
   React.useEffect(() => {
     if (type === "menu" && title && !menuDynamicTitle) {
-      const generated = generateDynamicTitle(title);
+      const generated = generateDynamicTitle(title, cookingTime);
       setMenuDynamicTitle(generated || title);
     }
-  }, [type, title, menuDynamicTitle, generateDynamicTitle]);
+  }, [type, title, menuDynamicTitle, cookingTime, generateDynamicTitle]);
 
   const copyToClipboard = async (
     content: string | ClipboardItem[],
