@@ -55,8 +55,8 @@ export default function InsightProductTags({
         type="button"
         onClick={() =>
           copyToClipboard(
-            `<i style="color: #777777;">이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</i>`,
-            `*이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.*`,
+            `<div style="text-align: center;" align="center"><span style="color: #777777;"><i>"이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."</i></span></div>`,
+            `*"이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."*`,
             "header",
           )
         }
@@ -90,13 +90,7 @@ export default function InsightProductTags({
           <button
             key={id}
             type="button"
-            onClick={() =>
-              copyToClipboard(
-                `<span style="color: #777777;">${product}</span>`,
-                product,
-                id,
-              )
-            }
+            onClick={() => copyToClipboard(product, product, id)}
             aria-label={`${product} 복사`}
             className={`
               inline-flex items-center gap-1.5
