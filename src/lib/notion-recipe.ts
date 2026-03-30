@@ -44,6 +44,7 @@ interface NotionPage {
     date?: { date: { start: string } | null };
     tags?: { multi_select: { name: string; color?: string }[] };
     category?: { rich_text: NotionRichText[] };
+    products?: { multi_select: { name: string; color?: string }[] };
     [key: string]: unknown;
   };
   [key: string]: unknown;
@@ -83,6 +84,7 @@ export interface Recipe {
   tags?: string[];
   featuredImage?: string;
   image?: string; // image 속성도 지원
+  products?: string[];
 }
 
 /**
@@ -626,6 +628,9 @@ export async function getPublishedRecipesPaginated(
           cookingTime,
           category:
             page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+          products:
+            page.properties.products?.multi_select?.map((p) => p.name) ||
+            undefined,
           featuredImage, // 빠른 방법으로 추출한 이미지만 (없으면 undefined)
           image: featuredImage,
         };
@@ -856,6 +861,9 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
         cookingTime,
         category:
           page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+        products:
+          page.properties.products?.multi_select?.map((p) => p.name) ||
+          undefined,
         featuredImage,
         image: featuredImage,
       };
@@ -1032,6 +1040,10 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
           servingSize,
           featuredImage,
           category: p.category?.rich_text?.[0]?.plain_text,
+          products:
+            p.products?.multi_select?.map(
+              (product: { name: string }) => product.name,
+            ) || undefined,
         };
       });
 
@@ -1212,6 +1224,10 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
       servingSize,
       category:
         page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+      products:
+        page.properties.products?.multi_select?.map(
+          (product: { name: string }) => product.name,
+        ) || undefined,
       date: page.properties.date?.date?.start || undefined,
       tags:
         page.properties.tags?.multi_select?.map((tag) => tag.name) || undefined,

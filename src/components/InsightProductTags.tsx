@@ -90,7 +90,13 @@ export default function InsightProductTags({
           <button
             key={id}
             type="button"
-            onClick={() => copyToClipboard(product, product, id)}
+            onClick={() =>
+              copyToClipboard(
+                `<span style="color: #777777;">${product}</span>`,
+                product,
+                id,
+              )
+            }
             aria-label={`${product} 복사`}
             className={`
               inline-flex items-center gap-1.5
