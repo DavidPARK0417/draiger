@@ -3,6 +3,7 @@
 import React from "react";
 import TagCopySection from "@/components/TagCopySection";
 
+import PromptCopySection from "@/components/PromptCopySection";
 import InsightProductTags from "@/components/InsightProductTags";
 
 interface ClientRecipeContentProps {
@@ -10,6 +11,7 @@ interface ClientRecipeContentProps {
   tags: string[];
   cookingTime?: string | number;
   products?: string[];
+  prompt?: string;
   children: React.ReactNode;
 }
 
@@ -18,6 +20,7 @@ export default function ClientRecipeContent({
   tags,
   cookingTime,
   products,
+  prompt,
   children,
 }: ClientRecipeContentProps) {
   const contentRef = React.useRef<HTMLDivElement>(null);
@@ -40,9 +43,12 @@ export default function ClientRecipeContent({
           contentRef={contentRef}
           descriptionRef={descriptionRef}
           onlyButtons={true}
-          className="mb-8 sm:mb-10"
+          className={prompt ? "mb-2" : "mb-8 sm:mb-10"}
           type="menu"
         />
+
+        {/* 프롬프트 버튼 영역 */}
+        {prompt && <PromptCopySection prompts={[prompt]} />}
 
         {/* 추천 상품 태그 영역 (프롬프트 복사 버튼 바로 아래) */}
         {products && products.length > 0 && (

@@ -35,12 +35,7 @@ export default function PromptCopySection({ prompts }: PromptCopySectionProps) {
     }
   };
 
-  // 정확히 prompt1 ~ prompt6 (총 6개)를 표시
-  const promptList = prompts.slice(0, 6);
-  // 만약 prompts 배열 길이가 6보다 작으면 6개가 되도록 빈 요소 채우기
-  while (promptList.length < 6) {
-    promptList.push(undefined);
-  }
+  const promptList = prompts;
 
   return (
     <div className="flex flex-wrap gap-2 mt-4 mb-6">

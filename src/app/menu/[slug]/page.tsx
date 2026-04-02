@@ -210,6 +210,7 @@ export default async function MenuPostPage({ params }: MenuPostPageProps) {
           tags={recipe.tags || []}
           cookingTime={recipe.cookingTime}
           products={recipe.products}
+          prompt={recipe.prompt}
         >
           <div
             className="

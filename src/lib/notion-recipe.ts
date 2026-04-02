@@ -45,6 +45,7 @@ interface NotionPage {
     tags?: { multi_select: { name: string; color?: string }[] };
     category?: { rich_text: NotionRichText[] };
     products?: { multi_select: { name: string; color?: string }[] };
+    prompt?: { rich_text: NotionRichText[] };
     [key: string]: unknown;
   };
   [key: string]: unknown;
@@ -85,6 +86,7 @@ export interface Recipe {
   featuredImage?: string;
   image?: string; // image 속성도 지원
   products?: string[];
+  prompt?: string;
 }
 
 /**
@@ -631,6 +633,8 @@ export async function getPublishedRecipesPaginated(
           products:
             page.properties.products?.multi_select?.map((p) => p.name) ||
             undefined,
+          prompt:
+            page.properties.prompt?.rich_text?.[0]?.plain_text || undefined,
           featuredImage, // 빠른 방법으로 추출한 이미지만 (없으면 undefined)
           image: featuredImage,
         };
@@ -864,6 +868,7 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
         products:
           page.properties.products?.multi_select?.map((p) => p.name) ||
           undefined,
+        prompt: page.properties.prompt?.rich_text?.[0]?.plain_text || undefined,
         featuredImage,
         image: featuredImage,
       };
@@ -1044,6 +1049,7 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
             p.products?.multi_select?.map(
               (product: { name: string }) => product.name,
             ) || undefined,
+          prompt: p.prompt?.rich_text?.[0]?.plain_text || undefined,
         };
       });
 
@@ -1228,6 +1234,7 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
         page.properties.products?.multi_select?.map(
           (product: { name: string }) => product.name,
         ) || undefined,
+      prompt: page.properties.prompt?.rich_text?.[0]?.plain_text || undefined,
       date: page.properties.date?.date?.start || undefined,
       tags:
         page.properties.tags?.multi_select?.map((tag) => tag.name) || undefined,
