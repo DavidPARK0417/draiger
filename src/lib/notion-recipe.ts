@@ -764,115 +764,126 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
       }
     }
 
-    const recipes: Recipe[] = data.results.map((page: NotionPage) => {
-      const p = page.properties;
-      const blogPostContent = p.blogPost?.rich_text
-        ? p.blogPost.rich_text
-            .map((rt: NotionRichText) => rt.plain_text)
-            .join("")
-        : "";
+    const recipesWithoutImages: Recipe[] = data.results.map(
+      (page: NotionPage) => {
+        const p = page.properties;
+        const blogPostContent = p.blogPost?.rich_text
+          ? p.blogPost.rich_text
+              .map((rt: NotionRichText) => rt.plain_text)
+              .join("")
+          : "";
 
-      const description =
-        p.description?.rich_text?.[0]?.plain_text ||
-        p.metaDescription?.rich_text?.[0]?.plain_text ||
-        "";
+        const description =
+          p.description?.rich_text?.[0]?.plain_text ||
+          p.metaDescription?.rich_text?.[0]?.plain_text ||
+          "";
 
-      // 이미지 추출 최적화
-      let featuredImage: string | undefined = undefined;
+        // image 속성에서 이미지 URL 추출 (빠른 방법)
+        let featuredImage: string | undefined = undefined;
 
-      // 1. featuredImage 속성 확인
-      const fImg = p.featuredImage as
-        | {
-            type: "files";
-            files: Array<{
-              type: "external" | "file";
-              external?: { url: string };
-              file?: { url: string };
-            }>;
+        // image 속성이 files 배열인 경우
+        if (
+          p.image &&
+          typeof p.image === "object" &&
+          p.image !== null &&
+          "files" in p.image &&
+          Array.isArray(p.image.files)
+        ) {
+          const imageFile = p.image.files[0];
+          if (imageFile?.file?.url) {
+            featuredImage = imageFile.file.url;
           }
-        | { type: "url"; url: string }
-        | undefined;
-      if (fImg) {
-        if (fImg.type === "files" && fImg.files && fImg.files.length > 0) {
-          const file = fImg.files[0];
-          featuredImage =
-            file.type === "external" ? file.external?.url : file.file?.url;
-        } else if (fImg.type === "url" && fImg.url) {
-          featuredImage = fImg.url;
         }
-      }
+        // image 속성이 url인 경우
+        else if (
+          p.image &&
+          typeof p.image === "object" &&
+          p.image !== null &&
+          "url" in p.image &&
+          typeof p.image.url === "string"
+        ) {
+          featuredImage = p.image.url;
+        }
 
-      // 2. image 속성 확인
-      if (!featuredImage) {
-        const img = p.image as
-          | {
-              type: "files";
-              files: Array<{
-                type: "external" | "file";
-                external?: { url: string };
-                file?: { url: string };
-              }>;
-            }
+        // image 속성이 없으면 blogPost에서만 추출 (빠른 방법)
+        if (!featuredImage) {
+          featuredImage = extractFirstImageUrl(blogPostContent);
+        }
+
+        const publishedValue = (p.published || p.Published) as
+          | { checkbox?: boolean }
           | undefined;
-        if (img && typeof img === "object") {
-          if (
-            "files" in img &&
-            Array.isArray(img.files) &&
-            img.files.length > 0
-          ) {
-            const file = img.files[0];
-            featuredImage =
-              file.type === "external" ? file.external?.url : file.file?.url;
-          } else if ("url" in img && typeof img.url === "string") {
-            featuredImage = img.url;
+        const isPublished = publishedValue?.checkbox ?? true;
+        const difficulty = p.difficulty?.select?.name || undefined;
+
+        let cookingTime: string | number | undefined = undefined;
+        if (p.cookingtime && typeof p.cookingtime === "object") {
+          const ct = p.cookingtime as {
+            rich_text?: Array<{ plain_text: string }>;
+            number?: number;
+          };
+          if (ct.rich_text?.[0]?.plain_text) {
+            cookingTime = ct.rich_text[0].plain_text;
+          } else if (typeof ct.number === "number") {
+            cookingTime = ct.number;
           }
         }
-      }
 
-      // 3. blogPost 필드에서만 이미지 추출
-      if (!featuredImage) {
-        featuredImage = extractFirstImageUrl(blogPostContent);
-      }
-
-      const publishedValue = (p.published || p.Published) as
-        | { checkbox?: boolean }
-        | undefined;
-      const isPublished = publishedValue?.checkbox ?? true;
-      const difficulty = p.difficulty?.select?.name || undefined;
-
-      let cookingTime: string | number | undefined = undefined;
-      if (p.cookingtime && typeof p.cookingtime === "object") {
-        const ct = p.cookingtime as {
-          rich_text?: Array<{ plain_text: string }>;
-          number?: number;
+        return {
+          id: page.id,
+          title: page.properties.title?.title[0]?.plain_text || "Untitled",
+          slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
+          metaDescription: description,
+          description: description,
+          published: isPublished,
+          blogPost: blogPostContent || undefined,
+          difficulty,
+          cookingTime,
+          category:
+            page.properties.category?.rich_text?.[0]?.plain_text || undefined,
+          products:
+            page.properties.products?.multi_select?.map((p) => p.name) ||
+            undefined,
+          prompt:
+            page.properties.prompt?.rich_text?.[0]?.plain_text || undefined,
+          featuredImage,
+          image: featuredImage,
         };
-        if (ct.rich_text?.[0]?.plain_text) {
-          cookingTime = ct.rich_text[0].plain_text;
-        } else if (typeof ct.number === "number") {
-          cookingTime = ct.number;
-        }
-      }
+      },
+    );
 
-      return {
-        id: page.id,
-        title: page.properties.title?.title[0]?.plain_text || "Untitled",
-        slug: page.properties.slug?.rich_text?.[0]?.plain_text || "",
-        metaDescription: description,
-        description: description,
-        published: isPublished,
-        blogPost: blogPostContent || undefined,
-        difficulty,
-        cookingTime,
-        category:
-          page.properties.category?.rich_text?.[0]?.plain_text || undefined,
-        products:
-          page.properties.products?.multi_select?.map((p) => p.name) ||
-          undefined,
-        prompt: page.properties.prompt?.rich_text?.[0]?.plain_text || undefined,
-        featuredImage,
-        image: featuredImage,
-      };
-    });
+    const recipesWithImagesPromises = recipesWithoutImages.map(
+      async (recipe) => {
+        // 이미 이미지가 있으면 스킵
+        if (recipe.featuredImage) {
+          console.log(
+            `[getLatestRecipes] ${recipe.title} already has featuredImage: ${recipe.featuredImage}`,
+          );
+          return recipe;
+        }
+
+        try {
+          console.log(
+            `[getLatestRecipes] fetching full content for ${recipe.title}...`,
+          );
+          const fullContent = await getRecipeContent(recipe.id);
+          const featuredImage = extractFirstImageUrl(fullContent);
+          console.log(
+            `[getLatestRecipes] ${recipe.title} extracting image from content: ${featuredImage}`,
+          );
+          return { ...recipe, featuredImage, image: featuredImage };
+        } catch (error) {
+          console.error(
+            `[getLatestRecipes] Failed to extract image for ${recipe.title}:`,
+            error,
+          );
+          // 이미지 추출 실패는 무시
+          return recipe;
+        }
+      },
+    );
+
+    const recipes = await Promise.all(recipesWithImagesPromises);
 
     return recipes;
   } catch (error) {
