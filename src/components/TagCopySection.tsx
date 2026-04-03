@@ -93,7 +93,6 @@ export default function TagCopySection({
         // ⭐ 숫자 CTR 패턴
         `${timeValueStr} 완성 ${title} 초간단 레시피`,
         `${timeValueStr} 만에 만드는 ${title}`,
-        `3가지 재료로 만드는 ${title}`,
         `초간단 ${title} 레시피 ${timeValueStr} 완성`,
         `누구나 만드는 ${title} 간단 레시피`,
 
