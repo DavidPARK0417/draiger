@@ -45,6 +45,7 @@ export default function ClientRecipeContent({
           onlyButtons={true}
           className={prompt ? "mb-2" : "mb-8 sm:mb-10"}
           type="menu"
+          products={products}
         />
 
         {/* 프롬프트 버튼 영역 */}
@@ -73,6 +74,7 @@ export default function ClientRecipeContent({
             descriptionRef={descriptionRef}
             onlyTags={true}
             type="menu"
+            products={products}
           />
         )}
       </div>

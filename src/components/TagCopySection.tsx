@@ -14,6 +14,7 @@ interface TagCopySectionProps {
   type?: "menu" | "insight";
   category?: string;
   cookingTime?: string | number;
+  products?: string[];
 }
 
 export default function TagCopySection({
@@ -27,6 +28,7 @@ export default function TagCopySection({
   type = "menu",
   category = "",
   cookingTime,
+  products = [],
 }: TagCopySectionProps) {
   const [activeButton, setActiveButton] = React.useState<string | null>(null);
   const [mounted, setMounted] = React.useState(false);
@@ -203,6 +205,8 @@ export default function TagCopySection({
   // 본문 HTML 복사 (티스토리 블로그용 - 네이버N과 동일한 디자인 적용)
   const handleCopyHtmlT = async () => {
     if (!contentRef?.current || !descriptionRef?.current) return;
+
+    let plainTextCombined = "";
 
     try {
       const baseUrl =
@@ -571,6 +575,14 @@ export default function TagCopySection({
           `\n<div class="tistory-cooking-guide">\n${remainingContent}\n</div>`;
       }
 
+      let disclaimerHtml = "";
+      let disclaimerText = "";
+
+      if (products && products.length > 0) {
+        disclaimerHtml = `<br /><br /><div style="text-align: center;" align="center"><span style="color: #777777;"><i>"이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."</i></span></div>`;
+        disclaimerText = `\n\n*"이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."*`;
+      }
+
       // 전체 결합
       const combinedHtml = `
         <div style="font-family: 'NanumGothic', 'Malgun Gothic', sans-serif; font-size: 17px; color: #333333; line-height: 1.8; padding: 20px; max-width: 800px; margin: 0 auto;">
@@ -578,14 +590,14 @@ export default function TagCopySection({
           <div style="margin-top: 40px;">
             ${bodyHtml}
           </div>
+          ${disclaimerHtml}
         </div>
       `;
 
+      plainTextCombined = `${summaryText}\n\n${contentRef.current.innerText}${disclaimerText}`;
+
       const blobHtml = new Blob([combinedHtml], { type: "text/html" });
-      const blobText = new Blob(
-        [`${summaryText}\n\n${contentRef.current.innerText}`],
-        { type: "text/plain" },
-      );
+      const blobText = new Blob([plainTextCombined], { type: "text/plain" });
 
       const data: ClipboardItem[] = [
         new ClipboardItem({
@@ -607,8 +619,10 @@ export default function TagCopySection({
     } catch (err) {
       console.error("티스토리 본문 복사 실패:", err);
       // 모바일 등에서 ClipboardItem 미지원 시 텍스트만이라도 복사 시도
-      const plainText = `${descriptionRef.current?.innerText || ""}\n\n${contentRef.current?.innerText || ""}`;
-      void copyToClipboard(plainText, "htmlT");
+      if (!plainTextCombined) {
+        plainTextCombined = `${descriptionRef.current?.innerText || ""}\n\n${contentRef.current?.innerText || ""}`;
+      }
+      void copyToClipboard(plainTextCombined, "htmlT");
     }
   };
 

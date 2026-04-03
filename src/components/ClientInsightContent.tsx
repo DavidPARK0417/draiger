@@ -50,6 +50,7 @@ export default function ClientInsightContent({
           className={prompts && prompts.length > 0 ? "mb-2" : "mb-6"}
           type="insight"
           category={category}
+          products={products}
         />
 
         {/* 1-1. 프롬프트 버튼 영역 (인사이트 상세에서만 보임) */}
@@ -96,6 +97,7 @@ export default function ClientInsightContent({
             onlyTags={true}
             type="insight"
             category={category}
+            products={products}
           />
         )}
       </div>
