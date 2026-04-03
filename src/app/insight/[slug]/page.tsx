@@ -28,32 +28,9 @@ interface InsightPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
-// 빌드 시점에 모든 인사이트 포스트 slug를 생성
+// 빌드 시점에 모든 인사이트 포스트 slug를 생성 (Notion Rate Limit 방지를 위해 빈 배열 반환)
 export async function generateStaticParams() {
-  try {
-    const posts = await getPublishedPosts();
-    if (process.env.NODE_ENV === "development") {
-      console.log(
-        `[generateStaticParams] 총 ${posts.length}개의 인사이트 포스트 slug 생성`,
-      );
-    }
-
-    return posts
-      .filter((post) => post.slug) // slug가 있는 포스트만 필터링
-      .slice(0, 40) // 빌드 시 최근 40개만 정적 생성하여 Notion API 속도 제한 및 빌드 타임아웃 방지
-      .map((post) => ({
-        slug: post.slug,
-      }));
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error(
-        "[generateStaticParams] 인사이트 포스트 slug 생성 실패:",
-        error,
-      );
-    }
-    // 에러 발생 시 빈 배열 반환 (동적 생성으로 대체)
-    return [];
-  }
+  return [];
 }
 
 // 동적 메타데이터 생성
