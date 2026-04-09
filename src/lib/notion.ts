@@ -729,7 +729,7 @@ export async function getPublishedPosts(): Promise<Post[]> {
       },
       sorts: [
         {
-          timestamp: "created_time",
+          property: "date",
           direction: "descending",
         },
       ],
@@ -797,7 +797,7 @@ export async function getPublishedPostsPaginated(
         },
         sorts: [
           {
-            timestamp: "created_time",
+            property: "date",
             direction: "descending",
           },
         ],
@@ -865,7 +865,7 @@ export async function getLatestPosts(limit: number = 3): Promise<Post[]> {
       },
       sorts: [
         {
-          timestamp: "created_time",
+          property: "date",
           direction: "descending",
         },
       ],
@@ -1026,7 +1026,7 @@ export async function getPublishedPostsByCategory(
         },
         sorts: [
           {
-            timestamp: "created_time",
+            property: "date",
             direction: "descending",
           },
         ],
@@ -1164,7 +1164,7 @@ export async function getPublishedPostsByCategoryPaginated(
           },
           sorts: [
             {
-              timestamp: "created_time",
+              property: "date",
               direction: "descending",
             },
           ],

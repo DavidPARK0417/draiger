@@ -497,7 +497,7 @@ export async function getPublishedRecipesPaginated(
             : undefined,
           sorts: [
             {
-              timestamp: "created_time",
+              property: "date",
               direction: "descending",
             },
           ],
@@ -518,7 +518,7 @@ export async function getPublishedRecipesPaginated(
             database_id: databaseId,
             sorts: [
               {
-                timestamp: "created_time",
+                property: "date",
                 direction: "descending",
               },
             ],
@@ -737,7 +737,7 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
         },
         sorts: [
           {
-            timestamp: "created_time",
+            property: "date",
             direction: "descending",
           },
         ],
@@ -753,7 +753,7 @@ export async function getLatestRecipes(limit: number = 3): Promise<Recipe[]> {
           database_id: databaseId,
           sorts: [
             {
-              timestamp: "created_time",
+              property: "date",
               direction: "descending",
             },
           ],
@@ -929,7 +929,7 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
           },
           sorts: [
             {
-              timestamp: "created_time",
+              property: "date",
               direction: "descending",
             },
           ],
@@ -948,7 +948,7 @@ export async function getAllPublishedRecipes(): Promise<Recipe[]> {
             database_id: databaseId,
             sorts: [
               {
-                timestamp: "created_time",
+                property: "date",
                 direction: "descending",
               },
             ],
