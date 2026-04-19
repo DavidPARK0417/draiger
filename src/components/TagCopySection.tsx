@@ -970,21 +970,25 @@ export default function TagCopySection({
       let plainText = `${title}\n\n${summaryText}\n\n`;
 
       // 1. 유형별 텍스트 구성
+      const threadSuffix = `✔️스친들아 리포🔄 한번 눌러줘~\n✔️스하리 = 반하리!\n✔️늦더라도 무조건 달려간다!🏃‍♀️🏃`;
+
       if (type === "menu") {
         const threadTitle = menuDynamicTitle || title;
-        plainText = `${threadTitle}\n\n${summaryText}\n\n#레시피\n\n`;
+        plainText = `${threadTitle}\n\n${summaryText}\n\n${threadSuffix}\n\n#스레드1000명프로젝트\n#레시피\n\n`;
       } else if (type === "insight") {
         const categoryMap: Record<string, string> = {
           "내일의 AI": "#AI정보",
-          "돈이 되는 소식": "#경제",
-          "궁금한 세상 이야기": "#사회",
-          "슬기로운 생활": "#생활정보",
+          "돈이 되는 소식": "#돈이되는소식",
+          "궁금한 세상 이야기": "#궁금한세상이야기",
+          "슬기로운 생활": "#생활정보,꿀팁",
           "오늘보다 건강하게": "#건강",
-          "마음 채우기": "#자기계발",
-          "마음 채우기는": "#자기계발",
+          "마음 채우기": "#자기계발"
         };
         const categoryTag = categoryMap[category] || "";
-        plainText = `${title}\n\n${summaryText}\n\n${categoryTag}\n\n`;
+        const finalTag = categoryTag
+          ? `#스레드1000명프로젝트\n${categoryTag}`
+          : `#스레드1000명프로젝트`;
+        plainText = `${title}\n\n${summaryText}\n\n${threadSuffix}\n\n${finalTag}\n\n`;
       }
 
       // 2. 이미지 추출 및 절대 경로 변환 (threadsT는 이미지 제외하므로 건너뜀)
