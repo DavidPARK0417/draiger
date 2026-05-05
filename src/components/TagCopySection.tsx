@@ -578,7 +578,7 @@ export default function TagCopySection({
       let disclaimerText = "";
 
       if (products && products.length > 0) {
-        disclaimerHtml = `<br /><br /><br /><br /><br /><div style="text-align: center;" align="center"><span style="color: #777777;"><i>"이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."</i></span></div>`;
+        disclaimerHtml = `<br /><br /><br /><br /><br /><br /><br /><div style="text-align: center;" align="center"><span style="color: #777777;"><i>"이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."</i></span></div>`;
         disclaimerText = `\n\n*"이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."*`;
       }
 
