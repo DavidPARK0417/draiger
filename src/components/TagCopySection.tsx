@@ -648,6 +648,47 @@ export default function TagCopySection({
         true,
       ) as HTMLDivElement;
 
+      // ──────────────────────────────────────────────────
+      // ⭐ [핵심] 네이버 스마트에디터용 이미지 URL 처리
+      //
+      // 네이버 스마트에디터 ONE 이미지 처리 규칙:
+      //  - data:image/... (Base64) → ❌ "허용되지 않는 형식" 오류로 차단
+      //  - https://... (외부 URL) → ✅ 네이버가 자동 다운로드 후 자체 CDN 재업로드
+      //
+      // 따라서: 프록시 URL에서 원본 CDN URL을 추출해 절대 HTTPS URL로 변환합니다.
+      // ──────────────────────────────────────────────────
+      const imagesN = Array.from(contentCloneN.querySelectorAll("img"));
+
+      for (const img of imagesN) {
+        // Lazy Load / srcset 속성 제거 (네이버 에디터 호환성)
+        img.removeAttribute("loading");
+        img.removeAttribute("srcset");
+        img.removeAttribute("sizes");
+        img.removeAttribute("decoding");
+
+        const srcUrl = img.getAttribute("src");
+        if (!srcUrl) continue;
+
+        let finalUrl = srcUrl;
+
+        if (srcUrl.includes("/api/proxy-image")) {
+          // 프록시 URL에서 원본 URL 추출 (예: /api/proxy-image?url=https%3A%2F%2F...)
+          const urlMatch = srcUrl.match(/url=([^&]+)/);
+          if (urlMatch) {
+            finalUrl = decodeURIComponent(urlMatch[1]);
+          }
+        } else if (srcUrl.startsWith("/")) {
+          // 상대 경로 → baseUrl 붙여 절대 경로로 변환
+          finalUrl = baseUrl + srcUrl;
+        }
+        // 이미 http(s)://로 시작하면 그대로 사용
+
+        // avif / webp → jpg 확장자 변환 (호환성 향상)
+        finalUrl = finalUrl.replace(/\.(avif|webp)(?=\?|$)/i, ".jpg");
+
+        img.setAttribute("src", finalUrl);
+      }
+
       // 테이블 스타일링 (클론 DOM 조작)
       const tablesN = Array.from(contentCloneN.querySelectorAll("table"));
       for (const table of tablesN) {
@@ -692,14 +733,8 @@ export default function TagCopySection({
         .replace(/<\/thead>/gi, "</tbody>");
       bodyHtml = bodyHtml.replace(/<th/gi, "<td").replace(/<\/th>/gi, "</td>");
 
-      // 이미지 경로를 절대 경로로 치환
-      bodyHtml = bodyHtml.replace(
-        /src="\/api\/proxy-image\?url=([^"]+)"/g,
-        `src="${baseUrl}/api/proxy-image?url=$1"`,
-      );
-      bodyHtml = bodyHtml.replace(/src="\/([^"]+)"/g, (match, path) =>
-        path.startsWith("api/") ? match : `src="${baseUrl}/${path}"`,
-      );
+      // ⭐ 이미지가 이미 Base64로 변환됐으므로 절대 URL 치환은 건너뜁니다.
+      // (변환 실패한 이미지만 fallbackUrl로 처리했으므로 추가 치환 불필요)
 
       // 네이버 블로그 스마트에디터 최적화 스타일 주입
 
@@ -982,7 +1017,7 @@ export default function TagCopySection({
           "궁금한 세상 이야기": "#궁금한세상이야기",
           "슬기로운 생활": "#생활정보,꿀팁",
           "오늘보다 건강하게": "#건강",
-          "마음 채우기": "#자기계발"
+          "마음 채우기": "#자기계발",
         };
         const categoryTag = categoryMap[category] || "";
         const finalTag = categoryTag
